@@ -101,13 +101,8 @@ func main() {
 		message := event.Arguments[len(event.Arguments)-1]
 		realname := event.User
 
-		fmt.Println(channel)
-		fmt.Println(realname)
-		fmt.Println(message)
-
 		if strings.HasPrefix(message, "!music") {
 			if isWhiteListed, _ := bot.isUserWhitelisted(realname); bot.Master == realname || isWhiteListed {
-				fmt.Println("music prefix found")
 				arguments := strings.Split(message, " ")[1:]
 				if len(arguments) > 0 {
 					commandName := strings.ToLower(arguments[0])
