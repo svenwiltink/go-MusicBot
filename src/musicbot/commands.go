@@ -123,9 +123,25 @@ var CurrentCommand = Command {
 var OpenCommand = Command {
 	Name: "Open",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		if len(parameters) < 1 {
+			channel := event.Arguments[0]
+			event.Connection.Privmsg(channel, "!music open <spotify link>")
+		}
 		spotifyUri := parameters[0]
 		fmt.Println(spotifyUri)
 		cmd := exec.Command("./bin/spotify.sh", "open",  spotifyUri )
+		cmd.Run()
+	},
+}
+
+var SearchCommand = Command {
+	Name: "search",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		if len(parameters) < 1 {
+			channel := event.Arguments[0]
+			event.Connection.Privmsg(channel, "!music search <search term>")
+		}
+		cmd := exec.Command("./bin/spotify.sh", "search",  strings.Join(parameters, " "))
 		cmd.Run()
 	},
 }
