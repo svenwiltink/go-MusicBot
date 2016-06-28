@@ -84,6 +84,7 @@ func main() {
 	bot.registerCommand(PauseCommand)
 	bot.registerCommand(CurrentCommand)
 	bot.registerCommand(OpenCommand)
+	bot.registerCommand(SearchCommand)
 
 	bot.registerCommand(VolUpCommand)
 	bot.registerCommand(VolDownCommand)
