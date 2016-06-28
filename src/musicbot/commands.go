@@ -2,6 +2,9 @@ package main
 
 import (
 	"github.com/thoj/go-ircevent"
+	"os/exec"
+	"strings"
+	"fmt"
 )
 
 type Command struct {
@@ -75,5 +78,70 @@ var WhitelistCommand = Command {
 			}
 		}
 		}
+	},
+}
+
+var NextCommand = Command{
+	Name: "Next",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		cmd := exec.Command("./bin/spotify.sh", "next")
+		cmd.Run()
+	},
+}
+
+var PlayCommand = Command {
+	Name: "Play",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		cmd := exec.Command("./bin/spotify.sh", "play")
+		cmd.Run()
+	},
+}
+
+var PauseCommand = Command {
+	Name: "Pause",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		cmd := exec.Command("./bin/spotify.sh", "pause")
+		cmd.Run()
+	},
+}
+
+var CurrentCommand = Command {
+	Name: "Current",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		channel := event.Arguments[0]
+		cmd := exec.Command("./bin/spotify.sh", "current")
+		result, _ := cmd.Output()
+		resultString := string(result)
+		resultArray := strings.Split(resultString, "\n")
+		message := strings.Join(append(resultArray[0:1], resultArray[2:len(resultArray) - 1]...), " | ")
+		message = strings.Replace(message, "    ",  " ", -1)
+		message = strings.Replace(message, "   ",  " ", -1)
+		event.Connection.Privmsg(channel, message)
+	},
+}
+
+var OpenCommand = Command {
+	Name: "Open",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		spotifyUri := parameters[0]
+		fmt.Println(spotifyUri)
+		cmd := exec.Command("./bin/spotify.sh", "open",  spotifyUri )
+		cmd.Run()
+	},
+}
+
+var VolUpCommand = Command {
+	Name: "vol++",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		cmd := exec.Command("amixer", "-D", "pulse", "sset", "Master", "10%+")
+		cmd.Run()
+	},
+}
+
+var VolDownCommand = Command {
+	Name: "vol--",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		cmd := exec.Command("amixer", "-D pulse sset Master 10%-")
+		cmd.Run()
 	},
 }
