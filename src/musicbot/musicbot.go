@@ -1,13 +1,11 @@
 package main
 
 import (
-	"fmt"
-)
-
-import (
 	irc "github.com/thoj/go-ircevent"
 	"os"
 	"strings"
+	"fmt"
+	"encoding/json"
 )
 
 type MusicBot struct {
@@ -32,16 +30,40 @@ func(m *MusicBot) registerCommand(command Command) bool {
 	return false
 }
 
+type Configuration struct {
+	Server 		string
+	Ssl 		bool
+	Channel		string
+	Realname 	string
+	Nick 		string
+	Password 	string
+}
+
 func main() {
+
+	file, err := os.Open("conf.json")
+	if err != nil {
+		fmt.Println("error:", err)
+		os.Exit(2)
+	}
+
+	decoder := json.NewDecoder(file)
+	configuration := Configuration{}
+	err = decoder.Decode(&configuration)
+	if err != nil {
+		fmt.Println("error:", err)
+		os.Exit(2)
+	}
 
 	bot := NewMusicBot()
 	bot.registerCommand(HelpCommand)
 
-	irccon := irc.IRC("swiltink", "swiltink")
-	irccon.Password = ""
-	irccon.UseTLS = true
+	irccon := irc.IRC(configuration.Nick, configuration.Realname)
+	irccon.Password = configuration.Password
+	irccon.UseTLS = configuration.Ssl
 	irccon.Debug = true
-	err := irccon.Connect("irc.transip.us:6697")
+
+	err = irccon.Connect(configuration.Server)
 
 	if err != nil {
 		fmt.Println(err)
@@ -49,7 +71,7 @@ func main() {
 	}
 
 	irccon.AddCallback("001", func(event *irc.Event){
-		event.Connection.Join("#fuckit")
+		event.Connection.Join(configuration.Channel)
 	})
 
 	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {

@@ -1,0 +1,8 @@
+{
+    "Server": "domain:6697",
+    "Ssl": true,
+    "Channel": "#fuckit",
+    "Realname": "swiltink",
+    "Nick": "MusicBot",
+    "Password": "password"
+}
