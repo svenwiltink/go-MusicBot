@@ -86,7 +86,7 @@ func main() {
 		if strings.HasPrefix(message, "!music") {
 			fmt.Println("music prefix found")
 			command, _ := bot.getCommand("Help")
-			command.execute([]string{"what", "up"})
+			command.execute(event, []string{"what", "up"})
 		}
 	})
 
