@@ -1,0 +1,8 @@
+{
+  "Server": "server:port",
+  "Ssl": true,
+  "Channel": "#channel",
+  "Realname": "swiltink",
+  "Nick": "MusicBot",
+  "Password": "password"
+}
