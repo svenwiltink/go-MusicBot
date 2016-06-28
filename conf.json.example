@@ -4,5 +4,6 @@
   "Channel": "#channel",
   "Realname": "swiltink",
   "Nick": "MusicBot",
-  "Password": "password"
+  "Password": "password",
+  "Master": "swiltink",
 }
