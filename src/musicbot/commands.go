@@ -153,7 +153,7 @@ var VolCommand = Command {
 			channel := event.Arguments[0]
 			event.Connection.Privmsg(channel, "!music vol <volume>")
 		}
-		cmd := exec.Command("amixer", "-D", "pulse", "sset", "Master", parameters[0])
+		cmd := exec.Command("amixer", "-D", "pulse", "sset", "Master", parameters[0] + "%")
 		cmd.Run()
 	},
 }
