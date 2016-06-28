@@ -1,0 +1,11 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/thoj/go-ircevent",
+			"repository": "https://github.com/thoj/go-ircevent",
+			"revision": "da78ed515c0f0833e7a92c7cc52898176198e2c1",
+			"branch": "master"
+		}
+	]
+}
