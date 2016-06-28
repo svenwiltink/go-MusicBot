@@ -79,6 +79,14 @@ func main() {
 	bot := NewMusicBot(configuration)
 	bot.registerCommand(HelpCommand)
 	bot.registerCommand(WhitelistCommand)
+	bot.registerCommand(NextCommand)
+	bot.registerCommand(PlayCommand)
+	bot.registerCommand(PauseCommand)
+	bot.registerCommand(CurrentCommand)
+	bot.registerCommand(OpenCommand)
+
+	bot.registerCommand(VolUpCommand)
+	bot.registerCommand(VolDownCommand)
 
 	irccon := irc.IRC(configuration.Nick, configuration.Realname)
 	irccon.Password = configuration.Password
