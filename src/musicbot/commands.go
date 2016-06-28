@@ -141,7 +141,19 @@ var VolUpCommand = Command {
 var VolDownCommand = Command {
 	Name: "vol--",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		cmd := exec.Command("amixer", "-D pulse sset Master 10%-")
+		cmd := exec.Command("amixer", "-D", "pulse", "sset", "Master", "10%-")
+		cmd.Run()
+	},
+}
+
+var VolCommand = Command {
+	Name: "vol",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		if len(parameters) < 1 {
+			channel := event.Arguments[0]
+			event.Connection.Privmsg(channel, "!music vol <volume>")
+		}
+		cmd := exec.Command("amixer", "-D", "pulse", "sset", "Master", parameters[0])
 		cmd.Run()
 	},
 }

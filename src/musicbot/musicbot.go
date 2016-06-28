@@ -87,6 +87,7 @@ func main() {
 
 	bot.registerCommand(VolUpCommand)
 	bot.registerCommand(VolDownCommand)
+	bot.registerCommand(VolCommand)
 
 	irccon := irc.IRC(configuration.Nick, configuration.Realname)
 	irccon.Password = configuration.Password
