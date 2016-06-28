@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"github.com/thoj/go-ircevent"
+)
 
 type ICommand interface {
 	execute(paramters []string) bool
@@ -9,18 +11,18 @@ type ICommand interface {
 
 type Command struct {
 	Name string
-	Function func(parameters []string) bool
+	Function func(event *irc.Event, parameters []string) bool
 }
 
-func(c *Command) execute(parameters []string) bool {
-	return c.Function(parameters)
+func(c *Command) execute(event *irc.Event, parameters []string) bool {
+	return c.Function(event, parameters)
 }
 
-var HelpCommand = Command{
+var HelpCommand = Command {
 	Name:"Help",
 	Function:
-	func(parameters []string) bool {
-		fmt.Print(parameters)
+	func(event *irc.Event, parameters []string) bool {
+		event.Connection.Privmsg("#fuckit", event.Message())
 		return true
 	},
 }
