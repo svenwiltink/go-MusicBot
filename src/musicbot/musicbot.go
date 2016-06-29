@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"encoding/json"
 	"bufio"
+        _ "net/http/pprof"
+	"net/http"
+        "log"
 )
 
 type MusicBot struct {
@@ -61,6 +64,9 @@ type Configuration struct {
 }
 
 func main() {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	file, err := os.Open("conf.json")
 	if err != nil {
