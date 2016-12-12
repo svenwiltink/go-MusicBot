@@ -4,7 +4,7 @@
 		{
 			"importpath": "github.com/thoj/go-ircevent",
 			"repository": "https://github.com/thoj/go-ircevent",
-			"revision": "da78ed515c0f0833e7a92c7cc52898176198e2c1",
+			"revision": "1b0acb5f2f1b615cfbd4b9f91abb14cb39a18769",
 			"branch": "master"
 		}
 	]
