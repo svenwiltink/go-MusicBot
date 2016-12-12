@@ -2,3 +2,5 @@
 pkg/
 build/
 conf.json
+whitelist.txt
+.bash_history
