@@ -2,3 +2,4 @@
 pkg/
 build/
 conf.json
+whitelist.txt
