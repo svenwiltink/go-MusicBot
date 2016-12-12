@@ -7,9 +7,6 @@ import (
 	"fmt"
 	"encoding/json"
 	"bufio"
-        _ "net/http/pprof"
-	"net/http"
-        "log"
 )
 
 type MusicBot struct {
@@ -64,10 +61,6 @@ type Configuration struct {
 }
 
 func main() {
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
-
 	file, err := os.Open("conf.json")
 	if err != nil {
 		fmt.Println("error:", err)
@@ -99,7 +92,6 @@ func main() {
 	irccon := irc.IRC(configuration.Nick, configuration.Realname)
 	irccon.Password = configuration.Password
 	irccon.UseTLS = configuration.Ssl
-	irccon.Debug = true
 
 	err = irccon.Connect(configuration.Server)
 
