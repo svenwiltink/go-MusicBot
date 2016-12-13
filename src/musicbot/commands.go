@@ -126,6 +126,7 @@ var OpenCommand = Command {
 		if len(parameters) < 1 {
 			channel := event.Arguments[0]
 			event.Connection.Privmsg(channel, "!music open <spotify link>")
+			return
 		}
 		spotifyUri := parameters[0]
 		fmt.Println(spotifyUri)
@@ -140,6 +141,7 @@ var SearchCommand = Command {
 		if len(parameters) < 1 {
 			channel := event.Arguments[0]
 			event.Connection.Privmsg(channel, "!music search <search term>")
+			return
 		}
 		cmd := exec.Command("./bin/spotify.sh", "search",  strings.Join(parameters, " "))
 		cmd.Run()
@@ -168,6 +170,7 @@ var VolCommand = Command {
 		if len(parameters) < 1 {
 			channel := event.Arguments[0]
 			event.Connection.Privmsg(channel, "!music vol <volume>")
+			return
 		}
 		cmd := exec.Command("amixer", "-D", "pulse", "sset", "Master", parameters[0] + "%")
 		cmd.Run()
