@@ -25,7 +25,8 @@ release:linux:
   stage: release
   only:
     - master
-    - tags
+  except:
+    - branches
   artifacts:
     name: "musicbot"
     paths:
