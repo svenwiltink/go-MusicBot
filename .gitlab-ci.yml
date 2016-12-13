@@ -24,7 +24,6 @@ build:linux:
 release:linux:
   stage: release
   only:
-    - master
     - tags
   artifacts:
     name: "musicbot"
