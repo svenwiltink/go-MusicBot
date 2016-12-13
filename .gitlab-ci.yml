@@ -7,7 +7,7 @@ build:linux:
   stage: build
   before_script:
     - go get github.com/constabulary/gb/...
-    - gb vendor update
+    - gb vendor restore
   script:
     - gb build
   artifacts:
