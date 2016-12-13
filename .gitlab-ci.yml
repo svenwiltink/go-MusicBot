@@ -1,0 +1,14 @@
+image: golang:1.6.4
+
+stages:
+  - build
+
+build:linux:
+  stage: build
+  before_script:
+    - go get github.com/constabulary/gb/...
+  script:
+    - gb build
+  artifacts:
+    paths:
+      - bin/musicbot
