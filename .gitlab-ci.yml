@@ -11,5 +11,10 @@ build:linux:
   script:
     - gb build
   artifacts:
+    name: "musicbot"
     paths:
       - bin/musicbot
+      - bin/spotify.sh
+      - run.sh
+      - whitelist.txt
+      - conf.json.example
