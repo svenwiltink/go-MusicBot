@@ -13,6 +13,7 @@ build:linux:
     - gb build
   artifacts:
     name: "musicbot"
+    expire_in: "1 week"
     paths:
       - bin/musicbot
       - bin/spotify.sh
@@ -20,7 +21,7 @@ build:linux:
       - whitelist.txt
       - conf.json.example
 
-release:linux
+release:linux:
   stage: release
   only:
     - master
