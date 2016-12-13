@@ -2,6 +2,7 @@ image: golang:1.6.4
 
 stages:
   - build
+  - release
 
 build:linux:
   stage: build
@@ -18,3 +19,18 @@ build:linux:
       - run.sh
       - whitelist.txt
       - conf.json.example
+
+release:linux
+  stage: release
+  only:
+    - master
+    - tags
+  artifacts:
+    name: "musicbot"
+    paths:
+      - bin/musicbot
+      - bin/spotify.sh
+      - run.sh
+      - whitelist.txt
+      - conf.json.example
+
