@@ -1,7 +1,7 @@
 package main
 
 import (
-	"src/gitlab.sgttailor.com/Sgt_Tailor/MusicBot/vendor/github.com/thoj/go-ircevent"
+	"github.com/thoj/go-ircevent"
 	"os/exec"
 	"fmt"
 )
