@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"encoding/json"
 	"bufio"
+	"os/signal"
+	"syscall"
 )
 
 type MusicBot struct {
@@ -128,7 +130,11 @@ func main() {
 		}
 	})
 
-	irccon.Wait()
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	<-sigs
+	bot.MusicPlayer.Stop()
 }
 
 func readWhitelist() ([]string, error) {

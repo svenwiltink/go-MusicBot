@@ -6,6 +6,7 @@ import (
 	"os"
 	"log"
 	"errors"
+	"syscall"
 )
 
 type PlayerStatus int
@@ -16,17 +17,19 @@ const (
 )
 
 type MusicPlayer struct {
-	Queue Queue
-	CurrentSong QueueItem
-	Status PlayerStatus
-	MpvProcess *exec.Cmd
-	ControlFile *os.File
+	Queue        Queue
+	CurrentSong  QueueItem
+	Status       PlayerStatus
+	MpvProcess   *exec.Cmd
+	mpvIsRunning bool
+	ControlFile  *os.File
 }
 
 func NewMusicPlayer() *MusicPlayer {
 	player := &MusicPlayer{
 		Queue: NewQueue(),
 		Status: STOPPED,
+		mpvIsRunning: false,
 	}
 
 	player.init()
@@ -35,7 +38,9 @@ func NewMusicPlayer() *MusicPlayer {
 }
 
 func (p *MusicPlayer) init() {
-	file, err := os.OpenFile(".mpv-input", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0660)
+
+	syscall.Mknod(".mpv-input", syscall.S_IFIFO|0666, 0)
+	file, err := os.OpenFile(".mpv-input", os.O_CREATE | os.O_APPEND | os.O_RDWR, 0660)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,8 +54,10 @@ func (p *MusicPlayer) GetStatus() PlayerStatus {
 
 func (p *MusicPlayer) Start() error {
 	if p.Status != RUNNING {
+
 		p.Status = RUNNING
 		p.Next()
+
 		return nil
 	} else {
 		return errors.New("Can't start a player that is already running")
@@ -71,13 +78,14 @@ func (p *MusicPlayer) Pause() {
 
 func (p *MusicPlayer) Next() {
 
-	if p.MpvProcess != nil && !p.MpvProcess.ProcessState.Exited() {
+	if p.mpvIsRunning {
 		fmt.Println("Killing Mpv")
 		p.MpvProcess.Process.Kill()
 	}
 
 	if !p.Queue.HasNext() {
 		p.Status = STOPPED
+		p.CurrentSong = QueueItem{}
 		return
 	}
 
@@ -87,15 +95,18 @@ func (p *MusicPlayer) Next() {
 		return
 	}
 
+	p.CurrentSong = nextSong
 	url := nextSong.GetUrl();
-	//command := exec.Command("mpv", "--no-video", "--input-file=.mpv-input", url)
-	command := exec.Command("mpv", "--input-file=.mpv-input", url)
+	command := exec.Command("mpv", "--no-video", "--input-file=.mpv-input", url)
 	p.MpvProcess = command
-	go func(player *MusicPlayer, command *exec.Cmd) {
+
+	go func() {
 		command.Start()
+		p.mpvIsRunning = true
 		command.Wait()
-		player.Next()
-	}(p, command)
+		p.mpvIsRunning = false
+		p.Next()
+	}()
 }
 
 func (p *MusicPlayer) AddSong(Url string) {
