@@ -106,7 +106,7 @@ var CurrentCommand = Command {
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		url := bot.MusicPlayer.CurrentSong.GetUrl()
-		message := "Current song: " + url
+		message := fmt.Sprintf("Current song: %s", url)
 		event.Connection.Privmsg(channel, message)
 	},
 }
