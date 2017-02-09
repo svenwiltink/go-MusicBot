@@ -1,0 +1,33 @@
+image: golang:1.6.4
+stages:
+  - build
+  - release
+build:linux:
+  stage: build
+  before_script:
+    - curl https://glide.sh/get | sh
+    - glide up
+  script:
+    - go build
+    - ls
+  artifacts:
+    name: "musicbot"
+    expire_in: "1 week"
+    paths:
+      - MusicBot
+      - bin/spotify.sh
+      - run.sh
+      - whitelist.txt
+      - conf.json.example
+release:linux:
+  stage: release
+  only:
+    - tags
+  artifacts:
+    name: "musicbot"
+    paths:
+      - bin/musicbot
+      - bin/spotify.sh
+      - run.sh
+      - whitelist.txt
+      - conf.json.example
