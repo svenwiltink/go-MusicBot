@@ -1,6 +1,5 @@
-.idea/
-pkg/
-build/
-conf.json
-.bash_history
-whitelist.txt
+/bin/
+/.idea/
+/pkg/
+/MusicBot.iml
+/conf.json

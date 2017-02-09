@@ -2,17 +2,21 @@ package main
 
 import (
 	irc "github.com/thoj/go-ircevent"
+	MusicPlayer "gitlab.sgttailor.com/Sgt_Tailor/MusicPlayer"
 	"os"
 	"strings"
 	"fmt"
 	"encoding/json"
 	"bufio"
+	"os/signal"
+	"syscall"
 )
 
 type MusicBot struct {
 	Commands 	map[string]Command
 	Whitelist 	[]string
 	Master		string
+	MusicPlayer	*MusicPlayer.MusicPlayer
 }
 
 func NewMusicBot(c Configuration) *MusicBot {
@@ -24,6 +28,7 @@ func NewMusicBot(c Configuration) *MusicBot {
 		Commands: make(map[string]Command),
 		Whitelist: whitelist,
 		Master: c.Master,
+		MusicPlayer: MusicPlayer.NewMusicPlayer(),
 	}
 }
 
@@ -125,7 +130,11 @@ func main() {
 		}
 	})
 
-	irccon.Wait()
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	<-sigs
+	bot.MusicPlayer.Stop()
 }
 
 func readWhitelist() ([]string, error) {

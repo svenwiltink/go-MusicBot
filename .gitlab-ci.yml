@@ -1,36 +1,34 @@
 image: golang:1.6.4
-
 stages:
   - build
   - release
-
 build:linux:
   stage: build
   before_script:
-    - go get github.com/constabulary/gb/...
-    - gb vendor restore
+    - curl https://glide.sh/get | sh
+    - P="$(pwd)"; mkdir -p /go/src/gitlab.sgttailor.com/Sgt_Tailor; cd /go/src/gitlab.sgttailor.com/Sgt_Tailor; ln -s $P MusicBot; cd MusicBot;
+    - glide up
+    - glide install
   script:
-    - gb build
+    - cd /go/src/gitlab.sgttailor.com/Sgt_Tailor/MusicBot
+    - go build
   artifacts:
     name: "musicbot"
     expire_in: "1 week"
     paths:
-      - bin/musicbot
-      - bin/spotify.sh
-      - run.sh
+      - MusicBot
       - whitelist.txt
       - conf.json.example
 
 release:linux:
   stage: release
+  script:
+    - ls
   only:
     - tags
   artifacts:
     name: "musicbot"
     paths:
-      - bin/musicbot
-      - bin/spotify.sh
-      - run.sh
+      - MusicBot
       - whitelist.txt
       - conf.json.example
-
