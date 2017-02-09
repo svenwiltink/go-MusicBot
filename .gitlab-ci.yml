@@ -21,6 +21,8 @@ build:linux:
       - conf.json.example
 release:linux:
   stage: release
+  script:
+    - ls
   only:
     - tags
   artifacts:
