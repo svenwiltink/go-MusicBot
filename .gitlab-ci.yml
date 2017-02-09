@@ -6,19 +6,20 @@ build:linux:
   stage: build
   before_script:
     - curl https://glide.sh/get | sh
+    - P="$(pwd)"; mkdir -p /go/src/gitlab.sgttailor.com/Sgt_Tailor; cd /go/src/gitlab.sgttailor.com/Sgt_Tailor; ln -s $P MusicBot; cd MusicBot;
     - glide up
+    - glide install
   script:
+    - cd /go/src/gitlab.sgttailor.com/Sgt_Tailor/MusicBot
     - go build
-    - ls
   artifacts:
     name: "musicbot"
     expire_in: "1 week"
     paths:
       - MusicBot
-      - bin/spotify.sh
-      - run.sh
       - whitelist.txt
       - conf.json.example
+
 release:linux:
   stage: release
   script:
@@ -28,8 +29,6 @@ release:linux:
   artifacts:
     name: "musicbot"
     paths:
-      - bin/musicbot
-      - bin/spotify.sh
-      - run.sh
+      - MusicBot
       - whitelist.txt
       - conf.json.example
