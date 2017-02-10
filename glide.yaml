@@ -3,4 +3,3 @@ import:
 - package: github.com/thoj/go-ircevent
   version: ^0.1.0
 - package: gitlab.transip.us/swiltink/go-MusicPlayer
-  repo: git@gitlab.transip.us:swiltink/go-MusicPlayer
