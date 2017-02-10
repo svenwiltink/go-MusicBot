@@ -1,5 +1,5 @@
-package: gitlab.sgttailor.com/Sgt_Tailor/MusicBot
+package: gitlab.transip.us/swiltink/go-MusicBot
 import:
 - package: github.com/thoj/go-ircevent
   version: ^0.1.0
-- package: gitlab.sgttailor.com/Sgt_Tailor/MusicPlayer
+- package: gitlab.transip.us/swiltink/go-MusicPlayer

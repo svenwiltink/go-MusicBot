@@ -2,7 +2,7 @@ package main
 
 import (
 	irc "github.com/thoj/go-ircevent"
-	MusicPlayer "gitlab.sgttailor.com/Sgt_Tailor/MusicPlayer"
+	MusicPlayer "gitlab.transip.us/swiltink/go-MusicPlayer"
 	"os"
 	"strings"
 	"fmt"
