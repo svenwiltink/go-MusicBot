@@ -7,11 +7,8 @@ build:linux:
   before_script:
     - curl https://glide.sh/get | sh
     - P="$(pwd)"; mkdir -p /go/src/gitlab.transip.us/swiltink; cd /go/src/gitlab.transip.us/swiltink; ln -s $P go-MusicBot; cd go-MusicBot;
-    - mkdir -p ~/.ssh
-    - echo $SSH_KEY > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
     - eval $(ssh-agent -s)
-    - ssh-add ~/.ssh/id_rsa < ""
+    - ssh-add <(echo "$SSH_KEY")
     - ssh-keyscan -t rsa gitlab.transip.us >> ~/.ssh/known_hosts
     - git config --global url."git@gitlab.transip.us".insteadOf "https://gitlab.transip.us/"
     - git clone git@gitlab.transip.us:swiltink/go-MusicPlayer.git
