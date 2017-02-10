@@ -6,12 +6,12 @@ build:linux:
   stage: build
   before_script:
     - curl https://glide.sh/get | sh
-    - P="$(pwd)"; mkdir -p /go/src/gitlab.sgttailor.com/Sgt_Tailor; cd /go/src/gitlab.sgttailor.com/Sgt_Tailor; ln -s $P MusicBot; cd MusicBot;
+    - P="$(pwd)"; mkdir -p /go/src/gitlab.transip.us/swiltink; cd /go/src/gitlab.transip.us/swiltink; ln -s $P go-MusicBot; cd go-MusicBot;
     - glide up
     - glide install
   script:
-    - cd /go/src/gitlab.sgttailor.com/Sgt_Tailor/MusicBot
-    - go build
+    - cd /go/src/gitlab.transip.us/swiltink/go-MusicBot
+    - go build -o MusicBot
   artifacts:
     name: "musicbot"
     expire_in: "1 week"

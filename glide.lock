@@ -1,8 +1,8 @@
-hash: d1187227dc742f1e959b1e28c616c81ecaa017a33fbdf43f889aa82ec46ead1b
-updated: 2017-02-08T13:00:03.575474681+01:00
+hash: 6ad7c804012681f6fbc3e88bb4861def0988c75476b20735d69a1d8909668cb3
+updated: 2017-02-10T12:00:16.460089072+01:00
 imports:
 - name: github.com/thoj/go-ircevent
   version: a6b1561a016c2a4aae183c3ef152c25d134c095d
-- name: gitlab.sgttailor.com/Sgt_Tailor/MusicPlayer
-  version: 0ec9a2ae343ae9fc78379a4a4e6ee29f9db85141
+- name: gitlab.transip.us/swiltink/go-MusicPlayer
+  version: d5e8ce2fac2d5f5acecc777d8ca0b0a9992e55f6
 testImports: []
