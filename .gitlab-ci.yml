@@ -28,7 +28,7 @@ build:linux:
 release:linux:
   stage: release
   script:
-    - ls
+    - echo "DONE"
   only:
     - tags
   artifacts:
