@@ -17,13 +17,13 @@ build:linux:
   script:
     - cd /go/src/gitlab.transip.us/swiltink/go-MusicBot
     - go build -o MusicBot
-    artifacts:
-      name: "musicbot"
-      expire_in: "1 week"
-      paths:
-        - MusicBot
-        - whitelist.txt
-        - conf.json.example
+  artifacts:
+    name: "musicbot"
+    expire_in: "1 week"
+    paths:
+      - MusicBot
+      - whitelist.txt
+      - conf.json.example
 
 release:linux:
   stage: release
