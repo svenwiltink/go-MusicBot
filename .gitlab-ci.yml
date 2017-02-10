@@ -24,6 +24,8 @@ release:linux:test:
     - branches
   except:
     - master@gitlab.transip.us/swiltink/go-MusicBot
+  script:
+    - echo "DONE"
   artifacts:
     name: "musicbot"
     expire_in: "1 week"
@@ -35,7 +37,7 @@ release:linux:test:
 release:linux:
   stage: release
   script:
-    - ls
+    - echo "DONE"
   only:
     - tags
   artifacts:
