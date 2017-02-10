@@ -7,7 +7,6 @@ build:linux:
   before_script:
     - curl https://glide.sh/get | sh
     - P="$(pwd)"; mkdir -p /go/src/gitlab.transip.us/swiltink; cd /go/src/gitlab.transip.us/swiltink; ln -s $P go-MusicBot; cd go-MusicBot;
-    - glide up
     - glide install
   script:
     - cd /go/src/gitlab.transip.us/swiltink/go-MusicBot
