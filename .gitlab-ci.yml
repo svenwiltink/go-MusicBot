@@ -10,6 +10,7 @@ build:linux:
     - mkdir -p ~/.ssh
     - echo $SSH_KEY > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
+    - ssh-agent bash
     - ssh-add
     - cat ~/.ssh/id_rsa
     - ssh-keyscan -t rsa gitlab.transip.us >> ~/.ssh/known_hosts
