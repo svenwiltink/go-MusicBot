@@ -17,6 +17,13 @@ build:linux:
   script:
     - cd /go/src/gitlab.transip.us/swiltink/go-MusicBot
     - go build -o MusicBot
+
+release:linux:test:
+  stage: release
+  only:
+    - branches
+  except:
+    - master@gitlab.transip.us/swiltink/go-MusicBot
   artifacts:
     name: "musicbot"
     expire_in: "1 week"
