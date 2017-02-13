@@ -2,9 +2,12 @@ NAME ?= music-bot
 PACKAGE_NAME ?= $(NAME)
 OUR_PACKAGES=$(shell go list ./... | grep -v '/vendor/')
 
-all: verify
+all: deps verify
 
 help:
+
+deps:
+	go get -u github.com/golang/lint/golint
 
 verify: fmt lint
 
