@@ -1,7 +1,20 @@
 image: golang:1.6.4
+
 stages:
+  - formatting
   - build
   - release
+
+formatting:style:
+  stage: formatting
+  script:
+    - make fmt
+
+formatting:lint:
+  stage: formatting
+  script:
+    - make lint
+
 build:linux:
   stage: build
   before_script:
