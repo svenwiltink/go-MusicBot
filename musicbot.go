@@ -1,22 +1,22 @@
 package main
 
 import (
+	"bufio"
+	"encoding/json"
+	"fmt"
 	irc "github.com/thoj/go-ircevent"
 	MusicPlayer "gitlab.transip.us/swiltink/go-MusicPlayer"
 	"os"
-	"strings"
-	"fmt"
-	"encoding/json"
-	"bufio"
 	"os/signal"
+	"strings"
 	"syscall"
 )
 
 type MusicBot struct {
-	Commands 	map[string]Command
-	Whitelist 	[]string
-	Master		string
-	MusicPlayer	*MusicPlayer.MusicPlayer
+	Commands    map[string]Command
+	Whitelist   []string
+	Master      string
+	MusicPlayer *MusicPlayer.MusicPlayer
 }
 
 func NewMusicBot(c Configuration) *MusicBot {
@@ -25,19 +25,19 @@ func NewMusicBot(c Configuration) *MusicBot {
 		println("Error: " + err.Error())
 	}
 	return &MusicBot{
-		Commands: make(map[string]Command),
-		Whitelist: whitelist,
-		Master: c.Master,
+		Commands:    make(map[string]Command),
+		Whitelist:   whitelist,
+		Master:      c.Master,
 		MusicPlayer: MusicPlayer.NewMusicPlayer(),
 	}
 }
 
-func(m *MusicBot) getCommand(name string) (command Command, exists bool) {
+func (m *MusicBot) getCommand(name string) (command Command, exists bool) {
 	command, exists = m.Commands[name]
 	return command, exists
 }
 
-func(m *MusicBot) registerCommand(command Command) bool {
+func (m *MusicBot) registerCommand(command Command) bool {
 	if _, exists := m.getCommand(command.Name); !exists {
 		m.Commands[strings.ToLower(command.Name)] = command
 		fmt.Println("registered the " + command.Name + " command")
@@ -46,7 +46,7 @@ func(m *MusicBot) registerCommand(command Command) bool {
 	return false
 }
 
-func(m *MusicBot) isUserWhitelisted(realname string) (iswhitelisted bool, index int) {
+func (m *MusicBot) isUserWhitelisted(realname string) (iswhitelisted bool, index int) {
 	for index, name := range m.Whitelist {
 		if name == realname {
 			return true, index
@@ -56,13 +56,13 @@ func(m *MusicBot) isUserWhitelisted(realname string) (iswhitelisted bool, index 
 }
 
 type Configuration struct {
-	Server 		string
-	Ssl 		bool
-	Channel		string
-	Realname 	string
-	Nick 		string
-	Password 	string
-	Master		string
+	Server   string
+	Ssl      bool
+	Channel  string
+	Realname string
+	Nick     string
+	Password string
+	Master   string
 }
 
 func main() {
@@ -105,7 +105,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	irccon.AddCallback("001", func(event *irc.Event){
+	irccon.AddCallback("001", func(event *irc.Event) {
 		event.Connection.Join(configuration.Channel)
 	})
 
@@ -151,7 +151,6 @@ func readWhitelist() ([]string, error) {
 	}
 	return lines, scanner.Err()
 }
-
 
 func writeWhitelist(lines []string) error {
 	file, err := os.Create("whitelist.txt")
