@@ -1,4 +1,4 @@
-image: golang:1.6.4
+image: golang:1.7.5
 
 stages:
   - formatting
@@ -13,6 +13,7 @@ formatting:style:
 formatting:lint:
   stage: formatting
   script:
+    - make deps
     - make lint
 
 build:linux:
