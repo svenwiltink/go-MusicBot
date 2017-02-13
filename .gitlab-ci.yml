@@ -50,6 +50,6 @@ release:linux:
   artifacts:
     name: "musicbot"
     paths:
-      - MusicBot
+      - out/binaries/MusicBot
       - whitelist.txt
       - conf.json.example
