@@ -87,6 +87,9 @@ func main() {
 	bot.registerCommand(PlayCommand)
 	bot.registerCommand(PauseCommand)
 	bot.registerCommand(CurrentCommand)
+	bot.registerCommand(ShuffleCommand)
+	bot.registerCommand(ListCommand)
+	bot.registerCommand(FlushCommand)
 	bot.registerCommand(OpenCommand)
 	bot.registerCommand(SearchCommand)
 
