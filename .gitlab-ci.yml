@@ -37,7 +37,7 @@ build:linux:
     name: "musicbot"
     expire_in: "1 week"
     paths:
-      - MusicBot
+      - out/binaries/
       - whitelist.txt
       - conf.json.example
 
