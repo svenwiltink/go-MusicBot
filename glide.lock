@@ -1,9 +1,9 @@
 hash: 1f30fe065d0171e722720908814404d675c078aa02b8716060492baf3750e88d
-updated: 2017-02-10T13:35:32.770991163+01:00
+updated: 2017-02-13T20:21:21.608922652+01:00
 imports:
 - name: github.com/thoj/go-ircevent
   version: a6b1561a016c2a4aae183c3ef152c25d134c095d
 - name: gitlab.transip.us/swiltink/go-MusicPlayer
-  version: d5e8ce2fac2d5f5acecc777d8ca0b0a9992e55f6
+  version: 50d8e3f32bc1563284b9dc2f7b341572cd36dd93
   repo: git@gitlab.transip.us:swiltink/go-MusicPlayer
 testImports: []
