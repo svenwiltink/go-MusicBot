@@ -1,26 +1,26 @@
 package main
 
 import (
+	"fmt"
 	"github.com/thoj/go-ircevent"
 	"os/exec"
-	"fmt"
 )
 
 type Command struct {
-	Name string
+	Name     string
 	Function func(bot *MusicBot, event *irc.Event, parameters []string)
 }
 
-func(c *Command) execute(bot *MusicBot, event *irc.Event, parameters []string) {
+func (c *Command) execute(bot *MusicBot, event *irc.Event, parameters []string) {
 	c.Function(bot, event, parameters)
 }
 
-var HelpCommand = Command {
-	Name:"Help",
+var HelpCommand = Command{
+	Name: "Help",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		message := "Available commands: "
-		for commandName,_ := range bot.Commands {
+		for commandName := range bot.Commands {
 			message += " " + commandName
 		}
 
@@ -28,54 +28,57 @@ var HelpCommand = Command {
 	},
 }
 
-var WhitelistCommand = Command {
+var WhitelistCommand = Command{
 	Name: "Whitelist",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		realname := event.User
 		if len(parameters) < 1 {
 			event.Connection.Privmsg(channel, "!music whitelist <show|add|remove> [user]")
-			return;
+			return
 		}
 
 		subcommand := parameters[0]
-		switch subcommand{
-		case "show": {
-			message := "Current whitelist: "
-			for _, name := range bot.Whitelist {
-				message += " " + name
-			}
+		switch subcommand {
+		case "show":
+			{
+				message := "Current whitelist: "
+				for _, name := range bot.Whitelist {
+					message += " " + name
+				}
 
-			event.Connection.Privmsg(channel, message)
-		}
-		case "add": {
-			if len(parameters) < 2 {
-				event.Connection.Privmsg(channel, "!music whitelist add [user]")
-				return
+				event.Connection.Privmsg(channel, message)
 			}
-			user := parameters[1]
-			if realname == bot.Master {
-				if isWhitelisted, _ := bot.isUserWhitelisted(user); !isWhitelisted {
-					bot.Whitelist = append(bot.Whitelist, user)
-					event.Connection.Privmsg(channel, "User added to whitelist")
-					writeWhitelist(bot.Whitelist)
+		case "add":
+			{
+				if len(parameters) < 2 {
+					event.Connection.Privmsg(channel, "!music whitelist add [user]")
+					return
+				}
+				user := parameters[1]
+				if realname == bot.Master {
+					if isWhitelisted, _ := bot.isUserWhitelisted(user); !isWhitelisted {
+						bot.Whitelist = append(bot.Whitelist, user)
+						event.Connection.Privmsg(channel, "User added to whitelist")
+						writeWhitelist(bot.Whitelist)
+					}
 				}
 			}
-		}
-		case "remove": {
-			if len(parameters) < 2 {
-				event.Connection.Privmsg(channel, "!music whitelist remove [user]")
-				return
-			}
-			user := parameters[1]
-			if realname == bot.Master {
-				if isWhitelisted, index := bot.isUserWhitelisted(user); isWhitelisted {
-					bot.Whitelist = append(bot.Whitelist[:index], bot.Whitelist[index+1:]...)
-					event.Connection.Privmsg(channel, "User removed from whitelist")
-					writeWhitelist(bot.Whitelist)
+		case "remove":
+			{
+				if len(parameters) < 2 {
+					event.Connection.Privmsg(channel, "!music whitelist remove [user]")
+					return
+				}
+				user := parameters[1]
+				if realname == bot.Master {
+					if isWhitelisted, index := bot.isUserWhitelisted(user); isWhitelisted {
+						bot.Whitelist = append(bot.Whitelist[:index], bot.Whitelist[index+1:]...)
+						event.Connection.Privmsg(channel, "User removed from whitelist")
+						writeWhitelist(bot.Whitelist)
+					}
 				}
 			}
-		}
 		}
 	},
 }
@@ -87,21 +90,21 @@ var NextCommand = Command{
 	},
 }
 
-var PlayCommand = Command {
+var PlayCommand = Command{
 	Name: "Play",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		bot.MusicPlayer.Pause()
 	},
 }
 
-var PauseCommand = Command {
+var PauseCommand = Command{
 	Name: "Pause",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		bot.MusicPlayer.Pause()
 	},
 }
 
-var CurrentCommand = Command {
+var CurrentCommand = Command{
 	Name: "Current",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
@@ -111,7 +114,7 @@ var CurrentCommand = Command {
 	},
 }
 
-var OpenCommand = Command {
+var OpenCommand = Command{
 	Name: "Open",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		if len(parameters) < 1 {
@@ -126,7 +129,7 @@ var OpenCommand = Command {
 	},
 }
 
-var SearchCommand = Command {
+var SearchCommand = Command{
 	Name: "search",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
@@ -138,7 +141,7 @@ var SearchCommand = Command {
 	},
 }
 
-var VolUpCommand = Command {
+var VolUpCommand = Command{
 	Name: "vol++",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		cmd := exec.Command("amixer", "-D", "pulse", "sset", "Master", "10%+")
@@ -146,7 +149,7 @@ var VolUpCommand = Command {
 	},
 }
 
-var VolDownCommand = Command {
+var VolDownCommand = Command{
 	Name: "vol--",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		cmd := exec.Command("amixer", "-D", "pulse", "sset", "Master", "10%-")
@@ -154,7 +157,7 @@ var VolDownCommand = Command {
 	},
 }
 
-var VolCommand = Command {
+var VolCommand = Command{
 	Name: "vol",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		if len(parameters) < 1 {
@@ -162,7 +165,7 @@ var VolCommand = Command {
 			event.Connection.Privmsg(channel, "!music vol <volume>")
 			return
 		}
-		cmd := exec.Command("amixer", "-D", "pulse", "sset", "Master", parameters[0] + "%")
+		cmd := exec.Command("amixer", "-D", "pulse", "sset", "Master", parameters[0]+"%")
 		cmd.Run()
 	},
 }
