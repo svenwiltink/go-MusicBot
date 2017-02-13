@@ -20,7 +20,7 @@ var HelpCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		message := "Available commands: "
-		for commandName, _ := range bot.Commands {
+		for commandName := range bot.Commands {
 			message += " " + commandName
 		}
 
