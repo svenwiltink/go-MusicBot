@@ -1,13 +1,14 @@
-NAME ?= music-bot
+NAME ?= MusicBot
 PACKAGE_NAME ?= $(NAME)
 OUR_PACKAGES=$(shell go list ./... | grep -v '/vendor/')
 
-all: deps verify
+all: deps verify build
 
 help:
 
 deps:
 	go get -u github.com/golang/lint/golint
+	go get -u github.com/Masterminds/glide
 
 verify: fmt lint
 
@@ -16,3 +17,6 @@ fmt:
 
 lint:
 	@golint ./... | ( ! grep -v -e "^vendor/" -e "be unexported" -e "don't use an underscore in package name" -e "ALL_CAPS" )
+
+build:
+	go build -o "out/binaries/$(NAME)"
