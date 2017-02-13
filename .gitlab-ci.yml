@@ -5,6 +5,9 @@ stages:
   - build
   - release
 
+before_script:
+  - source ci/prepare
+
 formatting:style:
   stage: formatting
   script:
