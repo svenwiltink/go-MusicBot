@@ -1,25 +1,25 @@
-package main
+package bot
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	irc "github.com/thoj/go-ircevent"
-	MusicPlayer "gitlab.transip.us/swiltink/go-MusicPlayer"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
+	"gitlab.transip.us/swiltink/go-MusicBot/player"
 )
 
 type MusicBot struct {
 	Commands    map[string]Command
 	Whitelist   []string
 	Master      string
-	MusicPlayer *MusicPlayer.MusicPlayer
+	MusicPlayer *player.MusicPlayer
+	Configuration Configuration
 }
 
-func NewMusicBot(c Configuration) *MusicBot {
+func NewMusicBot(c Configuration, player *player.MusicPlayer) *MusicBot {
 	whitelist, err := readWhitelist()
 	if err != nil {
 		println("Error: " + err.Error())
@@ -28,7 +28,7 @@ func NewMusicBot(c Configuration) *MusicBot {
 		Commands:    make(map[string]Command),
 		Whitelist:   whitelist,
 		Master:      c.Master,
-		MusicPlayer: MusicPlayer.NewMusicPlayer(),
+		MusicPlayer: player,
 	}
 }
 
@@ -65,22 +65,7 @@ type Configuration struct {
 	Master   string
 }
 
-func main() {
-	file, err := os.Open("conf.json")
-	if err != nil {
-		fmt.Println("error:", err)
-		os.Exit(2)
-	}
-
-	decoder := json.NewDecoder(file)
-	configuration := Configuration{}
-	err = decoder.Decode(&configuration)
-	if err != nil {
-		fmt.Println("error:", err)
-		os.Exit(2)
-	}
-
-	bot := NewMusicBot(configuration)
+func (bot *MusicBot) Start() {
 	bot.registerCommand(HelpCommand)
 	bot.registerCommand(WhitelistCommand)
 	bot.registerCommand(NextCommand)
@@ -97,11 +82,11 @@ func main() {
 	bot.registerCommand(VolDownCommand)
 	bot.registerCommand(VolCommand)
 
-	irccon := irc.IRC(configuration.Nick, configuration.Realname)
-	irccon.Password = configuration.Password
-	irccon.UseTLS = configuration.Ssl
+	irccon := irc.IRC(bot.Configuration.Nick, bot.Configuration.Realname)
+	irccon.Password = bot.Configuration.Password
+	irccon.UseTLS = bot.Configuration.Ssl
 
-	err = irccon.Connect(configuration.Server)
+	err := irccon.Connect(bot.Configuration.Server)
 
 	if err != nil {
 		fmt.Println(err)
@@ -109,7 +94,7 @@ func main() {
 	}
 
 	irccon.AddCallback("001", func(event *irc.Event) {
-		event.Connection.Join(configuration.Channel)
+		event.Connection.Join(bot.Configuration.Channel)
 	})
 
 	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
