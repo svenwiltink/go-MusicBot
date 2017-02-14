@@ -40,10 +40,10 @@ func NewMusicBot(player player.MusicPlayer) *MusicBot {
 	}
 
 	return &MusicBot{
-		Commands:    make(map[string]Command),
-		Whitelist:   whitelist,
+		Commands:      make(map[string]Command),
+		Whitelist:     whitelist,
 		Configuration: configuration,
-		MusicPlayer: player,
+		MusicPlayer:   player,
 	}
 }
 
