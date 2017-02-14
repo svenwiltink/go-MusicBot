@@ -15,7 +15,6 @@ import (
 type MusicBot struct {
 	Commands      map[string]Command
 	Whitelist     []string
-	Master        string
 	MusicPlayer   player.MusicPlayer
 	Configuration Configuration
 }
@@ -43,7 +42,7 @@ func NewMusicBot(player player.MusicPlayer) *MusicBot {
 	return &MusicBot{
 		Commands:    make(map[string]Command),
 		Whitelist:   whitelist,
-		Master:      configuration.Master,
+		Configuration: configuration,
 		MusicPlayer: player,
 	}
 }
@@ -119,7 +118,7 @@ func (m *MusicBot) Start() {
 		realname := event.User
 
 		if strings.HasPrefix(message, "!music") {
-			if isWhiteListed, _ := m.isUserWhitelisted(realname); m.Master == realname || isWhiteListed {
+			if isWhiteListed, _ := m.isUserWhitelisted(realname); m.Configuration.Master == realname || isWhiteListed {
 				arguments := strings.Split(message, " ")[1:]
 				if len(arguments) > 0 {
 					commandName := strings.ToLower(arguments[0])
