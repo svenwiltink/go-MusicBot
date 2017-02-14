@@ -4,18 +4,18 @@ import (
 	"bufio"
 	"fmt"
 	irc "github.com/thoj/go-ircevent"
+	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
-	"gitlab.transip.us/swiltink/go-MusicBot/player"
 )
 
 type MusicBot struct {
-	Commands    map[string]Command
-	Whitelist   []string
-	Master      string
-	MusicPlayer *player.MusicPlayer
+	Commands      map[string]Command
+	Whitelist     []string
+	Master        string
+	MusicPlayer   *player.MusicPlayer
 	Configuration Configuration
 }
 
