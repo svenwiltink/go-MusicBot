@@ -1,14 +1,14 @@
 package main
 
 import (
-	"os"
-	"fmt"
 	"encoding/json"
-	"gitlab.transip.us/swiltink/go-MusicBot/player"
+	"fmt"
 	"gitlab.transip.us/swiltink/go-MusicBot/bot"
+	"gitlab.transip.us/swiltink/go-MusicBot/player"
+	"os"
 )
 
-func main(){
+func main() {
 	file, err := os.Open("conf.json")
 	if err != nil {
 		fmt.Println("error:", err)
