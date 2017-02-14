@@ -2,6 +2,7 @@ package bot
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	irc "github.com/thoj/go-ircevent"
 	"gitlab.transip.us/swiltink/go-MusicBot/player"
@@ -19,15 +20,30 @@ type MusicBot struct {
 	Configuration Configuration
 }
 
-func NewMusicBot(c Configuration, player *player.MusicPlayer) *MusicBot {
+func NewMusicBot(player *player.MusicPlayer) *MusicBot {
+	file, err := os.Open("conf.json")
+	if err != nil {
+		fmt.Println("error:", err)
+		os.Exit(2)
+	}
+
+	decoder := json.NewDecoder(file)
+	configuration := Configuration{}
+	err = decoder.Decode(&configuration)
+	if err != nil {
+		fmt.Println("error:", err)
+		os.Exit(2)
+	}
+
 	whitelist, err := readWhitelist()
 	if err != nil {
 		println("Error: " + err.Error())
 	}
+
 	return &MusicBot{
 		Commands:    make(map[string]Command),
 		Whitelist:   whitelist,
-		Master:      c.Master,
+		Master:      configuration.Master,
 		MusicPlayer: player,
 	}
 }
