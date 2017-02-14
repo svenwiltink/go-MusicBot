@@ -74,6 +74,7 @@ func (p *MpvPlayer) Next() {
 	if p.mpvIsRunning {
 		fmt.Println("Killing Mpv")
 		p.MpvProcess.Process.Kill()
+		return
 	}
 
 	if !p.Queue.HasNext() {
