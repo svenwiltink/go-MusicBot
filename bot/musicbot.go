@@ -16,11 +16,11 @@ type MusicBot struct {
 	Commands      map[string]Command
 	Whitelist     []string
 	Master        string
-	MusicPlayer   *player.MusicPlayer
+	MusicPlayer   player.MusicPlayer
 	Configuration Configuration
 }
 
-func NewMusicBot(player *player.MusicPlayer) *MusicBot {
+func NewMusicBot(player player.MusicPlayer) *MusicBot {
 	file, err := os.Open("conf.json")
 	if err != nil {
 		fmt.Println("error:", err)

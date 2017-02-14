@@ -108,7 +108,7 @@ var CurrentCommand = Command{
 	Name: "Current",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
-		url := bot.MusicPlayer.CurrentSong.GetURL()
+		url := bot.MusicPlayer.GetCurrentSong().GetURL()
 		message := fmt.Sprintf("Current song: %s", url)
 		event.Connection.Privmsg(channel, message)
 	},
@@ -146,7 +146,7 @@ var ShuffleCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		message := fmt.Sprint("Shuffeling queue")
-		bot.MusicPlayer.Queue.Shuffle()
+		bot.MusicPlayer.ShuffleQueue()
 		event.Connection.Privmsg(channel, message)
 	},
 }
@@ -155,7 +155,7 @@ var ListCommand = Command{
 	Name: "list",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
-		for i, item := range bot.MusicPlayer.Queue.Items {
+		for i, item := range bot.MusicPlayer.GetQueueItems() {
 			message := fmt.Sprintf("#%d %s", i, item.GetURL())
 			event.Connection.Privmsg(channel, message)
 		}
@@ -168,7 +168,7 @@ var FlushCommand = Command{
 		channel := event.Arguments[0]
 
 		message := fmt.Sprint("Flushing queue")
-		bot.MusicPlayer.Queue.Flush()
+		bot.MusicPlayer.FlushQueue()
 		event.Connection.Privmsg(channel, message)
 	},
 }
