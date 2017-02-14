@@ -56,7 +56,7 @@ var WhitelistCommand = Command{
 					return
 				}
 				user := parameters[1]
-				if realname == bot.Master {
+				if realname == bot.Configuration.Master {
 					if isWhitelisted, _ := bot.isUserWhitelisted(user); !isWhitelisted {
 						bot.Whitelist = append(bot.Whitelist, user)
 						event.Connection.Privmsg(channel, "User added to whitelist")
@@ -71,7 +71,7 @@ var WhitelistCommand = Command{
 					return
 				}
 				user := parameters[1]
-				if realname == bot.Master {
+				if realname == bot.Configuration.Master {
 					if isWhitelisted, index := bot.isUserWhitelisted(user); isWhitelisted {
 						bot.Whitelist = append(bot.Whitelist[:index], bot.Whitelist[index+1:]...)
 						event.Connection.Privmsg(channel, "User removed from whitelist")
