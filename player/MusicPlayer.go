@@ -9,17 +9,17 @@ import (
 	"syscall"
 )
 
-type PlayerStatus int
+type Status int
 
 const (
-	RUNNING PlayerStatus = 1 + iota
+	RUNNING Status = 1 + iota
 	STOPPED
 )
 
 type MusicPlayer struct {
 	Queue        Queue
 	CurrentSong  QueueItem
-	Status       PlayerStatus
+	Status       Status
 	MpvProcess   *exec.Cmd
 	mpvIsRunning bool
 	ControlFile  *os.File
@@ -48,7 +48,7 @@ func (p *MusicPlayer) init() {
 	p.ControlFile = file
 }
 
-func (p *MusicPlayer) GetStatus() PlayerStatus {
+func (p *MusicPlayer) GetStatus() Status {
 	return p.Status
 }
 
