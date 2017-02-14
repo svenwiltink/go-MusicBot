@@ -65,28 +65,28 @@ type Configuration struct {
 	Master   string
 }
 
-func (bot *MusicBot) Start() {
-	bot.registerCommand(HelpCommand)
-	bot.registerCommand(WhitelistCommand)
-	bot.registerCommand(NextCommand)
-	bot.registerCommand(PlayCommand)
-	bot.registerCommand(PauseCommand)
-	bot.registerCommand(CurrentCommand)
-	bot.registerCommand(ShuffleCommand)
-	bot.registerCommand(ListCommand)
-	bot.registerCommand(FlushCommand)
-	bot.registerCommand(OpenCommand)
-	bot.registerCommand(SearchCommand)
+func (m *MusicBot) Start() {
+	m.registerCommand(HelpCommand)
+	m.registerCommand(WhitelistCommand)
+	m.registerCommand(NextCommand)
+	m.registerCommand(PlayCommand)
+	m.registerCommand(PauseCommand)
+	m.registerCommand(CurrentCommand)
+	m.registerCommand(ShuffleCommand)
+	m.registerCommand(ListCommand)
+	m.registerCommand(FlushCommand)
+	m.registerCommand(OpenCommand)
+	m.registerCommand(SearchCommand)
 
-	bot.registerCommand(VolUpCommand)
-	bot.registerCommand(VolDownCommand)
-	bot.registerCommand(VolCommand)
+	m.registerCommand(VolUpCommand)
+	m.registerCommand(VolDownCommand)
+	m.registerCommand(VolCommand)
 
-	irccon := irc.IRC(bot.Configuration.Nick, bot.Configuration.Realname)
-	irccon.Password = bot.Configuration.Password
-	irccon.UseTLS = bot.Configuration.Ssl
+	irccon := irc.IRC(m.Configuration.Nick, m.Configuration.Realname)
+	irccon.Password = m.Configuration.Password
+	irccon.UseTLS = m.Configuration.Ssl
 
-	err := irccon.Connect(bot.Configuration.Server)
+	err := irccon.Connect(m.Configuration.Server)
 
 	if err != nil {
 		fmt.Println(err)
@@ -94,7 +94,7 @@ func (bot *MusicBot) Start() {
 	}
 
 	irccon.AddCallback("001", func(event *irc.Event) {
-		event.Connection.Join(bot.Configuration.Channel)
+		event.Connection.Join(m.Configuration.Channel)
 	})
 
 	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
@@ -103,13 +103,13 @@ func (bot *MusicBot) Start() {
 		realname := event.User
 
 		if strings.HasPrefix(message, "!music") {
-			if isWhiteListed, _ := bot.isUserWhitelisted(realname); bot.Master == realname || isWhiteListed {
+			if isWhiteListed, _ := m.isUserWhitelisted(realname); m.Master == realname || isWhiteListed {
 				arguments := strings.Split(message, " ")[1:]
 				if len(arguments) > 0 {
 					commandName := strings.ToLower(arguments[0])
 					arguments = arguments[1:]
-					if command, exist := bot.getCommand(commandName); exist {
-						command.execute(bot, event, arguments)
+					if command, exist := m.getCommand(commandName); exist {
+						command.execute(m, event, arguments)
 						return
 					}
 				}
@@ -122,7 +122,7 @@ func (bot *MusicBot) Start() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	<-sigs
-	bot.MusicPlayer.Stop()
+	m.MusicPlayer.Stop()
 }
 
 func readWhitelist() ([]string, error) {
