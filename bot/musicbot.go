@@ -1,11 +1,11 @@
-package main
+package bot
 
 import (
 	"bufio"
 	"encoding/json"
 	"fmt"
 	irc "github.com/thoj/go-ircevent"
-	MusicPlayer "gitlab.transip.us/swiltink/go-MusicPlayer"
+	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"os"
 	"os/signal"
 	"strings"
@@ -13,22 +13,38 @@ import (
 )
 
 type MusicBot struct {
-	Commands    map[string]Command
-	Whitelist   []string
-	Master      string
-	MusicPlayer *MusicPlayer.MusicPlayer
+	Commands      map[string]Command
+	Whitelist     []string
+	Master        string
+	MusicPlayer   *player.MusicPlayer
+	Configuration Configuration
 }
 
-func NewMusicBot(c Configuration) *MusicBot {
+func NewMusicBot(player *player.MusicPlayer) *MusicBot {
+	file, err := os.Open("conf.json")
+	if err != nil {
+		fmt.Println("error:", err)
+		os.Exit(2)
+	}
+
+	decoder := json.NewDecoder(file)
+	configuration := Configuration{}
+	err = decoder.Decode(&configuration)
+	if err != nil {
+		fmt.Println("error:", err)
+		os.Exit(2)
+	}
+
 	whitelist, err := readWhitelist()
 	if err != nil {
 		println("Error: " + err.Error())
 	}
+
 	return &MusicBot{
 		Commands:    make(map[string]Command),
 		Whitelist:   whitelist,
-		Master:      c.Master,
-		MusicPlayer: MusicPlayer.NewMusicPlayer(),
+		Master:      configuration.Master,
+		MusicPlayer: player,
 	}
 }
 
@@ -65,43 +81,28 @@ type Configuration struct {
 	Master   string
 }
 
-func main() {
-	file, err := os.Open("conf.json")
-	if err != nil {
-		fmt.Println("error:", err)
-		os.Exit(2)
-	}
+func (m *MusicBot) Start() {
+	m.registerCommand(HelpCommand)
+	m.registerCommand(WhitelistCommand)
+	m.registerCommand(NextCommand)
+	m.registerCommand(PlayCommand)
+	m.registerCommand(PauseCommand)
+	m.registerCommand(CurrentCommand)
+	m.registerCommand(ShuffleCommand)
+	m.registerCommand(ListCommand)
+	m.registerCommand(FlushCommand)
+	m.registerCommand(OpenCommand)
+	m.registerCommand(SearchCommand)
 
-	decoder := json.NewDecoder(file)
-	configuration := Configuration{}
-	err = decoder.Decode(&configuration)
-	if err != nil {
-		fmt.Println("error:", err)
-		os.Exit(2)
-	}
+	m.registerCommand(VolUpCommand)
+	m.registerCommand(VolDownCommand)
+	m.registerCommand(VolCommand)
 
-	bot := NewMusicBot(configuration)
-	bot.registerCommand(HelpCommand)
-	bot.registerCommand(WhitelistCommand)
-	bot.registerCommand(NextCommand)
-	bot.registerCommand(PlayCommand)
-	bot.registerCommand(PauseCommand)
-	bot.registerCommand(CurrentCommand)
-	bot.registerCommand(ShuffleCommand)
-	bot.registerCommand(ListCommand)
-	bot.registerCommand(FlushCommand)
-	bot.registerCommand(OpenCommand)
-	bot.registerCommand(SearchCommand)
+	irccon := irc.IRC(m.Configuration.Nick, m.Configuration.Realname)
+	irccon.Password = m.Configuration.Password
+	irccon.UseTLS = m.Configuration.Ssl
 
-	bot.registerCommand(VolUpCommand)
-	bot.registerCommand(VolDownCommand)
-	bot.registerCommand(VolCommand)
-
-	irccon := irc.IRC(configuration.Nick, configuration.Realname)
-	irccon.Password = configuration.Password
-	irccon.UseTLS = configuration.Ssl
-
-	err = irccon.Connect(configuration.Server)
+	err := irccon.Connect(m.Configuration.Server)
 
 	if err != nil {
 		fmt.Println(err)
@@ -109,7 +110,7 @@ func main() {
 	}
 
 	irccon.AddCallback("001", func(event *irc.Event) {
-		event.Connection.Join(configuration.Channel)
+		event.Connection.Join(m.Configuration.Channel)
 	})
 
 	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
@@ -118,13 +119,13 @@ func main() {
 		realname := event.User
 
 		if strings.HasPrefix(message, "!music") {
-			if isWhiteListed, _ := bot.isUserWhitelisted(realname); bot.Master == realname || isWhiteListed {
+			if isWhiteListed, _ := m.isUserWhitelisted(realname); m.Master == realname || isWhiteListed {
 				arguments := strings.Split(message, " ")[1:]
 				if len(arguments) > 0 {
 					commandName := strings.ToLower(arguments[0])
 					arguments = arguments[1:]
-					if command, exist := bot.getCommand(commandName); exist {
-						command.execute(bot, event, arguments)
+					if command, exist := m.getCommand(commandName); exist {
+						command.execute(m, event, arguments)
 						return
 					}
 				}
@@ -137,7 +138,7 @@ func main() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	<-sigs
-	bot.MusicPlayer.Stop()
+	m.MusicPlayer.Stop()
 }
 
 func readWhitelist() ([]string, error) {
