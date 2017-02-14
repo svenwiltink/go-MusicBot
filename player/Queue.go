@@ -55,6 +55,7 @@ func NewQueueItem(URL string) QueueItem {
 		URL: URL,
 	}
 }
+
 func (i *QueueItem) GetURL() string {
 	return i.URL
 }

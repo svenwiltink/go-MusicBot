@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	playerObject := player.NewMusicPlayer()
+	playerObject := player.NewMpvPlayer()
 	botObject := bot.NewMusicBot(playerObject)
 	botObject.Start()
 }
