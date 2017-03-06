@@ -10,11 +10,11 @@ func main() {
 	// Get a music player
 	playerObject := player.NewMpvPlayer()
 
+	// Initialize the API
+	apiObject := api.NewAPI(playerObject)
+	go apiObject.Start()
+
 	// Initialize the IRC bot
 	botObject := bot.NewMusicBot(playerObject)
 	botObject.Start()
-
-	// Initialize the API
-	apiObject := api.NewAPI(playerObject)
-	apiObject.Start()
 }

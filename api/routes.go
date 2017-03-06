@@ -7,13 +7,3 @@ type Route struct {
 	Method  string
 	handler http.HandlerFunc
 }
-
-type Routes []Route
-
-var routes = Routes{
-	Route{
-		Pattern: "list",
-		Method:  http.MethodGet,
-		handler: (*API).ListHandler,
-	},
-}
