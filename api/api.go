@@ -19,11 +19,12 @@ func NewAPI(player player.MusicPlayer) *API {
 	return &API{
 		Router: mux.NewRouter(),
 		Player: player,
-		Routes: routes,
 	}
 }
 
 func (api *API) Start() {
+
+	api.initializeRoutes()
 
 	// Register all routes
 	for _, r := range api.Routes {
@@ -31,6 +32,16 @@ func (api *API) Start() {
 	}
 
 	log.Fatal(http.ListenAndServe(":7070", api.Router))
+}
+
+func (api *API) initializeRoutes() {
+	api.Routes = []Route{
+		{
+			Pattern: "/list",
+			Method:  http.MethodGet,
+			handler: api.ListHandler,
+		},
+	}
 }
 
 // registerRoute - Register a rout with the
