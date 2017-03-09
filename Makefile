@@ -24,4 +24,4 @@ lint:
 
 build:
 	gox $(BUILD_PLATFORMS) \
-        -output="out/binaries/$(NAME)-{{.OS}}-{{.Arch}}"
+            -output="out/binaries/$(NAME)-{{.OS}}-{{.Arch}}"
