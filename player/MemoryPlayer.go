@@ -64,11 +64,12 @@ func (p *MemoryPlayer) Stop() {
 func (p *MemoryPlayer) Pause() {
 	fmt.Print("MemoryPlayer - Pause\n")
 	if p.Status == STOPPED {
+		p.Play()
 		return
 	}
 
 	p.remaining = p.timer.end.Sub(time.Now())
-	p.timer.Stop()
+	p.Stop()
 }
 
 func (p *MemoryPlayer) Next() {
@@ -86,10 +87,6 @@ func (p *MemoryPlayer) Next() {
 
 func (p *MemoryPlayer) Play() {
 	fmt.Print("MemoryPlayer - Play\n")
-
-	if p.Status == RUNNING {
-		return
-	}
 
 	// play the song :D
 	p.timer = &PlayTimer{ time.NewTimer(p.remaining), time.Now().Add(p.remaining)}
