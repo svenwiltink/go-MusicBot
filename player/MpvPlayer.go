@@ -103,7 +103,7 @@ func (p *MpvPlayer) Next() {
 	}()
 }
 
-func (p *MpvPlayer) AddSong(URL string) {
+func (p *MpvPlayer) AddSong(URL string, _ int64) {
 	queueItem := NewQueueItem(URL)
 	p.Queue.add(queueItem)
 
