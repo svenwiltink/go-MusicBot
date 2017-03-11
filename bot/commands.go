@@ -125,7 +125,7 @@ var OpenCommand = Command{
 
 		url := parameters[0]
 		fmt.Println(url)
-		bot.MusicPlayer.AddSong(url, 60)
+		bot.MusicPlayer.AddSong(url)
 	},
 }
 
