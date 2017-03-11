@@ -3,11 +3,11 @@ package player
 import (
 	"errors"
 	"fmt"
+	"gitlab.transip.us/swiltink/go-MusicBot/meta"
 	"log"
 	"os"
 	"os/exec"
 	"syscall"
-	"gitlab.transip.us/swiltink/go-MusicBot/meta"
 )
 
 type MpvPlayer struct {
@@ -26,7 +26,7 @@ func NewMpvPlayer() *MpvPlayer {
 		Queue:        NewQueue(),
 		Status:       STOPPED,
 		mpvIsRunning: false,
-		Meta: meta.NewMetaService(),
+		Meta:         meta.NewMetaService(),
 	}
 
 	player.Init()
