@@ -25,12 +25,12 @@ func NewMpvPlayer() *MpvPlayer {
 		mpvIsRunning: false,
 	}
 
-	player.init()
+	player.Init()
 
 	return player
 }
 
-func (p *MpvPlayer) init() {
+func (p *MpvPlayer) Init() {
 
 	syscall.Mknod(".mpv-input", syscall.S_IFIFO|0666, 0)
 	file, err := os.OpenFile(".mpv-input", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0660)
