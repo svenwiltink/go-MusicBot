@@ -1,15 +1,15 @@
 package meta
 
 import (
-	"google.golang.org/api/youtube/v3"
-	"google.golang.org/api/googleapi/transport"
-	"net/http"
 	"fmt"
 	"github.com/channelmeter/iso8601duration"
+	"google.golang.org/api/googleapi/transport"
+	"google.golang.org/api/youtube/v3"
+	"net/http"
 	"net/url"
 )
 
-const APIKey = "API_KEY"
+const APIKey = "AIzaSyAPEZOx4UgbBy6cEh_zZEfwYJ_3_bIWqfg"
 
 type YouTube struct {
 	service *youtube.Service
@@ -71,9 +71,9 @@ func (yt *YouTube) GetMetaForItem(source string) (meta *Meta, err error) {
 
 			meta = &Meta{
 				Identifier: identifier,
-				Title: item.Snippet.Title,
-				Duration: d.ToDuration(),
-				Source: source,
+				Title:      item.Snippet.Title,
+				Duration:   d.ToDuration(),
+				Source:     source,
 			}
 		}
 	}

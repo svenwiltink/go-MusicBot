@@ -55,9 +55,9 @@ type QueueItem struct {
 
 func NewQueueItem(title string, duration time.Duration, URL string) QueueItem {
 	return QueueItem{
-		Title: title,
+		Title:    title,
 		Duration: duration,
-		URL: URL,
+		URL:      URL,
 	}
 }
 
