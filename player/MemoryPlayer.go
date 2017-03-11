@@ -1,8 +1,8 @@
 package player
 
 import (
-	"time"
 	"fmt"
+	"time"
 )
 
 type PlayTimer struct {
@@ -12,9 +12,9 @@ type PlayTimer struct {
 }
 
 type MemoryPlayer struct {
-	Queue        Queue
-	CurrentSong  *QueueItem
-	Status       Status
+	Queue       Queue
+	CurrentSong *QueueItem
+	Status      Status
 
 	timer     *PlayTimer
 	remaining time.Duration
@@ -22,8 +22,8 @@ type MemoryPlayer struct {
 
 func NewMemoryPlayer() (p MusicPlayer) {
 	p = &MemoryPlayer{
-		Queue:        NewQueue(),
-		Status:       STOPPED,
+		Queue:  NewQueue(),
+		Status: STOPPED,
 	}
 
 	p.Init()
@@ -103,9 +103,9 @@ func (p *MemoryPlayer) Play() {
 	fmt.Print("MemoryPlayer - Play\n")
 
 	// play the song :D
-	p.timer = &PlayTimer{ time.NewTimer(p.remaining), time.Now().Add(p.remaining)}
+	p.timer = &PlayTimer{time.NewTimer(p.remaining), time.Now().Add(p.remaining)}
 	go func() {
-		<- p.timer.C
+		<-p.timer.C
 		p.Next()
 	}()
 }
@@ -115,7 +115,7 @@ func (p *MemoryPlayer) AddSong(source string, duration int64) {
 	fmt.Printf("MemoryPlayer - AddSong - %s %d\n", source, duration)
 
 	p.Queue.add(QueueItem{
-		URL: source,
+		URL:      source,
 		Duration: time.Duration(duration) * time.Second,
 	})
 
