@@ -13,33 +13,36 @@ type PlayTimer struct {
 
 type MemoryPlayer struct {
 	Queue        Queue
-	CurrentSong  QueueItem
+	CurrentSong  *QueueItem
 	Status       Status
 
 	timer     *PlayTimer
 	remaining time.Duration
 }
 
-func NewMemoryPlayer() MusicPlayer {
-	player := &MemoryPlayer{
+func NewMemoryPlayer() (p MusicPlayer) {
+	p = &MemoryPlayer{
 		Queue:        NewQueue(),
 		Status:       STOPPED,
 	}
 
-	player.init()
+	p.Init()
 
-	return player
+	return
 }
 
-func (p *MemoryPlayer) init() {
+// Init - Initialize the player
+func (p *MemoryPlayer) Init() {
 	fmt.Print("MemoryPlayer - Init\n")
 
 }
 
+// GetStatus - Get the current status of the player
 func (p *MemoryPlayer) GetStatus() Status {
 	return p.Status
 }
 
+// Start - Start the player
 func (p *MemoryPlayer) Start() error {
 	fmt.Print("MemoryPlayer - Start\n")
 
@@ -52,6 +55,7 @@ func (p *MemoryPlayer) Start() error {
 	return nil
 }
 
+// Stop - Stop playing
 func (p *MemoryPlayer) Stop() {
 	fmt.Print("MemoryPlayer - Stop\n")
 
@@ -61,8 +65,10 @@ func (p *MemoryPlayer) Stop() {
 	}
 }
 
+// Pause - Pause playing
 func (p *MemoryPlayer) Pause() {
 	fmt.Print("MemoryPlayer - Pause\n")
+
 	if p.Status == STOPPED {
 		p.Play()
 		return
@@ -72,8 +78,10 @@ func (p *MemoryPlayer) Pause() {
 	p.Stop()
 }
 
+// Next - Get and play the next item in the queue
 func (p *MemoryPlayer) Next() {
 	fmt.Print("MemoryPlayer - Next\n")
+
 	if p.timer != nil {
 		p.timer.Stop()
 	}
@@ -90,6 +98,7 @@ func (p *MemoryPlayer) Next() {
 
 }
 
+// Play -
 func (p *MemoryPlayer) Play() {
 	fmt.Print("MemoryPlayer - Play\n")
 
@@ -101,6 +110,7 @@ func (p *MemoryPlayer) Play() {
 	}()
 }
 
+// AddSong - Add a song to the queue
 func (p *MemoryPlayer) AddSong(source string, duration int64) {
 	fmt.Printf("MemoryPlayer - AddSong - %s %d\n", source, duration)
 
@@ -115,17 +125,17 @@ func (p *MemoryPlayer) AddSong(source string, duration int64) {
 }
 
 func (p *MemoryPlayer) GetCurrentSong() *QueueItem {
-	return &QueueItem{}
+	return p.CurrentSong
 }
 
 func (p *MemoryPlayer) GetQueueItems() []QueueItem {
-	return []QueueItem{{}}
+	return p.Queue.Items
 }
 
 func (p *MemoryPlayer) FlushQueue() {
-
+	p.Queue.Flush()
 }
 
 func (p *MemoryPlayer) ShuffleQueue() {
-
+	p.Queue.Shuffle()
 }
