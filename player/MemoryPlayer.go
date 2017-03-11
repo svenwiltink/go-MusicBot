@@ -78,7 +78,12 @@ func (p *MemoryPlayer) Next() {
 		p.timer.Stop()
 	}
 
-	item, _ := p.Queue.shift()
+	item, err := p.Queue.shift()
+	if err != nil {
+		p.Stop()
+		return
+	}
+
 	p.remaining = item.Duration
 
 	p.Play()
@@ -97,6 +102,7 @@ func (p *MemoryPlayer) Play() {
 }
 
 func (p *MemoryPlayer) AddSong(source string, duration int64) {
+	fmt.Printf("MemoryPlayer - AddSong - %s %d\n", source, duration)
 
 	p.Queue.add(QueueItem{
 		URL: source,
