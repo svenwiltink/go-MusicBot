@@ -15,8 +15,8 @@ deps:
 	go get -u github.com/Masterminds/glide
 	go get -u github.com/gorilla/mux
 	go get -u github.com/channelmeter/iso8601duration
-    go get -u google.golang.org/api/googleapi/transport
-    go get -u google.golang.org/api/youtube/v3
+	go get -u google.golang.org/api/googleapi/transport
+	go get -u google.golang.org/api/youtube/v3
 
 verify: fmt lint
 
