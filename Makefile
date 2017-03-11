@@ -13,6 +13,7 @@ deps:
 	go get -u github.com/golang/lint/golint
 	go get github.com/mitchellh/gox
 	go get -u github.com/Masterminds/glide
+	go get -u github.com/gorilla/mux
 
 verify: fmt lint
 
