@@ -9,6 +9,7 @@ const (
 
 type MusicPlayer interface {
 	GetStatus() Status
+	Init()
 	Start() error
 	Stop()
 	Pause()
