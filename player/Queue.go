@@ -3,7 +3,6 @@ package player
 import (
 	"errors"
 	"math/rand"
-	"time"
 )
 
 type Queue struct {
@@ -48,8 +47,7 @@ func NewQueue() Queue {
 }
 
 type QueueItem struct {
-	URL      string
-	Duration time.Duration
+	URL string
 }
 
 func NewQueueItem(URL string) QueueItem {
@@ -60,8 +58,4 @@ func NewQueueItem(URL string) QueueItem {
 
 func (i *QueueItem) GetURL() string {
 	return i.URL
-}
-
-func (i *QueueItem) GetDuration() time.Duration {
-	return i.Duration
 }

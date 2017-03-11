@@ -14,7 +14,7 @@ type MusicPlayer interface {
 	Stop()
 	Pause()
 	Next()
-	AddSong(string, int64)
+	AddSong(string)
 	GetCurrentSong() *QueueItem
 	GetQueueItems() []QueueItem
 	FlushQueue()
