@@ -115,7 +115,7 @@ func (p *MemoryPlayer) AddSong(source string) {
 	fmt.Printf("MemoryPlayer - AddSong - %s 60\n", source)
 
 	p.Queue.add(QueueItem{
-		URL:      source,
+		URL: source,
 		//Duration: 60 * time.Second,
 	})
 
