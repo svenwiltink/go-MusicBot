@@ -1,6 +1,25 @@
-hash: d7a6e51412e6916b08b1d9265601b7ec6defa2fcda446ef25ad2d72a5908b5f3
-updated: 2017-02-14T17:35:13.99503079+01:00
+hash: d980646463cbc2ffaf72bce4c6f3ec68cfa04a06b4790c92ccaa76a271af72fb
+updated: 2017-03-11T17:56:27.852996654+01:00
 imports:
+- name: github.com/channelmeter/iso8601duration
+  version: 8da3af7a2a61a4eb5ae9bddec06bf637fa9593da
+- name: github.com/gorilla/context
+  version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
+- name: github.com/gorilla/mux
+  version: 392c28fe23e1c45ddba891b0320b3b5df220beea
 - name: github.com/thoj/go-ircevent
   version: a6b1561a016c2a4aae183c3ef152c25d134c095d
+- name: golang.org/x/net
+  version: a6577fac2d73be281a500b310739095313165611
+  subpackages:
+  - context
+  - context/ctxhttp
+- name: google.golang.org/api
+  version: 1202890e803f07684581b575fda809bf335a533f
+  subpackages:
+  - gensupport
+  - googleapi
+  - googleapi/internal/uritemplates
+  - googleapi/transport
+  - youtube/v3
 testImports: []
