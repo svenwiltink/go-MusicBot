@@ -33,7 +33,7 @@ func NewMemoryPlayer() (p MusicPlayer) {
 
 // Init - Initialize the player
 func (p *MemoryPlayer) Init() {
-	fmt.Print("MemoryPlayer - Init\n")
+	fmt.Println("MemoryPlayer - Init")
 
 }
 
@@ -44,7 +44,7 @@ func (p *MemoryPlayer) GetStatus() Status {
 
 // Start - Start the player
 func (p *MemoryPlayer) Start() error {
-	fmt.Print("MemoryPlayer - Start\n")
+	fmt.Println("MemoryPlayer - Start")
 
 	if p.Status == STOPPED {
 		p.Status = RUNNING
@@ -57,7 +57,7 @@ func (p *MemoryPlayer) Start() error {
 
 // Stop - Stop playing
 func (p *MemoryPlayer) Stop() {
-	fmt.Print("MemoryPlayer - Stop\n")
+	fmt.Println("MemoryPlayer - Stop")
 
 	if p.Status == RUNNING {
 		p.Status = STOPPED
@@ -67,7 +67,7 @@ func (p *MemoryPlayer) Stop() {
 
 // Pause - Pause playing
 func (p *MemoryPlayer) Pause() {
-	fmt.Print("MemoryPlayer - Pause\n")
+	fmt.Println("MemoryPlayer - Pause")
 
 	if p.Status == STOPPED {
 		p.Play()
@@ -80,7 +80,7 @@ func (p *MemoryPlayer) Pause() {
 
 // Next - Get and play the next item in the queue
 func (p *MemoryPlayer) Next() {
-	fmt.Print("MemoryPlayer - Next\n")
+	fmt.Println("MemoryPlayer - Next")
 
 	if p.timer != nil {
 		p.timer.Stop()
@@ -100,7 +100,7 @@ func (p *MemoryPlayer) Next() {
 
 // Play -
 func (p *MemoryPlayer) Play() {
-	fmt.Print("MemoryPlayer - Play\n")
+	fmt.Println("MemoryPlayer - Play")
 
 	// play the song :D
 	p.timer = &PlayTimer{time.NewTimer(p.remaining), time.Now().Add(p.remaining)}
