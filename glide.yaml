@@ -2,3 +2,8 @@ package: gitlab.transip.us/swiltink/go-MusicBot
 import:
 - package: github.com/thoj/go-ircevent
   version: ^0.1.0
+- package: github.com/gorilla/mux
+  version: ~1.3.0
+- package: github.com/channelmeter/iso8601duration
+- package: google.golang.org/api/googleapi/transport
+- package: google.golang.org/api/youtube/v3
