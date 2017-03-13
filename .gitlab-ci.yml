@@ -19,7 +19,7 @@ formatting:lint:
     - make deps
     - make lint
 
-build:linux:
+build:
   stage: build
   before_script:
     - source ci/prepare
@@ -41,7 +41,7 @@ build:linux:
       - whitelist.txt
       - conf.json.example
 
-release:linux:
+release:
   stage: release
   script:
     - echo "DONE"

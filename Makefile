@@ -1,5 +1,8 @@
 NAME ?= MusicBot
 PACKAGE_NAME ?= $(NAME)
+
+BUILD_PLATFORMS ?= -os '!netbsd' -os '!openbsd' -os '!windows'
+
 OUR_PACKAGES=$(shell go list ./... | grep -v '/vendor/')
 
 all: deps verify build
@@ -8,6 +11,7 @@ help:
 
 deps:
 	go get -u github.com/golang/lint/golint
+	go get github.com/mitchellh/gox
 	go get -u github.com/Masterminds/glide
 
 verify: fmt lint
@@ -19,4 +23,5 @@ lint:
 	@golint ./... | ( ! grep -v -e "^vendor/" -e "be unexported" -e "don't use an underscore in package name" -e "ALL_CAPS" )
 
 build:
-	go build -o "out/binaries/$(NAME)"
+	gox $(BUILD_PLATFORMS) \
+            -output="out/binaries/$(NAME)-{{.OS}}-{{.Arch}}"

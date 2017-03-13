@@ -3,6 +3,7 @@ package player
 import (
 	"errors"
 	"fmt"
+	"gitlab.transip.us/swiltink/go-MusicBot/meta"
 	"log"
 	"os"
 	"os/exec"
@@ -16,6 +17,8 @@ type MpvPlayer struct {
 	MpvProcess   *exec.Cmd
 	mpvIsRunning bool
 	ControlFile  *os.File
+
+	Meta *meta.Service
 }
 
 func NewMpvPlayer() *MpvPlayer {
@@ -23,14 +26,15 @@ func NewMpvPlayer() *MpvPlayer {
 		Queue:        NewQueue(),
 		Status:       STOPPED,
 		mpvIsRunning: false,
+		Meta:         meta.NewMetaService(),
 	}
 
-	player.init()
+	player.Init()
 
 	return player
 }
 
-func (p *MpvPlayer) init() {
+func (p *MpvPlayer) Init() {
 
 	syscall.Mknod(".mpv-input", syscall.S_IFIFO|0666, 0)
 	file, err := os.OpenFile(".mpv-input", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0660)
@@ -104,7 +108,14 @@ func (p *MpvPlayer) Next() {
 }
 
 func (p *MpvPlayer) AddSong(URL string) {
-	queueItem := NewQueueItem(URL)
+
+	meta, err := p.Meta.GetMetaForItem(URL)
+	if err != nil {
+		fmt.Errorf("%v", err)
+		return
+	}
+
+	queueItem := NewQueueItem(meta.Title, meta.Duration, URL)
 	p.Queue.add(queueItem)
 
 	// start the player if is not already running
