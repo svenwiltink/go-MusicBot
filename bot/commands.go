@@ -156,7 +156,7 @@ var ListCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		for i, item := range bot.MusicPlayer.GetQueueItems() {
-			message := fmt.Sprintf("#%d %s", i, item.GetURL())
+			message := fmt.Sprintf("#%d %s", i, item.GetTitle())
 			event.Connection.Privmsg(channel, message)
 		}
 	},
