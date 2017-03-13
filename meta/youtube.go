@@ -24,7 +24,7 @@ func NewYoutubeService() (y *YouTube) {
 }
 
 // Initialize - Initialize the youtube service
-func (yt *YouTube) Initialize() {
+func (yt *YouTube) Initialize() (err error) {
 
 	client := &http.Client{
 		Transport: &transport.APIKey{Key: APIKey},
@@ -38,6 +38,7 @@ func (yt *YouTube) Initialize() {
 
 	yt.service = service
 
+	return
 }
 
 // GetMetaForItem - Get meta data for a youtube item
