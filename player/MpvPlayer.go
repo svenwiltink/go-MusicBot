@@ -12,7 +12,7 @@ import (
 
 type MpvPlayer struct {
 	Queue        Queue
-	CurrentSong  QueueItem
+	CurrentSong  *QueueItem
 	Status       Status
 	MpvProcess   *exec.Cmd
 	mpvIsRunning bool
@@ -83,7 +83,7 @@ func (p *MpvPlayer) Next() {
 
 	if !p.Queue.HasNext() {
 		p.Status = STOPPED
-		p.CurrentSong = QueueItem{}
+		p.CurrentSong = nil
 		return
 	}
 
@@ -93,7 +93,7 @@ func (p *MpvPlayer) Next() {
 		return
 	}
 
-	p.CurrentSong = nextSong
+	p.CurrentSong = &nextSong
 	url := nextSong.GetURL()
 	command := exec.Command("mpv", "--no-video", "--input-file=.mpv-input", url)
 	p.MpvProcess = command
@@ -125,7 +125,7 @@ func (p *MpvPlayer) AddSong(URL string) {
 }
 
 func (p *MpvPlayer) GetCurrentSong() *QueueItem {
-	return &p.CurrentSong
+	return p.CurrentSong
 }
 
 func (p *MpvPlayer) GetQueueItems() []QueueItem {
