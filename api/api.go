@@ -41,6 +41,11 @@ func (api *API) initializeRoutes() {
 			Method:  http.MethodGet,
 			handler: api.ListHandler,
 		},
+		{
+			Pattern: "/current",
+			Method:  http.MethodGet,
+			handler: api.CurrentHandler,
+		},
 	}
 }
 
@@ -56,6 +61,18 @@ func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
 	items := api.Player.GetQueueItems()
 
 	err := json.NewEncoder(w).Encode(items)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (api *API) CurrentHandler(w http.ResponseWriter, r *http.Request) {
+	item := api.Player.GetCurrentSong()
+	if item == nil {
+		item = &player.QueueItem{}
+	}
+	err := json.NewEncoder(w).Encode(item)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
