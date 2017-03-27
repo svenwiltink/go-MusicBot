@@ -8,7 +8,7 @@ import (
 
 func main() {
 	// Get a music player
-	playerObject := player.NewMpvPlayer()
+	playerObject := player.NewSpotifyPlayer()
 
 	// Initialize the API
 	apiObject := api.NewAPI(playerObject)
