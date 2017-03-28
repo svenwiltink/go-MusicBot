@@ -1,11 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"gitlab.transip.us/swiltink/go-MusicBot/api"
 	"gitlab.transip.us/swiltink/go-MusicBot/bot"
 	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
-	"fmt"
 )
 
 func main() {

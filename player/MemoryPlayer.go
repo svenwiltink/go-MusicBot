@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type MemoryPlayer struct {}
+type MemoryPlayer struct{}
 
 func NewMemoryPlayer() (p *MemoryPlayer) {
 	p = &MemoryPlayer{}
@@ -21,7 +21,7 @@ func (p *MemoryPlayer) CanPlay(url string) (canPlay bool) {
 }
 
 func (p *MemoryPlayer) GetItems(url string) (items []ListItem, err error) {
-	items = append(items,  *NewListItem(url, time.Minute, url))
+	items = append(items, *NewListItem(url, time.Minute, url))
 	return
 }
 
