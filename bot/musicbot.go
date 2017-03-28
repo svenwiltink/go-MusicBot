@@ -5,21 +5,21 @@ import (
 	"encoding/json"
 	"fmt"
 	irc "github.com/thoj/go-ircevent"
+	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
-	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
 )
 
 type MusicBot struct {
 	Commands      map[string]Command
 	Whitelist     []string
-	playlist      playlist.PlaylistInterface
+	playlist      playlist.ListInterface
 	Configuration Configuration
 }
 
-func NewMusicBot(playlst playlist.PlaylistInterface) *MusicBot {
+func NewMusicBot(playlst playlist.ListInterface) *MusicBot {
 	file, err := os.Open("conf.json")
 	if err != nil {
 		fmt.Println("error:", err)
