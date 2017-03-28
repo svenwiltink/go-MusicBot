@@ -86,21 +86,21 @@ var WhitelistCommand = Command{
 var NextCommand = Command{
 	Name: "Next",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		bot.MusicPlayer.Next()
+		bot.playlist.Next()
 	},
 }
 
 var PlayCommand = Command{
 	Name: "Play",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		bot.MusicPlayer.Pause()
+		bot.playlist.Pause()
 	},
 }
 
 var PauseCommand = Command{
 	Name: "Pause",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		bot.MusicPlayer.Pause()
+		bot.playlist.Pause()
 	},
 }
 
@@ -108,10 +108,10 @@ var CurrentCommand = Command{
 	Name: "Current",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
-		song := bot.MusicPlayer.GetCurrentSong()
+		song := bot.playlist.GetCurrentItem()
 		title := "Not playing"
 		if song != nil {
-			title = song.GetTitle()
+			title = song.Title()
 		}
 
 		message := fmt.Sprintf("Current song: %s", title)
@@ -124,13 +124,13 @@ var OpenCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		if len(parameters) < 1 {
 			channel := event.Arguments[0]
-			event.Connection.Privmsg(channel, "!music open <youtube link>")
+			event.Connection.Privmsg(channel, "!music open <music link>")
 			return
 		}
 
 		url := parameters[0]
 		fmt.Println(url)
-		bot.MusicPlayer.AddSong(url)
+		bot.playlist.AddItems(url)
 	},
 }
 
@@ -151,7 +151,7 @@ var ShuffleCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		message := fmt.Sprint("Shuffeling queue")
-		bot.MusicPlayer.ShuffleQueue()
+		bot.playlist.ShuffleList()
 		event.Connection.Privmsg(channel, message)
 	},
 }
@@ -160,8 +160,8 @@ var ListCommand = Command{
 	Name: "list",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
-		for i, item := range bot.MusicPlayer.GetQueueItems() {
-			message := fmt.Sprintf("#%d %s", i, item.GetTitle())
+		for i, item := range bot.playlist.GetItems() {
+			message := fmt.Sprintf("#%d %s", i, item.Title())
 			event.Connection.Privmsg(channel, message)
 		}
 	},
@@ -173,7 +173,7 @@ var FlushCommand = Command{
 		channel := event.Arguments[0]
 
 		message := fmt.Sprint("Flushing queue")
-		bot.MusicPlayer.FlushQueue()
+		bot.playlist.EmptyList()
 		event.Connection.Privmsg(channel, message)
 	},
 }
