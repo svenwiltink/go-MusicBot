@@ -13,8 +13,12 @@ type MusicPlaylist struct {
 	items       []ItemInterface
 	status      Status
 
-	currentPlayer player.MusicPlayerInterface
 	players       []player.MusicPlayerInterface
+	currentPlayer player.MusicPlayerInterface
+
+	playTimer         *time.Timer
+	endTime           time.Time
+	remainingDuration time.Duration
 }
 
 func NewPlaylist() (playlist *MusicPlaylist) {
@@ -86,6 +90,17 @@ func (p *MusicPlaylist) Start() (err error) {
 	return
 }
 
+func (p *MusicPlaylist) playWait() {
+	p.playTimer = time.NewTimer(p.endTime.Sub(time.Now()))
+
+	// Wait for the timer to time out, or be canceled because of a STOP or something
+	<-p.playTimer.C
+
+	if len(p.items) > 0 && p.status == PLAYING {
+		p.Next()
+	}
+}
+
 func (p *MusicPlaylist) Next() (item ItemInterface, err error) {
 	if len(p.items) == 0 {
 		err = errors.New("Playlist is empty, no next available")
@@ -107,15 +122,9 @@ func (p *MusicPlaylist) Next() (item ItemInterface, err error) {
 	}
 	p.currentPlayer = musicPlayer
 	p.status = PLAYING
-
-	go func() {
-		time.Sleep(item.Duration() + time.Second)
-
-		if len(p.items) > 0 {
-			// TODO: Would prefer not to use recursion here, because we'll fill up the stack :')
-			p.Next()
-		}
-	}()
+	p.endTime = time.Now().Add(item.Duration())
+	// Start waiting for the song to be done
+	go p.playWait()
 	return
 }
 
@@ -130,6 +139,10 @@ func (p *MusicPlaylist) Stop() (err error) {
 		return
 	}
 	p.currentPlayer = nil
+	if p.playTimer != nil {
+		// Kill the current playWait()
+		p.playTimer.Stop()
+	}
 	return
 }
 
@@ -146,8 +159,17 @@ func (p *MusicPlaylist) Pause() (err error) {
 	}
 	if p.status == PAUSED {
 		p.status = PLAYING
+		p.endTime = time.Now().Add(p.remainingDuration)
+		// Restart the play wait goroutine with the new time
+		go p.playWait()
 	} else {
 		p.status = PAUSED
+		p.remainingDuration = p.endTime.Sub(time.Now())
+		if p.playTimer != nil {
+			// Kill the current playWait()
+			p.playTimer.Stop()
+		}
 	}
+
 	return
 }
