@@ -3,22 +3,22 @@ package api
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"log"
 	"net/http"
+	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
+	"gitlab.transip.us/swiltink/go-MusicBot/player"
 )
 
 type API struct {
-	Router *mux.Router
-	Player player.MusicPlayer
-	Routes []Route
+	Router   *mux.Router
+	playlist playlist.PlaylistInterface
+	Routes   []Route
 }
 
-func NewAPI(player player.MusicPlayer) *API {
-
+func NewAPI(playlist playlist.PlaylistInterface) *API {
 	return &API{
-		Router: mux.NewRouter(),
-		Player: player,
+		Router:   mux.NewRouter(),
+		playlist: playlist,
 	}
 }
 
@@ -58,7 +58,7 @@ func (api *API) registerRoute(route Route) bool {
 }
 
 func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
-	items := api.Player.GetQueueItems()
+	items := api.playlist.GetItems()
 
 	err := json.NewEncoder(w).Encode(items)
 	if err != nil {
@@ -68,9 +68,9 @@ func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) CurrentHandler(w http.ResponseWriter, r *http.Request) {
-	item := api.Player.GetCurrentSong()
+	item := api.playlist.GetCurrentItem()
 	if item == nil {
-		item = &player.QueueItem{}
+		item = &player.ListItem{}
 	}
 	err := json.NewEncoder(w).Encode(item)
 	if err != nil {

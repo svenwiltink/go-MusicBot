@@ -5,21 +5,21 @@ import (
 	"encoding/json"
 	"fmt"
 	irc "github.com/thoj/go-ircevent"
-	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
+	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
 )
 
 type MusicBot struct {
 	Commands      map[string]Command
 	Whitelist     []string
-	MusicPlayer   player.MusicPlayer
+	playlist      playlist.PlaylistInterface
 	Configuration Configuration
 }
 
-func NewMusicBot(player player.MusicPlayer) *MusicBot {
+func NewMusicBot(playlst playlist.PlaylistInterface) *MusicBot {
 	file, err := os.Open("conf.json")
 	if err != nil {
 		fmt.Println("error:", err)
@@ -43,7 +43,7 @@ func NewMusicBot(player player.MusicPlayer) *MusicBot {
 		Commands:      make(map[string]Command),
 		Whitelist:     whitelist,
 		Configuration: configuration,
-		MusicPlayer:   player,
+		playlist:      playlst,
 	}
 }
 
@@ -137,7 +137,7 @@ func (m *MusicBot) Start() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	<-sigs
-	m.MusicPlayer.Stop()
+	m.playlist.Stop()
 }
 
 func readWhitelist() ([]string, error) {

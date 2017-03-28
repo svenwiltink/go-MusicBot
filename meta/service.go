@@ -17,7 +17,6 @@ func NewMetaService() (s *Service) {
 }
 
 func (s *Service) Initialize() {
-
 	s.YouTube = NewYoutubeService()
 }
 
