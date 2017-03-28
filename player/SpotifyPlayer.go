@@ -2,16 +2,16 @@ package player
 
 import (
 	"github.com/vansante/go-spotify-control"
-	"time"
 	"strings"
+	"time"
 )
 
 type SpotifyPlayer struct {
-	control     *spotifycontrol.SpotifyControl
+	control *spotifycontrol.SpotifyControl
 }
 
 func NewSpotifyPlayer() (p *SpotifyPlayer, err error) {
-	cntrl, err := spotifycontrol.NewSpotifyControl("", 1 * time.Second)
+	cntrl, err := spotifycontrol.NewSpotifyControl("", 1*time.Second)
 	if err != nil {
 		return
 	}
@@ -33,7 +33,7 @@ func (p *SpotifyPlayer) CanPlay(url string) (canPlay bool) {
 
 func (p *SpotifyPlayer) GetItems(url string) (items []ListItem, err error) {
 	// TODO: FIXME: Get meta data, add each song individually, etc
-	items = append(items,  *NewListItem(url, time.Minute, url))
+	items = append(items, *NewListItem(url, time.Minute, url))
 	return
 }
 
@@ -51,4 +51,3 @@ func (p *SpotifyPlayer) Stop() (err error) {
 	_, err = p.control.SetPauseState(true)
 	return
 }
-

@@ -5,8 +5,8 @@ import (
 	"gitlab.transip.us/swiltink/go-MusicBot/meta"
 	"os"
 	"os/exec"
-	//"syscall"
 	"strings"
+	"syscall"
 )
 
 type YoutubePlayer struct {
@@ -28,7 +28,7 @@ func NewYoutubePlayer() (player *YoutubePlayer, err error) {
 }
 
 func (p *YoutubePlayer) Init() (err error) {
-	//syscall.Mknod(".mpv-input", syscall.S_IFIFO|0666, 0)
+	syscall.Mknod(".mpv-input", syscall.S_IFIFO|0666, 0)
 	file, err := os.OpenFile(".mpv-input", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0660)
 	if err != nil {
 		err = fmt.Errorf("[YoutubePlayer] Error opening control file: %v", err)
@@ -55,7 +55,7 @@ func (p *YoutubePlayer) GetItems(url string) (items []ListItem, err error) {
 	}
 
 	// TODO: FIXME: DO playlist handling, Daves code.
-	items = append(items,  *NewListItem(metaData.Title, metaData.Duration, url))
+	items = append(items, *NewListItem(metaData.Title, metaData.Duration, url))
 	return
 }
 
