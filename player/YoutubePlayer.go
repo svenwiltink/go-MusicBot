@@ -13,14 +13,13 @@ type YoutubePlayer struct {
 	MpvProcess   *exec.Cmd
 	mpvIsRunning bool
 	ControlFile  *os.File
-
-	Meta *meta.Service
+	ytService    *meta.YouTube
 }
 
 func NewYoutubePlayer() (player *YoutubePlayer, err error) {
 	player = &YoutubePlayer{
 		mpvIsRunning: false,
-		Meta:         meta.NewMetaService(),
+		ytService:    meta.NewYoutubeService(),
 	}
 
 	err = player.Init()
@@ -48,13 +47,25 @@ func (p *YoutubePlayer) CanPlay(url string) (canPlay bool) {
 }
 
 func (p *YoutubePlayer) GetItems(url string) (items []ListItem, err error) {
-	metaData, err := p.Meta.GetMetaForItem(url)
+	lowerUrl := strings.ToLower(url)
+	if strings.Contains(lowerUrl, "playlist") || strings.Contains(lowerUrl, "list=") {
+		var metaDatas []meta.Meta
+		metaDatas, err = p.ytService.GetMetasForPlaylistUrl(url)
+		if err == nil {
+			for _, metaData := range metaDatas {
+				items = append(items, *NewListItem(metaData.Title, metaData.Duration, url))
+			}
+			return
+		}
+		// On error, fall back to single add
+	}
+
+	metaData, err := p.ytService.GetMetaForUrl(url)
 	if err != nil {
 		err = fmt.Errorf("[YoutubePlayer] Error getting meta data: %v", err)
 		return
 	}
 
-	// TODO: FIXME: DO playlist handling, Daves code.
 	items = append(items, *NewListItem(metaData.Title, metaData.Duration, url))
 	return
 }

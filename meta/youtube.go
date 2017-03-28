@@ -11,6 +11,8 @@ import (
 
 const APIKey = "AIzaSyAPEZOx4UgbBy6cEh_zZEfwYJ_3_bIWqfg"
 
+const YTURL = "https://www.youtube.com/watch?v=%s"
+
 type YouTube struct {
 	service *youtube.Service
 }
@@ -41,8 +43,8 @@ func (yt *YouTube) Initialize() (err error) {
 	return
 }
 
-// GetMetaForItem - Get meta data for a youtube item
-func (yt *YouTube) GetMetaForItem(source string) (meta *Meta, err error) {
+// GetMetaForItem - Get meta data for a youtube url
+func (yt *YouTube) GetMetaForUrl(source string) (meta *Meta, err error) {
 
 	url, err := url.Parse(source)
 	if err != nil {
@@ -55,6 +57,17 @@ func (yt *YouTube) GetMetaForItem(source string) (meta *Meta, err error) {
 		return
 	}
 
+	meta, err = yt.GetMetaForIdentifier(identifier)
+	if err != nil {
+		fmt.Errorf("Unable to get meta for source %v", err)
+		return
+	}
+
+	return
+}
+
+func (yt *YouTube) GetMetaForIdentifier(identifier string) (meta *Meta, err error) {
+
 	call := yt.service.Videos.List("snippet,contentDetails").Id(identifier)
 	response, err := call.Do()
 	if err != nil {
@@ -62,6 +75,7 @@ func (yt *YouTube) GetMetaForItem(source string) (meta *Meta, err error) {
 		return
 	}
 
+	meta = &Meta{}
 	for _, item := range response.Items {
 		if item.Id == identifier && item.Kind == "youtube#video" {
 
@@ -74,7 +88,39 @@ func (yt *YouTube) GetMetaForItem(source string) (meta *Meta, err error) {
 				Identifier: identifier,
 				Title:      item.Snippet.Title,
 				Duration:   d.ToDuration(),
-				Source:     source,
+				Source:     fmt.Sprintf(YTURL, identifier),
+			}
+		}
+	}
+
+	return
+}
+
+func (yt *YouTube) GetMetasForPlaylistUrl(source string) (items []Meta, err error) {
+	url, err := url.Parse(source)
+	if err != nil {
+		fmt.Errorf("Unable to parse source %v", err)
+		return
+	}
+
+	identifier := url.Query().Get("list")
+	if identifier == "" {
+		return
+	}
+
+	call := yt.service.PlaylistItems.List("snippet,contentDetails").PlaylistId(identifier)
+	response, err := call.Do()
+	if err != nil {
+		fmt.Errorf("youtube request failed %v", err)
+		return
+	}
+
+	for _, item := range response.Items {
+		if item.Kind == "youtube#playlistItem" {
+			fmt.Printf("%v\n", item.Id)
+			item, err := yt.GetMetaForIdentifier(item.ContentDetails.VideoId)
+			if err == nil {
+				items = append(items, *item)
 			}
 		}
 	}
