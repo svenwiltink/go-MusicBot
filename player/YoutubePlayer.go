@@ -47,10 +47,10 @@ func (p *YoutubePlayer) CanPlay(url string) (canPlay bool) {
 }
 
 func (p *YoutubePlayer) GetItems(url string) (items []ListItem, err error) {
-	lowerUrl := strings.ToLower(url)
-	if strings.Contains(lowerUrl, "playlist") || strings.Contains(lowerUrl, "list=") {
+	lowerURL := strings.ToLower(url)
+	if strings.Contains(lowerURL, "playlist") || strings.Contains(lowerURL, "list=") {
 		var metaDatas []meta.Meta
-		metaDatas, err = p.ytService.GetMetasForPlaylistUrl(url)
+		metaDatas, err = p.ytService.GetMetasForPlaylistURL(url)
 		if err == nil {
 			for _, metaData := range metaDatas {
 				items = append(items, *NewListItem(metaData.Title, metaData.Duration, url))
@@ -60,7 +60,7 @@ func (p *YoutubePlayer) GetItems(url string) (items []ListItem, err error) {
 		// On error, fall back to single add
 	}
 
-	metaData, err := p.ytService.GetMetaForUrl(url)
+	metaData, err := p.ytService.GetMetaForURL(url)
 	if err != nil {
 		err = fmt.Errorf("[YoutubePlayer] Error getting meta data: %v", err)
 		return

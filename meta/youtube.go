@@ -43,9 +43,8 @@ func (yt *YouTube) Initialize() (err error) {
 	return
 }
 
-// GetMetaForItem - Get meta data for a youtube url
-func (yt *YouTube) GetMetaForUrl(source string) (meta *Meta, err error) {
-
+// GetMetaForURL - Get meta data for a youtube url
+func (yt *YouTube) GetMetaForURL(source string) (meta *Meta, err error) {
 	url, err := url.Parse(source)
 	if err != nil {
 		fmt.Errorf("Unable to parse source %v", err)
@@ -67,7 +66,6 @@ func (yt *YouTube) GetMetaForUrl(source string) (meta *Meta, err error) {
 }
 
 func (yt *YouTube) GetMetaForIdentifier(identifier string) (meta *Meta, err error) {
-
 	call := yt.service.Videos.List("snippet,contentDetails").Id(identifier)
 	response, err := call.Do()
 	if err != nil {
@@ -96,7 +94,7 @@ func (yt *YouTube) GetMetaForIdentifier(identifier string) (meta *Meta, err erro
 	return
 }
 
-func (yt *YouTube) GetMetasForPlaylistUrl(source string) (items []Meta, err error) {
+func (yt *YouTube) GetMetasForPlaylistURL(source string) (items []Meta, err error) {
 	url, err := url.Parse(source)
 	if err != nil {
 		fmt.Errorf("Unable to parse source %v", err)
