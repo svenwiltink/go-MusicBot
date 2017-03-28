@@ -3,19 +3,19 @@ package api
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"gitlab.transip.us/swiltink/go-MusicBot/player"
+	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
 	"log"
 	"net/http"
-	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
-	"gitlab.transip.us/swiltink/go-MusicBot/player"
 )
 
 type API struct {
 	Router   *mux.Router
-	playlist playlist.PlaylistInterface
+	playlist playlist.ListInterface
 	Routes   []Route
 }
 
-func NewAPI(playlist playlist.PlaylistInterface) *API {
+func NewAPI(playlist playlist.ListInterface) *API {
 	return &API{
 		Router:   mux.NewRouter(),
 		playlist: playlist,

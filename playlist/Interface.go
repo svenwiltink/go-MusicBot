@@ -10,7 +10,7 @@ const (
 	STOPPED
 )
 
-type PlaylistInterface interface {
+type ListInterface interface {
 	GetItems() (items []ItemInterface)
 	GetCurrentItem() (item ItemInterface)
 	AddItems(url string) (items []ItemInterface, err error)
