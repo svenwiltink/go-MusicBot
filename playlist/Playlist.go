@@ -1,10 +1,10 @@
 package playlist
 
 import (
-	"math/rand"
-	"gitlab.transip.us/swiltink/go-MusicBot/player"
-	"fmt"
 	"errors"
+	"fmt"
+	"gitlab.transip.us/swiltink/go-MusicBot/player"
+	"math/rand"
 	"time"
 )
 
