@@ -38,13 +38,13 @@ func (p *SpotifyPlayer) Name() (name string) {
 }
 
 func (p *SpotifyPlayer) CanPlay(url string) (canPlay bool) {
-	_, id, err := p.getTypeAndIDFromURL(url)
+	_, id, _, err := p.getTypeAndIDFromURL(url)
 	canPlay = err == nil && id != ""
 	return
 }
 
 func (p *SpotifyPlayer) GetItems(url string) (items []ListItem, err error) {
-	tp, id, err := p.getTypeAndIDFromURL(url)
+	tp, id, _, err := p.getTypeAndIDFromURL(url)
 	var tracks []spotify.SimpleTrack
 	switch tp {
 	case TYPE_TRACK:
@@ -95,46 +95,55 @@ func (p *SpotifyPlayer) Stop() (err error) {
 	return
 }
 
-func (p *SpotifyPlayer) getTypeAndIDFromURL(url string) (tp Type, id string, err error) {
+func (p *SpotifyPlayer) getTypeAndIDFromURL(url string) (tp Type, id, userID string, err error) {
 	lowerURL := strings.ToLower(url)
 	if strings.Contains(lowerURL, "spotify.com") {
-		var position int
+		var idPos int
 		switch {
 		//https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC
 		case strings.Contains(lowerURL, "/track/"):
 			tp = TYPE_TRACK
-			position = strings.LastIndex(lowerURL, "/track/") + len("/track/")
+			idPos = strings.LastIndex(lowerURL, "/track/") + len("/track/")
 		case strings.Contains(lowerURL, "/album/"):
 			tp = TYPE_ALBUM
-			position = strings.LastIndex(lowerURL, "/album/") + len("/album/")
+			idPos = strings.LastIndex(lowerURL, "/album/") + len("/album/")
 		case strings.Contains(lowerURL, "/playlist/"):
 			//https://open.spotify.com/user/tana.cross/playlist/2xLFotd9GVVQ6Jde7B3i3B
 			tp = TYPE_PLAYLIST
-			position = strings.LastIndex(lowerURL, "/playlist/") + len("/playlist/")
+			idPos = strings.LastIndex(lowerURL, "/playlist/")
+			uidPos := strings.LastIndex(lowerURL, "/user/") + len("/user/")
+			userID = url[uidPos:idPos]
+
+			idPos += len("/playlist/")
 		default:
 			err = fmt.Errorf("Unknown spotify url: %s", url)
 			return
 		}
-		id = url[:position]
+		id = url[idPos:]
 		return
 	}
 
 	// spotify:track:2cBGl1Ehr1D9xbqNmraqb4
-	var position int
+	var idPos int
 	switch {
 	case strings.Contains(lowerURL, ":track:"):
 		tp = TYPE_TRACK
-		position = strings.LastIndex(lowerURL, ":track:") + len(":track:")
+		idPos = strings.LastIndex(lowerURL, ":track:") + len(":track:")
 	case strings.Contains(lowerURL, ":album:"):
 		tp = TYPE_ALBUM
-		position = strings.LastIndex(lowerURL, ":album:") + len(":album:")
+		idPos = strings.LastIndex(lowerURL, ":album:") + len(":album:")
 	case strings.Contains(lowerURL, ":playlist:"):
+		// spotify:user:111208973:playlist:4XGuyS11n99eMqe1OvN8jq
 		tp = TYPE_PLAYLIST
-		position = strings.LastIndex(lowerURL, ":playlist:") + len(":playlist:")
+		idPos = strings.LastIndex(lowerURL, ":playlist:")
+		uidPos := strings.LastIndex(lowerURL, ":user:") + len(":user:")
+		userID = url[uidPos:idPos]
+
+		idPos += len(":playlist:")
 	default:
 		err = fmt.Errorf("Unknown spotify url: %s", url)
 		return
 	}
-	id = url[:position]
+	id = url[idPos:]
 	return
 }
