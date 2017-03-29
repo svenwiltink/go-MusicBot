@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/thoj/go-ircevent"
 	"os/exec"
+	"strings"
 )
 
 type Command struct {
@@ -127,10 +128,20 @@ var OpenCommand = Command{
 			event.Connection.Privmsg(channel, "!music open <music link>")
 			return
 		}
-
+		channel := event.Arguments[0]
 		url := parameters[0]
 		fmt.Println(url)
-		bot.playlist.AddItems(url)
+		items, err := bot.playlist.AddItems(url)
+		if err != nil {
+			event.Connection.Privmsg(channel, err.Error())
+		} else {
+			var songs []string
+			for _, item := range items {
+				songs = append(songs, item.Title())
+			}
+			event.Connection.Privmsg(channel, fmt.Sprintf("Added song(s): %s", strings.Join(songs, ", ")))
+		}
+		bot.playlist.Play()
 	},
 }
 

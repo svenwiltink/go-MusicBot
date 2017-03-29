@@ -83,9 +83,12 @@ func (p *MusicPlaylist) GetStatus() (status Status) {
 	return p.status
 }
 
-func (p *MusicPlaylist) Start() (err error) {
-	if p.status == STOPPED {
+func (p *MusicPlaylist) Play() (err error) {
+	switch p.status {
+	case STOPPED:
 		_, err = p.Next()
+	case PAUSED:
+		err = p.Pause()
 	}
 	return
 }
