@@ -66,7 +66,7 @@ func (p *SpotifyPlayer) GetItems(url string) (items []ListItem, err error) {
 			tracks = append(tracks, track)
 		}
 	case TYPE_PLAYLIST:
-		err = errors.New("Playlists are not supported yet, they require tokens :(")
+		err = errors.New("Playlists are not supported yet, they require oauth :(")
 		return
 	}
 
@@ -112,11 +112,15 @@ func (p *SpotifyPlayer) getTypeAndIDFromURL(url string) (tp Type, id, userID str
 			tp = TYPE_PLAYLIST
 			idPos = strings.LastIndex(lowerURL, "/playlist/")
 			uidPos := strings.LastIndex(lowerURL, "/user/") + len("/user/")
+			if uidPos >= idPos {
+				err = errors.New("Invalid spotify URL format")
+				return
+			}
 			userID = url[uidPos:idPos]
 
 			idPos += len("/playlist/")
 		default:
-			err = fmt.Errorf("Unknown spotify url: %s", url)
+			err = fmt.Errorf("Unknown spotify URL format: %s", url)
 			return
 		}
 		id = url[idPos:]
@@ -137,11 +141,15 @@ func (p *SpotifyPlayer) getTypeAndIDFromURL(url string) (tp Type, id, userID str
 		tp = TYPE_PLAYLIST
 		idPos = strings.LastIndex(lowerURL, ":playlist:")
 		uidPos := strings.LastIndex(lowerURL, ":user:") + len(":user:")
+		if uidPos >= idPos {
+			err = errors.New("Invalid spotify URL format")
+			return
+		}
 		userID = url[uidPos:idPos]
 
 		idPos += len(":playlist:")
 	default:
-		err = fmt.Errorf("Unknown spotify url: %s", url)
+		err = fmt.Errorf("Unknown spotify URL format: %s", url)
 		return
 	}
 	id = url[idPos:]
