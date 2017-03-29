@@ -10,3 +10,5 @@ import:
   - googleapi/transport
   - youtube/v3
 - package: github.com/vansante/go-spotify-control
+- package: github.com/zmb3/spotify
+- package: golang.org/x/oauth2

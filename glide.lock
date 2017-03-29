@@ -1,12 +1,8 @@
-hash: d4e40a1a9a0a0791e2bf9cc4dff271dc4eb4ab278d1cf5fbbe0743f1c38c1d57
-updated: 2017-03-27T10:13:56.782691981+02:00
+hash: 6c2f34af74413ec9262088c4cde9a1dcf4e31e49b58cd78796576801830f76aa
+updated: 2017-03-29T12:34:05.805787734+02:00
 imports:
 - name: github.com/channelmeter/iso8601duration
   version: 8da3af7a2a61a4eb5ae9bddec06bf637fa9593da
-- name: github.com/codegangsta/cli
-  version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
-- name: github.com/golang/lint
-  version: cb00e5669539f047b2f4c53a421a01b0c8e172c6
 - name: github.com/golang/protobuf
   version: c9c7427a2a70d2eb3bafa0ab2dc163e45f143317
   subpackages:
@@ -15,101 +11,21 @@ imports:
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux
   version: 392c28fe23e1c45ddba891b0320b3b5df220beea
-- name: github.com/Masterminds/glide
-  version: 869001d1571ce5f03fd0078bff188b9d3f272807
-  subpackages:
-  - action
-  - cache
-  - cfg
-  - dependency
-  - gb
-  - godep
-  - godep/strip
-  - gom
-  - gpm
-  - importer
-  - mirrors
-  - msg
-  - path
-  - repo
-  - tree
-  - util
-- name: github.com/Masterminds/semver
-  version: 59c29afe1a994eacb71c833025ca7acf874bb1da
-- name: github.com/Masterminds/vcs
-  version: 795e20f901c3d561de52811fb3488a2cb2c8588b
-- name: github.com/mitchellh/go-homedir
-  version: b8bc1bf767474819792c23f32d8286a45736f1c6
-- name: github.com/mitchellh/iochan
-  version: 87b45ffd0e9581375c491fef3d32130bb15c5bd7
 - name: github.com/thoj/go-ircevent
   version: a6b1561a016c2a4aae183c3ef152c25d134c095d
 - name: github.com/vansante/go-spotify-control
   version: 698a948a0e19d1d7ef3aa0de854c059ec348fda5
-- name: golang.org/x/crypto
-  version: 459e26527287adbc2adcc5d0d49abff9a5f315a7
-  subpackages:
-  - acme
-  - acme/autocert
+- name: github.com/zmb3/spotify
+  version: d12d726b0e288deb2a8d21212da3f64268612fe5
 - name: golang.org/x/net
   version: a6577fac2d73be281a500b310739095313165611
   subpackages:
   - context
   - context/ctxhttp
-  - html
-  - html/atom
-  - http2
-  - http2/hpack
-  - idna
-  - lex/httplex
-  - websocket
-- name: golang.org/x/tools
-  version: c21bc47f893ee73c18dd2119bb8ff9a2b492c4c6
+- name: golang.org/x/oauth2
+  version: 7fdf09982454086d5570c7db3e11f360194830ca
   subpackages:
-  - benchmark/parse
-  - blog
-  - blog/atom
-  - cmd/guru
-  - cmd/guru/serial
-  - container/intsets
-  - cover
-  - go/ast/astutil
-  - go/buildutil
-  - go/callgraph
-  - go/callgraph/cha
-  - go/callgraph/rta
-  - go/callgraph/static
-  - go/gccgoexportdata
-  - go/gcexportdata
-  - go/gcimporter15
-  - go/internal/gccgoimporter
-  - go/loader
-  - go/pointer
-  - go/ssa
-  - go/ssa/interp
-  - go/ssa/ssautil
-  - go/types/typeutil
-  - godoc
-  - godoc/analysis
-  - godoc/dl
-  - godoc/proxy
-  - godoc/redirect
-  - godoc/short
-  - godoc/static
-  - godoc/util
-  - godoc/vfs
-  - godoc/vfs/gatefs
-  - godoc/vfs/httpfs
-  - godoc/vfs/mapfs
-  - godoc/vfs/zipfs
-  - imports
-  - playground
-  - playground/socket
-  - present
-  - refactor/eg
-  - refactor/importgraph
-  - refactor/rename
-  - refactor/satisfy
+  - internal
 - name: google.golang.org/api
   version: 1202890e803f07684581b575fda809bf335a533f
   subpackages:
@@ -121,21 +37,11 @@ imports:
 - name: google.golang.org/appengine
   version: 56d253d1dd14aa01937e12c73a0971bcfd797ff2
   subpackages:
-  - datastore
   - internal
-  - internal/app_identity
   - internal/base
   - internal/datastore
   - internal/log
-  - internal/memcache
-  - internal/modules
   - internal/remote_api
   - internal/urlfetch
-  - internal/user
-  - log
-  - memcache
   - urlfetch
-  - user
-- name: gopkg.in/yaml.v2
-  version: a3f3340b5840cee44f372bddb5880fcbc419b46a
 testImports: []
