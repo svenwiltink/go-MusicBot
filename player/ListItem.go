@@ -3,27 +3,27 @@ package player
 import "time"
 
 type ListItem struct {
-	title    string
-	duration time.Duration
-	url      string
+	Title    string
+	Duration time.Duration
+	URL      string
 }
 
 func NewListItem(title string, duration time.Duration, URL string) *ListItem {
 	return &ListItem{
-		title:    title,
-		duration: duration,
-		url:      URL,
+		Title:    title,
+		Duration: duration,
+		URL:      URL,
 	}
 }
 
-func (i *ListItem) Title() string {
-	return i.title
+func (i *ListItem) GetTitle() string {
+	return i.Title
 }
 
-func (i *ListItem) Duration() time.Duration {
-	return i.duration
+func (i *ListItem) GetDuration() time.Duration {
+	return i.Duration
 }
 
-func (i *ListItem) URL() string {
-	return i.url
+func (i *ListItem) GetURL() string {
+	return i.URL
 }

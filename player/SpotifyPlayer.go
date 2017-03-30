@@ -51,7 +51,7 @@ func (p *SpotifyPlayer) GetItems(url string) (items []ListItem, err error) {
 		var track *spotify.FullTrack
 		track, err = spotify.DefaultClient.GetTrack(spotify.ID(id))
 		if err != nil {
-			err = fmt.Errorf("[SpotifyPlayer] Could not get track meta for url: %v", err)
+			err = fmt.Errorf("[SpotifyPlayer] Could not get track meta for URL: %v", err)
 			return
 		}
 		tracks = append(tracks, track.SimpleTrack)
@@ -59,7 +59,7 @@ func (p *SpotifyPlayer) GetItems(url string) (items []ListItem, err error) {
 		var album *spotify.FullAlbum
 		album, err = spotify.DefaultClient.GetAlbum(spotify.ID(id))
 		if err != nil {
-			err = fmt.Errorf("[SpotifyPlayer] Could not get album meta for url: %v", err)
+			err = fmt.Errorf("[SpotifyPlayer] Could not get album meta for URL: %v", err)
 			return
 		}
 		for _, track := range album.Tracks.Tracks {

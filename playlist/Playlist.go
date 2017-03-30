@@ -115,18 +115,18 @@ func (p *MusicPlaylist) Next() (item ItemInterface, err error) {
 	}
 
 	item, p.items = p.items[0], p.items[1:]
-	musicPlayer, err := p.findPlayer(item.URL())
+	musicPlayer, err := p.findPlayer(item.GetURL())
 	if err != nil {
 		return
 	}
-	err = musicPlayer.Play(item.URL())
+	err = musicPlayer.Play(item.GetURL())
 	if err != nil {
 		err = fmt.Errorf("[%s] Error playing: %v", musicPlayer.Name(), err)
 		return
 	}
 	p.currentPlayer = musicPlayer
 	p.status = PLAYING
-	p.endTime = time.Now().Add(item.Duration())
+	p.endTime = time.Now().Add(item.GetDuration())
 	// Start waiting for the song to be done
 	go p.playWait()
 	return
