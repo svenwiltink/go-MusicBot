@@ -112,7 +112,7 @@ var CurrentCommand = Command{
 		song := bot.playlist.GetCurrentItem()
 		title := "Not playing"
 		if song != nil {
-			title = song.Title()
+			title = song.GetTitle()
 		}
 
 		message := fmt.Sprintf("Current song: %s", title)
@@ -137,7 +137,7 @@ var OpenCommand = Command{
 		} else {
 			var songs []string
 			for _, item := range items {
-				songs = append(songs, item.Title())
+				songs = append(songs, item.GetTitle())
 			}
 			event.Connection.Privmsg(channel, fmt.Sprintf("Added song(s): %s", strings.Join(songs, ", ")))
 		}
@@ -161,7 +161,7 @@ var ShuffleCommand = Command{
 	Name: "shuffle",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
-		message := fmt.Sprint("Shuffeling queue")
+		message := fmt.Sprint("Shuffling queue")
 		bot.playlist.ShuffleList()
 		event.Connection.Privmsg(channel, message)
 	},
@@ -172,7 +172,7 @@ var ListCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		for i, item := range bot.playlist.GetItems() {
-			message := fmt.Sprintf("#%d %s", i, item.Title())
+			message := fmt.Sprintf("#%d %s", i, item.GetTitle())
 			event.Connection.Privmsg(channel, message)
 		}
 	},
