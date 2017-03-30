@@ -40,11 +40,26 @@ func (api *API) initializeRoutes() {
 			Pattern: "/list",
 			Method:  http.MethodGet,
 			handler: api.ListHandler,
-		},
-		{
+		},{
 			Pattern: "/current",
 			Method:  http.MethodGet,
 			handler: api.CurrentHandler,
+		},{
+			Pattern: "/play",
+			Method:  http.MethodGet,
+			handler: api.PlayHandler,
+		},{
+			Pattern: "/pause",
+			Method:  http.MethodGet,
+			handler: api.PauseHandler,
+		},{
+			Pattern: "/stop",
+			Method:  http.MethodGet,
+			handler: api.StopHandler,
+		},{
+			Pattern: "/add",
+			Method:  http.MethodGet,
+			handler: api.AddHandler,
 		},
 	}
 }
@@ -68,11 +83,48 @@ func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) CurrentHandler(w http.ResponseWriter, r *http.Request) {
-	item := api.playlist.GetCurrentItem()
+	item := api.playlist.GetCurrentItem().(*player.ListItem)
 	if item == nil {
 		item = &player.ListItem{}
 	}
-	err := json.NewEncoder(w).Encode(item.(*player.ListItem))
+	err := json.NewEncoder(w).Encode(item)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (api *API) PlayHandler(w http.ResponseWriter, r *http.Request) {
+	err := api.playlist.Play()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (api *API) PauseHandler(w http.ResponseWriter, r *http.Request) {
+	err := api.playlist.Pause()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (api *API) StopHandler(w http.ResponseWriter, r *http.Request) {
+	err := api.playlist.Stop()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
+	items, err := api.playlist.AddItems(r.Form.Get("url"))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = json.NewEncoder(w).Encode(api.convertItems(items))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
