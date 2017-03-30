@@ -67,7 +67,6 @@ func (api *API) initializeRoutes() {
 
 // registerRoute - Register a rout with the
 func (api *API) registerRoute(route Route) bool {
-
 	api.Router.HandleFunc(route.Pattern, route.handler).Methods(route.Method)
 
 	return true
@@ -127,7 +126,7 @@ func (api *API) StopHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
-	items, err := api.playlist.AddItems(r.Form.Get("url"))
+	items, err := api.playlist.AddItems(r.URL.Query().Get("url"))
 	if err != nil {
 		fmt.Printf("API add error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
