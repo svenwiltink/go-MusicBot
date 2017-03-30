@@ -24,7 +24,7 @@ type ListInterface interface {
 }
 
 type ItemInterface interface {
-	Title() string
-	Duration() time.Duration
-	URL() string
+	GetTitle() string
+	GetDuration() time.Duration
+	GetURL() string
 }
