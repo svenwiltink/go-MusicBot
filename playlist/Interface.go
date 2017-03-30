@@ -13,7 +13,7 @@ const (
 type ListInterface interface {
 	GetItems() (items []ItemInterface)
 	GetCurrentItem() (item ItemInterface)
-	AddItems(url string) (items []ItemInterface, err error)
+	AddItems(url string) (addedItems []ItemInterface, err error)
 	ShuffleList()
 	EmptyList()
 	GetStatus() (status Status)
