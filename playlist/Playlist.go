@@ -66,7 +66,6 @@ func (p *MusicPlaylist) AddItems(url string) (addedItems []ItemInterface, err er
 	for _, plItem := range plItems {
 		p.items = append(p.items, &plItem)
 		addedItems = append(addedItems, &plItem)
-
 	}
 	return
 }
