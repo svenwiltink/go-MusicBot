@@ -51,7 +51,7 @@ func (p *MusicPlaylist) findPlayer(url string) (musicPlayer player.MusicPlayerIn
 	return
 }
 
-func (p *MusicPlaylist) AddItems(url string) (items []ItemInterface, err error) {
+func (p *MusicPlaylist) AddItems(url string) (addedItems []ItemInterface, err error) {
 	musicPlayer, err := p.findPlayer(url)
 	if err != nil {
 		return
@@ -65,6 +65,8 @@ func (p *MusicPlaylist) AddItems(url string) (items []ItemInterface, err error) 
 
 	for _, plItem := range plItems {
 		p.items = append(p.items, &plItem)
+		addedItems = append(addedItems, &plItem)
+
 	}
 	return
 }
