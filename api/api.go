@@ -7,6 +7,7 @@ import (
 	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
 	"log"
 	"net/http"
+	"fmt"
 )
 
 type API struct {
@@ -77,7 +78,7 @@ func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewEncoder(w).Encode(api.convertItems(items))
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
+		fmt.Printf("API list error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -90,7 +91,7 @@ func (api *API) CurrentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err := json.NewEncoder(w).Encode(item)
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
+		fmt.Printf("API current error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -99,7 +100,7 @@ func (api *API) CurrentHandler(w http.ResponseWriter, r *http.Request) {
 func (api *API) PlayHandler(w http.ResponseWriter, r *http.Request) {
 	err := api.playlist.Play()
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
+		fmt.Printf("API play error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -117,7 +118,7 @@ func (api *API) PauseHandler(w http.ResponseWriter, r *http.Request) {
 func (api *API) StopHandler(w http.ResponseWriter, r *http.Request) {
 	err := api.playlist.Stop()
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
+		fmt.Printf("API stop error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -126,13 +127,13 @@ func (api *API) StopHandler(w http.ResponseWriter, r *http.Request) {
 func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
 	items, err := api.playlist.AddItems(r.Form.Get("url"))
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
+		fmt.Printf("API add error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	err = json.NewEncoder(w).Encode(api.convertItems(items))
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
+		fmt.Printf("API add error (2): %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
