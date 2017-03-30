@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strings"
 	"syscall"
+	"sync"
 )
 
 type YoutubePlayer struct {
@@ -14,6 +15,7 @@ type YoutubePlayer struct {
 	mpvIsRunning bool
 	ControlFile  *os.File
 	ytService    *meta.YouTube
+	mpvMutex     sync.Mutex
 }
 
 func NewYoutubePlayer() (player *YoutubePlayer, err error) {
@@ -27,6 +29,9 @@ func NewYoutubePlayer() (player *YoutubePlayer, err error) {
 }
 
 func (p *YoutubePlayer) Init() (err error) {
+	p.mpvMutex.Lock()
+	defer p.mpvMutex.Unlock()
+
 	syscall.Mknod(".mpv-input", syscall.S_IFIFO|0666, 0)
 	file, err := os.OpenFile(".mpv-input", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0660)
 	if err != nil {
@@ -71,13 +76,17 @@ func (p *YoutubePlayer) GetItems(url string) (items []ListItem, err error) {
 }
 
 func (p *YoutubePlayer) Play(url string) (err error) {
+	p.mpvMutex.Lock()
 	if p.mpvIsRunning {
 		fmt.Println("[YoutubePlayer] Killing Mpv")
 		p.MpvProcess.Process.Kill()
+		p.mpvIsRunning = false
+		p.mpvMutex.Unlock()
 		return
 	}
 	command := exec.Command("mpv", "--no-video", "--input-file=.mpv-input", url)
 	p.MpvProcess = command
+	p.mpvMutex.Unlock()
 
 	go func() {
 		command.Start()
@@ -89,6 +98,9 @@ func (p *YoutubePlayer) Play(url string) (err error) {
 }
 
 func (p *YoutubePlayer) Pause(pauseState bool) (err error) {
+	p.mpvMutex.Lock()
+	defer p.mpvMutex.Unlock()
+
 	_, err = p.ControlFile.WriteString("cycle pause\n")
 	if err != nil {
 		return
@@ -98,9 +110,13 @@ func (p *YoutubePlayer) Pause(pauseState bool) (err error) {
 }
 
 func (p *YoutubePlayer) Stop() (err error) {
+	p.mpvMutex.Lock()
+	defer p.mpvMutex.Unlock()
+
 	if p.mpvIsRunning {
 		fmt.Println("[YoutubePlayer] Killing mpv")
 		p.MpvProcess.Process.Kill()
+		p.mpvIsRunning = false
 	}
 	return
 }
