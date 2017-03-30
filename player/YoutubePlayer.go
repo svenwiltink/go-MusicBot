@@ -86,11 +86,12 @@ func (p *YoutubePlayer) Play(url string) (err error) {
 	}
 	command := exec.Command("mpv", "--no-video", "--input-file=.mpv-input", url)
 	p.MpvProcess = command
-	p.mpvMutex.Unlock()
 
 	go func() {
 		command.Start()
 		p.mpvIsRunning = true
+		p.mpvMutex.Unlock()
+
 		command.Wait()
 		p.mpvIsRunning = false
 	}()
