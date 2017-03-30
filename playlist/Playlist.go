@@ -100,6 +100,7 @@ func (p *MusicPlaylist) playWait() {
 	// Wait for the timer to time out, or be canceled because of a STOP or something
 	<-p.playTimer.C
 
+	p.currentItem = nil
 	if len(p.items) > 0 && p.status == PLAYING {
 		p.Next()
 	}
@@ -124,6 +125,7 @@ func (p *MusicPlaylist) Next() (item ItemInterface, err error) {
 		err = fmt.Errorf("[%s] Error playing: %v", musicPlayer.Name(), err)
 		return
 	}
+	p.currentItem = item
 	p.currentPlayer = musicPlayer
 	p.status = PLAYING
 	p.endTime = time.Now().Add(item.GetDuration())
@@ -142,6 +144,7 @@ func (p *MusicPlaylist) Stop() (err error) {
 		err = fmt.Errorf("[%s] Error stopping: %v", p.currentPlayer.Name(), err)
 		return
 	}
+	p.currentItem = nil
 	p.currentPlayer = nil
 	if p.playTimer != nil {
 		// Kill the current playWait()
