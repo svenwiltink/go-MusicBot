@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -19,6 +20,8 @@ type MusicPlaylist struct {
 	playTimer         *time.Timer
 	endTime           time.Time
 	remainingDuration time.Duration
+
+	controlMutex sync.Mutex
 }
 
 func NewPlaylist() (playlist *MusicPlaylist) {
@@ -63,6 +66,9 @@ func (p *MusicPlaylist) AddItems(url string) (addedItems []ItemInterface, err er
 		return
 	}
 
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
 	for _, plItem := range plItems {
 		p.items = append(p.items, &plItem)
 		addedItems = append(addedItems, &plItem)
@@ -71,12 +77,18 @@ func (p *MusicPlaylist) AddItems(url string) (addedItems []ItemInterface, err er
 }
 
 func (p *MusicPlaylist) ShuffleList() {
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
 	for i := range p.items {
 		j := rand.Intn(i + 1)
 		p.items[i], p.items[j] = p.items[j], p.items[i]
 	}
 }
 func (p *MusicPlaylist) EmptyList() {
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
 	p.items = make([]ItemInterface, 0)
 }
 
@@ -84,13 +96,18 @@ func (p *MusicPlaylist) GetStatus() (status Status) {
 	return p.status
 }
 
-func (p *MusicPlaylist) Play() (err error) {
+func (p *MusicPlaylist) Play() (item ItemInterface, err error) {
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
 	switch p.status {
 	case STOPPED:
-		_, err = p.Next()
+		item, err = p.next()
+		return
 	case PAUSED:
-		err = p.Pause()
+		err = p.pause()
 	}
+	item = p.currentItem
 	return
 }
 
@@ -100,19 +117,29 @@ func (p *MusicPlaylist) playWait() {
 	// Wait for the timer to time out, or be canceled because of a STOP or something
 	<-p.playTimer.C
 
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
 	p.currentItem = nil
 	if len(p.items) > 0 && p.status == PLAYING {
-		p.Next()
+		p.next()
 	}
 }
 
 func (p *MusicPlaylist) Next() (item ItemInterface, err error) {
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
+	return p.next()
+}
+
+func (p *MusicPlaylist) next() (item ItemInterface, err error) {
 	if len(p.items) == 0 {
 		err = errors.New("Playlist is empty, no next available")
 		return
 	}
 	if p.status == PLAYING || p.status == PAUSED {
-		p.Stop()
+		p.stop()
 	}
 
 	item, p.items = p.items[0], p.items[1:]
@@ -135,6 +162,13 @@ func (p *MusicPlaylist) Next() (item ItemInterface, err error) {
 }
 
 func (p *MusicPlaylist) Stop() (err error) {
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
+	return p.stop()
+}
+
+func (p *MusicPlaylist) stop() (err error) {
 	if p.status == STOPPED || p.currentPlayer == nil {
 		err = errors.New("Nothing currently playing")
 		return
@@ -154,6 +188,13 @@ func (p *MusicPlaylist) Stop() (err error) {
 }
 
 func (p *MusicPlaylist) Pause() (err error) {
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
+	return p.pause()
+}
+
+func (p *MusicPlaylist) pause() (err error) {
 	if p.status == STOPPED || p.currentPlayer == nil {
 		err = errors.New("Nothing currently playing")
 		return
@@ -177,6 +218,5 @@ func (p *MusicPlaylist) Pause() (err error) {
 			p.playTimer.Stop()
 		}
 	}
-
 	return
 }

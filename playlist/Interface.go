@@ -17,7 +17,7 @@ type ListInterface interface {
 	ShuffleList()
 	EmptyList()
 	GetStatus() (status Status)
-	Play() (err error)
+	Play() (item ItemInterface, err error)
 	Next() (item ItemInterface, err error)
 	Stop() (err error)
 	Pause() (err error)
