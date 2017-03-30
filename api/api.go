@@ -60,7 +60,7 @@ func (api *API) registerRoute(route Route) bool {
 func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
 	items := api.playlist.GetItems()
 
-	err := json.NewEncoder(w).Encode(items)
+	err := json.NewEncoder(w).Encode(api.convertItems(items))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -72,9 +72,16 @@ func (api *API) CurrentHandler(w http.ResponseWriter, r *http.Request) {
 	if item == nil {
 		item = &player.ListItem{}
 	}
-	err := json.NewEncoder(w).Encode(item)
+	err := json.NewEncoder(w).Encode(item.(*player.ListItem))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+func (api *API) convertItems(itms []playlist.ItemInterface) (newItems []player.ListItem) {
+	for _, itm := range itms {
+		newItems = append(newItems, *itm.(*player.ListItem))
+	}
+	return
 }
