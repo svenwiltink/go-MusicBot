@@ -40,23 +40,23 @@ func (api *API) initializeRoutes() {
 			Pattern: "/list",
 			Method:  http.MethodGet,
 			handler: api.ListHandler,
-		},{
+		}, {
 			Pattern: "/current",
 			Method:  http.MethodGet,
 			handler: api.CurrentHandler,
-		},{
+		}, {
 			Pattern: "/play",
 			Method:  http.MethodGet,
 			handler: api.PlayHandler,
-		},{
+		}, {
 			Pattern: "/pause",
 			Method:  http.MethodGet,
 			handler: api.PauseHandler,
-		},{
+		}, {
 			Pattern: "/stop",
 			Method:  http.MethodGet,
 			handler: api.StopHandler,
-		},{
+		}, {
 			Pattern: "/add",
 			Method:  http.MethodGet,
 			handler: api.AddHandler,
