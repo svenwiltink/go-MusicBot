@@ -24,7 +24,6 @@ func NewAPI(playlist playlist.ListInterface) *API {
 }
 
 func (api *API) Start() {
-
 	api.initializeRoutes()
 
 	// Register all routes
@@ -57,6 +56,10 @@ func (api *API) initializeRoutes() {
 			Pattern: "/stop",
 			Method:  http.MethodGet,
 			handler: api.StopHandler,
+		}, {
+			Pattern: "/next",
+			Method:  http.MethodGet,
+			handler: api.NextHandler,
 		}, {
 			Pattern: "/add",
 			Method:  http.MethodGet,
@@ -120,6 +123,27 @@ func (api *API) StopHandler(w http.ResponseWriter, r *http.Request) {
 	err := api.playlist.Stop()
 	if err != nil {
 		fmt.Printf("API stop error: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (api *API) NextHandler(w http.ResponseWriter, r *http.Request) {
+	itm, err := api.playlist.Next()
+	if err != nil {
+		fmt.Printf("API next error: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var item *player.ListItem
+	if itm != nil {
+		item = itm.(*player.ListItem)
+	}
+
+	err = json.NewEncoder(w).Encode(item)
+	if err != nil {
+		fmt.Printf("API next error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
