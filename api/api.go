@@ -77,10 +77,9 @@ func (api *API) registerRoute(route Route) bool {
 
 func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
 	items := api.playlist.GetItems()
-
 	err := json.NewEncoder(w).Encode(api.convertItems(items))
 	if err != nil {
-		fmt.Printf("API list error: %v\n", err)
+		fmt.Printf("API list encode error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -88,23 +87,24 @@ func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
 
 func (api *API) CurrentHandler(w http.ResponseWriter, r *http.Request) {
 	itm := api.playlist.GetCurrentItem()
-	var item *player.ListItem
-	if itm != nil {
-		item = itm.(*player.ListItem)
-	}
-
-	err := json.NewEncoder(w).Encode(item)
+	err := json.NewEncoder(w).Encode(api.convertItem(itm))
 	if err != nil {
-		fmt.Printf("API current error: %v\n", err)
+		fmt.Printf("API current encode error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
 
 func (api *API) PlayHandler(w http.ResponseWriter, r *http.Request) {
-	err := api.playlist.Play()
+	itm, err := api.playlist.Play()
 	if err != nil {
 		fmt.Printf("API play error: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = json.NewEncoder(w).Encode(api.convertItem(itm))
+	if err != nil {
+		fmt.Printf("API next encode error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -136,14 +136,9 @@ func (api *API) NextHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var item *player.ListItem
-	if itm != nil {
-		item = itm.(*player.ListItem)
-	}
-
-	err = json.NewEncoder(w).Encode(item)
+	err = json.NewEncoder(w).Encode(api.convertItem(itm))
 	if err != nil {
-		fmt.Printf("API next error: %v\n", err)
+		fmt.Printf("API next encode error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -158,15 +153,25 @@ func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err = json.NewEncoder(w).Encode(api.convertItems(items))
 	if err != nil {
-		fmt.Printf("API add error (2): %v\n", err)
+		fmt.Printf("API add encode error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
 
+func (api *API) convertItem(itm playlist.ItemInterface) (newItem *player.ListItem) {
+	if itm != nil {
+		newItem = player.NewListItem(itm.GetTitle(), itm.GetDuration(), itm.GetURL())
+	}
+	return
+}
+
 func (api *API) convertItems(itms []playlist.ItemInterface) (newItems []player.ListItem) {
 	for _, itm := range itms {
-		newItems = append(newItems, *itm.(*player.ListItem))
+		if itm == nil {
+			continue
+		}
+		newItems = append(newItems, *api.convertItem(itm))
 	}
 	return
 }
