@@ -75,7 +75,7 @@ func (p *SpotifyPlayer) GetItems(url string) (items []ListItem, err error) {
 		if len(track.Artists) > 0 {
 			name = fmt.Sprintf("%s - %s", track.Name, track.Artists[0].Name)
 		}
-		items = append(items, *NewListItem(name, track.TimeDuration(), url))
+		items = append(items, *NewListItem(name, track.TimeDuration(), string(track.URI)))
 	}
 	return
 }

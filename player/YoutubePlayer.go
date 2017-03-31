@@ -58,7 +58,7 @@ func (p *YoutubePlayer) GetItems(url string) (items []ListItem, err error) {
 		metaDatas, err = p.ytService.GetMetasForPlaylistURL(url)
 		if err == nil {
 			for _, metaData := range metaDatas {
-				items = append(items, *NewListItem(metaData.Title, metaData.Duration, url))
+				items = append(items, *NewListItem(metaData.Title, metaData.Duration, metaData.Source))
 			}
 			return
 		}
