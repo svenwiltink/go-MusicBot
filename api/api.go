@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"gitlab.transip.us/swiltink/go-MusicBot/config"
 	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
 	"log"
@@ -11,9 +12,10 @@ import (
 )
 
 type API struct {
-	Router   *mux.Router
-	playlist playlist.ListInterface
-	Routes   []Route
+	Configuration *config.API
+	Router        *mux.Router
+	playlist      playlist.ListInterface
+	Routes        []Route
 }
 
 type Status struct {
@@ -22,10 +24,11 @@ type Status struct {
 	List    []player.ListItem
 }
 
-func NewAPI(playlist playlist.ListInterface) *API {
+func NewAPI(conf *config.API, playl playlist.ListInterface) *API {
 	return &API{
-		Router:   mux.NewRouter(),
-		playlist: playlist,
+		Configuration: conf,
+		Router:        mux.NewRouter(),
+		playlist:      playl,
 	}
 }
 
