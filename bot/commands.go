@@ -87,21 +87,37 @@ var WhitelistCommand = Command{
 var NextCommand = Command{
 	Name: "Next",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		bot.playlist.Next()
+		channel := event.Arguments[0]
+		item, err := bot.playlist.Next()
+		if err != nil {
+			event.Connection.Privmsg(channel, err.Error())
+		} else {
+			event.Connection.Privmsg(channel, fmt.Sprintf("Playing %s", item.GetTitle()))
+		}
 	},
 }
 
 var PlayCommand = Command{
 	Name: "Play",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		bot.playlist.Pause()
+		channel := event.Arguments[0]
+		item, err := bot.playlist.Play()
+		if err != nil {
+			event.Connection.Privmsg(channel, err.Error())
+		} else {
+			event.Connection.Privmsg(channel, fmt.Sprintf("Playing %s", item.GetTitle()))
+		}
 	},
 }
 
 var PauseCommand = Command{
 	Name: "Pause",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		bot.playlist.Pause()
+		channel := event.Arguments[0]
+		err := bot.playlist.Pause()
+		if err != nil {
+			event.Connection.Privmsg(channel, err.Error())
+		}
 	},
 }
 
@@ -115,8 +131,7 @@ var CurrentCommand = Command{
 			title = song.GetTitle()
 		}
 
-		message := fmt.Sprintf("Current song: %s", title)
-		event.Connection.Privmsg(channel, message)
+		event.Connection.Privmsg(channel, fmt.Sprintf("Current song: %s", title))
 	},
 }
 
@@ -172,7 +187,7 @@ var ListCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		for i, item := range bot.playlist.GetItems() {
-			message := fmt.Sprintf("#%d %s", i, item.GetTitle())
+			message := fmt.Sprintf("#%d %s", (i + 1), item.GetTitle())
 			event.Connection.Privmsg(channel, message)
 		}
 	},
@@ -183,9 +198,8 @@ var FlushCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 
-		message := fmt.Sprint("Flushing queue")
 		bot.playlist.EmptyList()
-		event.Connection.Privmsg(channel, message)
+		event.Connection.Privmsg(channel, fmt.Sprint("Flushing queue"))
 	},
 }
 
