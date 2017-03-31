@@ -66,13 +66,13 @@ func (p *MusicPlaylist) AddItems(url string) (addedItems []ItemInterface, err er
 		return
 	}
 
+	for _, plItem := range plItems {
+		addedItems = append(addedItems, &plItem)
+	}
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
 
-	for _, plItem := range plItems {
-		p.items = append(p.items, &plItem)
-		addedItems = append(addedItems, &plItem)
-	}
+	p.items = append(p.items, addedItems...)
 	return
 }
 
@@ -121,7 +121,10 @@ func (p *MusicPlaylist) playWait() {
 	defer p.controlMutex.Unlock()
 
 	p.currentItem = nil
-	if len(p.items) > 0 && p.status == PLAYING {
+
+	if len(p.items) == 0 {
+		p.stop()
+	} else if len(p.items) > 0 && p.status == PLAYING {
 		p.next()
 	}
 }
