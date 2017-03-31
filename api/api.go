@@ -16,6 +16,12 @@ type API struct {
 	Routes   []Route
 }
 
+type Status struct {
+	Status  playlist.Status
+	Current *player.ListItem
+	List    []player.ListItem
+}
+
 func NewAPI(playlist playlist.ListInterface) *API {
 	return &API{
 		Router:   mux.NewRouter(),
@@ -37,6 +43,10 @@ func (api *API) Start() {
 func (api *API) initializeRoutes() {
 	api.Routes = []Route{
 		{
+			Pattern: "/status",
+			Method:  http.MethodGet,
+			handler: api.StatusHandler,
+		}, {
 			Pattern: "/list",
 			Method:  http.MethodGet,
 			handler: api.ListHandler,
@@ -73,6 +83,20 @@ func (api *API) registerRoute(route Route) bool {
 	api.Router.HandleFunc(route.Pattern, route.handler).Methods(route.Method)
 
 	return true
+}
+
+func (api *API) StatusHandler(w http.ResponseWriter, r *http.Request) {
+	s := Status{
+		Status:  api.playlist.GetStatus(),
+		Current: api.convertItem(api.playlist.GetCurrentItem()),
+		List:    api.convertItems(api.playlist.GetItems()),
+	}
+	err := json.NewEncoder(w).Encode(s)
+	if err != nil {
+		fmt.Printf("API status encode error: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
