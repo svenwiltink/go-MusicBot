@@ -2,9 +2,9 @@ package bot
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	irc "github.com/thoj/go-ircevent"
+	"gitlab.transip.us/swiltink/go-MusicBot/config"
 	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
 	"os"
 	"os/signal"
@@ -16,24 +16,10 @@ type MusicBot struct {
 	Commands      map[string]Command
 	Whitelist     []string
 	playlist      playlist.ListInterface
-	Configuration Configuration
+	Configuration *config.IRC
 }
 
-func NewMusicBot(playlst playlist.ListInterface) *MusicBot {
-	file, err := os.Open("conf.json")
-	if err != nil {
-		fmt.Println("error:", err)
-		os.Exit(2)
-	}
-
-	decoder := json.NewDecoder(file)
-	configuration := Configuration{}
-	err = decoder.Decode(&configuration)
-	if err != nil {
-		fmt.Println("error:", err)
-		os.Exit(2)
-	}
-
+func NewMusicBot(conf *config.IRC, playlst playlist.ListInterface) *MusicBot {
 	whitelist, err := readWhitelist()
 	if err != nil {
 		println("Error: " + err.Error())
@@ -42,7 +28,7 @@ func NewMusicBot(playlst playlist.ListInterface) *MusicBot {
 	return &MusicBot{
 		Commands:      make(map[string]Command),
 		Whitelist:     whitelist,
-		Configuration: configuration,
+		Configuration: conf,
 		playlist:      playlst,
 	}
 }
@@ -68,16 +54,6 @@ func (m *MusicBot) isUserWhitelisted(realname string) (iswhitelisted bool, index
 		}
 	}
 	return false, -1
-}
-
-type Configuration struct {
-	Server   string
-	Ssl      bool
-	Channel  string
-	Realname string
-	Nick     string
-	Password string
-	Master   string
 }
 
 func (m *MusicBot) Start() {

@@ -4,11 +4,18 @@ import (
 	"fmt"
 	"gitlab.transip.us/swiltink/go-MusicBot/api"
 	"gitlab.transip.us/swiltink/go-MusicBot/bot"
+	"gitlab.transip.us/swiltink/go-MusicBot/config"
 	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
+	"log"
 )
 
 func main() {
+	conf, err := config.ReadConfig("conf.json")
+	if err != nil {
+		log.Fatalf("Error reading config: %v", err)
+	}
+
 	play := playlist.NewPlaylist()
 
 	ytPlayer, err := player.NewYoutubePlayer()
@@ -28,10 +35,10 @@ func main() {
 	}
 
 	// Initialize the API
-	apiObject := api.NewAPI(play)
+	apiObject := api.NewAPI(&conf.API, play)
 	go apiObject.Start()
 
 	// Initialize the IRC bot
-	botObject := bot.NewMusicBot(play)
+	botObject := bot.NewMusicBot(&conf.IRC, play)
 	botObject.Start()
 }

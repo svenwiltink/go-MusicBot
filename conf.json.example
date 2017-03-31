@@ -1,9 +1,15 @@
 {
-  "Server": "server:port",
-  "Ssl": true,
-  "Channel": "#channel",
-  "Realname": "swiltink",
-  "Nick": "MusicBot",
-  "Password": "password",
-  "Master": "swiltink"
+  "IRC": {
+     "Server": "server:port",
+     "Ssl": true,
+     "Channel": "#channel",
+     "Realname": "swiltink",
+     "Nick": "MusicBot",
+     "Password": "password",
+     "Master": "swiltink"
+  },
+  "API": {
+     "Username": "admin",
+     "Password": "bla"
+  }
 }
