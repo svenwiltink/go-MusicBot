@@ -67,7 +67,8 @@ func (p *MusicPlaylist) AddItems(url string) (addedItems []ItemInterface, err er
 	}
 
 	for _, plItem := range plItems {
-		addedItems = append(addedItems, &plItem)
+		tempItem := plItem
+		addedItems = append(addedItems, &tempItem)
 	}
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
