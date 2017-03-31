@@ -39,8 +39,19 @@ func (p *MusicPlaylist) GetItems() (items []ItemInterface) {
 	return p.items
 }
 
-func (p *MusicPlaylist) GetCurrentItem() (item ItemInterface) {
-	return p.currentItem
+func (p *MusicPlaylist) GetCurrentItem() (item ItemInterface, remaining time.Duration) {
+	item = p.currentItem
+	switch p.status {
+	case PLAYING:
+		remaining = p.endTime.Sub(time.Now())
+	case PAUSED:
+		remaining = p.remainingDuration
+	case STOPPED:
+		if p.currentItem != nil {
+			remaining = p.currentItem.GetDuration()
+		}
+	}
+	return
 }
 
 func (p *MusicPlaylist) findPlayer(url string) (musicPlayer player.MusicPlayerInterface, err error) {

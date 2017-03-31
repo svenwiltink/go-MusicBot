@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"gitlab.transip.us/swiltink/go-MusicBot/config"
-	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
 	"log"
 	"net/http"
+	"time"
 )
 
 type API struct {
@@ -18,10 +18,18 @@ type API struct {
 	Routes        []Route
 }
 
+type Item struct {
+	Title            string
+	Seconds          int
+	SecondsRemaining int
+	FormattedTime    string
+	URL              string
+}
+
 type Status struct {
 	Status  playlist.Status
-	Current *player.ListItem
-	List    []player.ListItem
+	Current *Item
+	List    []Item
 }
 
 func NewAPI(conf *config.API, playl playlist.ListInterface) *API {
@@ -103,9 +111,11 @@ func (api *API) registerRoute(route Route) bool {
 }
 
 func (api *API) StatusHandler(w http.ResponseWriter, r *http.Request) {
+	itm, remaining := api.playlist.GetCurrentItem()
+
 	s := Status{
 		Status:  api.playlist.GetStatus(),
-		Current: api.convertItem(api.playlist.GetCurrentItem()),
+		Current: api.convertItem(itm, remaining),
 		List:    api.convertItems(api.playlist.GetItems()),
 	}
 	err := json.NewEncoder(w).Encode(s)
@@ -127,8 +137,8 @@ func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) CurrentHandler(w http.ResponseWriter, r *http.Request) {
-	itm := api.playlist.GetCurrentItem()
-	err := json.NewEncoder(w).Encode(api.convertItem(itm))
+	itm, remaining := api.playlist.GetCurrentItem()
+	err := json.NewEncoder(w).Encode(api.convertItem(itm, remaining))
 	if err != nil {
 		fmt.Printf("API current encode error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -143,7 +153,7 @@ func (api *API) PlayHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	err = json.NewEncoder(w).Encode(api.convertItem(itm))
+	err = json.NewEncoder(w).Encode(api.convertItem(itm, itm.GetDuration()))
 	if err != nil {
 		fmt.Printf("API next encode error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -177,7 +187,7 @@ func (api *API) NextHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(api.convertItem(itm))
+	err = json.NewEncoder(w).Encode(api.convertItem(itm, itm.GetDuration()))
 	if err != nil {
 		fmt.Printf("API next encode error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -200,19 +210,29 @@ func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (api *API) convertItem(itm playlist.ItemInterface) (newItem *player.ListItem) {
+func (api *API) convertItem(itm playlist.ItemInterface, remaining time.Duration) (newItem *Item) {
 	if itm != nil {
-		newItem = player.NewListItem(itm.GetTitle(), itm.GetDuration(), itm.GetURL())
+		duration := itm.GetDuration()
+		minutes := int(duration.Minutes())
+		seconds := int(duration.Seconds()) - (minutes * 60)
+
+		newItem = &Item{
+			Title:            itm.GetTitle(),
+			URL:              itm.GetURL(),
+			Seconds:          int(duration.Seconds()),
+			SecondsRemaining: int(remaining.Seconds()),
+			FormattedTime:    fmt.Sprintf("%d:%d", minutes, seconds),
+		}
 	}
 	return
 }
 
-func (api *API) convertItems(itms []playlist.ItemInterface) (newItems []player.ListItem) {
+func (api *API) convertItems(itms []playlist.ItemInterface) (newItems []Item) {
 	for _, itm := range itms {
 		if itm == nil {
 			continue
 		}
-		newItems = append(newItems, *api.convertItem(itm))
+		newItems = append(newItems, *api.convertItem(itm, itm.GetDuration()))
 	}
 	return
 }

@@ -125,13 +125,13 @@ var CurrentCommand = Command{
 	Name: "Current",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
-		song := bot.playlist.GetCurrentItem()
+		song, remaining := bot.playlist.GetCurrentItem()
 		title := "Not playing"
 		if song != nil {
 			title = song.GetTitle()
 		}
 
-		event.Connection.Privmsg(channel, fmt.Sprintf("Current song: %s", title))
+		event.Connection.Privmsg(channel, fmt.Sprintf("Current song: %s (%d seconds remaining)", title, int(remaining.Seconds())))
 	},
 }
 
