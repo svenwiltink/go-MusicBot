@@ -43,6 +43,20 @@ func (api *API) Start() {
 	log.Fatal(http.ListenAndServe(":7070", api.Router))
 }
 
+func (api *API) authenticator(inner http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		username, password, _ := r.BasicAuth()
+
+		if api.Configuration.Username != username || api.Configuration.Password != password {
+			w.Header().Set("WWW-Authenticate", "Basic realm=\"MusicBot\"")
+			http.Error(w, "401 Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		inner.ServeHTTP(w, r)
+	}
+}
+
 func (api *API) initializeRoutes() {
 	api.Routes = []Route{
 		{
@@ -60,23 +74,23 @@ func (api *API) initializeRoutes() {
 		}, {
 			Pattern: "/play",
 			Method:  http.MethodGet,
-			handler: api.PlayHandler,
+			handler: api.authenticator(api.PlayHandler),
 		}, {
 			Pattern: "/pause",
 			Method:  http.MethodGet,
-			handler: api.PauseHandler,
+			handler: api.authenticator(api.PauseHandler),
 		}, {
 			Pattern: "/stop",
 			Method:  http.MethodGet,
-			handler: api.StopHandler,
+			handler: api.authenticator(api.StopHandler),
 		}, {
 			Pattern: "/next",
 			Method:  http.MethodGet,
-			handler: api.NextHandler,
+			handler: api.authenticator(api.NextHandler),
 		}, {
 			Pattern: "/add",
 			Method:  http.MethodGet,
-			handler: api.AddHandler,
+			handler: api.authenticator(api.AddHandler),
 		},
 	}
 }
