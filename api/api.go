@@ -221,7 +221,7 @@ func (api *API) convertItem(itm playlist.ItemInterface, remaining time.Duration)
 			URL:              itm.GetURL(),
 			Seconds:          int(duration.Seconds()),
 			SecondsRemaining: int(remaining.Seconds()),
-			FormattedTime:    fmt.Sprintf("%d:%01d", minutes, seconds),
+			FormattedTime:    fmt.Sprintf("%d:%02d", minutes, seconds),
 		}
 	}
 	return

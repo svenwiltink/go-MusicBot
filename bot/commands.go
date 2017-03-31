@@ -92,7 +92,7 @@ var NextCommand = Command{
 		if err != nil {
 			event.Connection.Privmsg(channel, err.Error())
 		} else {
-			event.Connection.Privmsg(channel, fmt.Sprintf("Playing %s", item.GetTitle()))
+			event.Connection.Privmsg(channel, fmt.Sprintf("/me plays: %s", item.GetTitle()))
 		}
 	},
 }
@@ -105,7 +105,7 @@ var PlayCommand = Command{
 		if err != nil {
 			event.Connection.Privmsg(channel, err.Error())
 		} else {
-			event.Connection.Privmsg(channel, fmt.Sprintf("Playing %s", item.GetTitle()))
+			event.Connection.Privmsg(channel, fmt.Sprintf("/me plays: %s", item.GetTitle()))
 		}
 	},
 }
@@ -151,10 +151,16 @@ var OpenCommand = Command{
 			event.Connection.Privmsg(channel, err.Error())
 		} else {
 			var songs []string
+			i := 8
 			for _, item := range items {
 				songs = append(songs, item.GetTitle())
+				i--
+				if i < 0 {
+					songs = append(songs, fmt.Sprintf("(and %d more)", len(items)-8))
+					break
+				}
 			}
-			event.Connection.Privmsg(channel, fmt.Sprintf("Added song(s): %s", strings.Join(songs, ", ")))
+			event.Connection.Privmsg(channel, fmt.Sprintf("/me added song(s): %s", strings.Join(songs, ", ")))
 		}
 		bot.playlist.Play()
 	},
