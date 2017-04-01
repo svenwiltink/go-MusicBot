@@ -1,8 +1,8 @@
 package api
 
 import (
-	"fmt"
 	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
+	"gitlab.transip.us/swiltink/go-MusicBot/util"
 	"time"
 )
 
@@ -40,15 +40,13 @@ type CommandResponse struct {
 func getAPIItem(itm playlist.ItemInterface, remaining time.Duration) (newItem *Item) {
 	if itm != nil {
 		duration := itm.GetDuration()
-		minutes := int(duration.Minutes())
-		seconds := int(duration.Seconds()) - (minutes * 60)
 
 		newItem = &Item{
 			Title:            itm.GetTitle(),
 			URL:              itm.GetURL(),
 			Seconds:          int(duration.Seconds()),
 			SecondsRemaining: int(remaining.Seconds()),
-			FormattedTime:    fmt.Sprintf("%d:%02d", minutes, seconds),
+			FormattedTime:    util.FormatSongLength(duration),
 		}
 	}
 	return
