@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"bufio"
 	"fmt"
 	irc "github.com/thoj/go-ircevent"
 	"gitlab.transip.us/swiltink/go-MusicBot/config"
@@ -19,23 +18,24 @@ type MusicBot struct {
 	Configuration *config.IRC
 }
 
-func NewMusicBot(conf *config.IRC, playlst playlist.ListInterface) *MusicBot {
-	whitelist, err := readWhitelist()
+func NewMusicBot(conf *config.IRC, playlst playlist.ListInterface) (mb *MusicBot, err error) {
+	whitelist, err := config.ReadWhitelist(conf.WhiteListPath)
 	if err != nil {
-		println("Error: " + err.Error())
+		return
 	}
 
-	return &MusicBot{
+	mb = &MusicBot{
 		Commands:      make(map[string]Command),
 		Whitelist:     whitelist,
 		Configuration: conf,
 		playlist:      playlst,
 	}
+	return
 }
 
 func (m *MusicBot) getCommand(name string) (command Command, exists bool) {
 	command, exists = m.Commands[name]
-	return command, exists
+	return
 }
 
 func (m *MusicBot) registerCommand(command Command) bool {
@@ -56,7 +56,7 @@ func (m *MusicBot) isUserWhitelisted(realname string) (iswhitelisted bool, index
 	return false, -1
 }
 
-func (m *MusicBot) Start() {
+func (m *MusicBot) Start() (err error) {
 	m.registerCommand(HelpCommand)
 	m.registerCommand(WhitelistCommand)
 	m.registerCommand(NextCommand)
@@ -77,17 +77,14 @@ func (m *MusicBot) Start() {
 	irccon.Password = m.Configuration.Password
 	irccon.UseTLS = m.Configuration.Ssl
 
-	err := irccon.Connect(m.Configuration.Server)
-
+	err = irccon.Connect(m.Configuration.Server)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(2)
+		return
 	}
 
 	irccon.AddCallback("001", func(event *irc.Event) {
 		event.Connection.Join(m.Configuration.Channel)
 	})
-
 	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
 		channel := event.Arguments[0]
 		message := event.Arguments[len(event.Arguments)-1]
@@ -114,33 +111,4 @@ func (m *MusicBot) Start() {
 
 	<-sigs
 	m.playlist.Stop()
-}
-
-func readWhitelist() ([]string, error) {
-	file, err := os.Open("whitelist.txt")
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	var lines []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	return lines, scanner.Err()
-}
-
-func writeWhitelist(lines []string) error {
-	file, err := os.Create("whitelist.txt")
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	w := bufio.NewWriter(file)
-	for _, line := range lines {
-		fmt.Fprintln(w, line)
-	}
-	return w.Flush()
 }
