@@ -2,7 +2,7 @@ package player
 
 import "testing"
 
-func TestURLParsing(t *testing.T) {
+func TestSpotifyURLParsing(t *testing.T) {
 	p := &SpotifyPlayer{}
 	tp, id, uid, err := p.getTypeAndIDFromURL("https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC")
 	if tp != TYPE_TRACK || id != "4uLU6hMCjMI75M1A2tKUQC" || err != nil {
@@ -33,4 +33,28 @@ func TestURLParsing(t *testing.T) {
 		t.Log(string(tp), id, uid, err)
 		t.Fail()
 	}
+}
+
+func TestSpotifySearching(t *testing.T) {
+	p := &SpotifyPlayer{}
+	items, err := p.SearchItems("green day boulevard", 3)
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	t.Log("Findings: ", items)
+
+	items, err = p.SearchItems("adele chasing pavement", 3)
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	t.Log("Findings: ", items)
+
+	items, err = p.SearchItems("hallelujah", 3)
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	t.Log("Findings: ", items)
 }

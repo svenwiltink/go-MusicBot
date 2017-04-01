@@ -21,25 +21,22 @@ func NewYoutubeService() (y *YouTube) {
 	y = &YouTube{}
 
 	y.Initialize()
-
 	return
 }
 
 // Initialize - Initialize the youtube service
 func (yt *YouTube) Initialize() (err error) {
-
 	client := &http.Client{
 		Transport: &transport.APIKey{Key: APIKey},
 	}
 
 	service, err := youtube.New(client)
 	if err != nil {
-		fmt.Errorf("%v", err)
+		err = fmt.Errorf("[Youtube] Error creating meta client: %v", err)
 		return
 	}
 
 	yt.service = service
-
 	return
 }
 
@@ -47,7 +44,7 @@ func (yt *YouTube) Initialize() (err error) {
 func (yt *YouTube) GetMetaForURL(source string) (meta *Meta, err error) {
 	url, err := url.Parse(source)
 	if err != nil {
-		fmt.Errorf("Unable to parse source %v", err)
+		err = fmt.Errorf("[Youtube] ]Unable to parse source: %v", err)
 		return
 	}
 
@@ -58,7 +55,7 @@ func (yt *YouTube) GetMetaForURL(source string) (meta *Meta, err error) {
 
 	meta, err = yt.GetMetaForIdentifier(identifier)
 	if err != nil {
-		fmt.Errorf("Unable to get meta for source %v", err)
+		err = fmt.Errorf("[Youtube] Unable to get meta for source: %v", err)
 		return
 	}
 
@@ -69,17 +66,17 @@ func (yt *YouTube) GetMetaForIdentifier(identifier string) (meta *Meta, err erro
 	call := yt.service.Videos.List("snippet,contentDetails").Id(identifier)
 	response, err := call.Do()
 	if err != nil {
-		fmt.Errorf("youtube request failed %v", err)
+		err = fmt.Errorf("[Youtube] Request failed: %v", err)
 		return
 	}
 
 	meta = &Meta{}
 	for _, item := range response.Items {
 		if item.Id == identifier && item.Kind == "youtube#video" {
-
 			d, convErr := duration.FromString(item.ContentDetails.Duration)
 			if convErr != nil {
-				fmt.Errorf("Unable to convert duration %v", convErr)
+				err = fmt.Errorf("[Youtube] Unable to convert duration: %v", convErr)
+				return
 			}
 
 			meta = &Meta{
@@ -90,14 +87,13 @@ func (yt *YouTube) GetMetaForIdentifier(identifier string) (meta *Meta, err erro
 			}
 		}
 	}
-
 	return
 }
 
 func (yt *YouTube) GetMetasForPlaylistURL(source string) (items []Meta, err error) {
 	url, err := url.Parse(source)
 	if err != nil {
-		fmt.Errorf("Unable to parse source %v", err)
+		err = fmt.Errorf("[Youtube] Unable to parse source: %v", err)
 		return
 	}
 
@@ -109,19 +105,38 @@ func (yt *YouTube) GetMetasForPlaylistURL(source string) (items []Meta, err erro
 	call := yt.service.PlaylistItems.List("snippet,contentDetails").PlaylistId(identifier)
 	response, err := call.Do()
 	if err != nil {
-		fmt.Errorf("youtube request failed %v", err)
+		err = fmt.Errorf("[Youtube] Request failed: %v", err)
 		return
 	}
 
 	for _, item := range response.Items {
 		if item.Kind == "youtube#playlistItem" {
-			fmt.Printf("%v\n", item.Id)
 			item, err := yt.GetMetaForIdentifier(item.ContentDetails.VideoId)
 			if err == nil {
 				items = append(items, *item)
 			}
 		}
 	}
+	return
+}
 
+func (yt *YouTube) SearchForMetas(searchStr string, limit int) (items []Meta, err error) {
+	call := yt.service.Search.List("id,snippet").Q(searchStr).MaxResults(int64(limit)).Type("video")
+
+	response, err := call.Do()
+	if err != nil {
+		err = fmt.Errorf("[Youtube] Search request failed: %v", err)
+		return
+	}
+
+	// TODO: FIXME: Why does this never return any results?
+	for _, item := range response.Items {
+		if item.Kind == "youtube#video" {
+			item, err := yt.GetMetaForIdentifier(item.Id.VideoId)
+			if err == nil {
+				items = append(items, *item)
+			}
+		}
+	}
 	return
 }

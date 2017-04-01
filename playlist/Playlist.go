@@ -35,6 +35,10 @@ func NewPlaylist() (playlist *MusicPlaylist) {
 	return
 }
 
+func (p *MusicPlaylist) GetPlayers() (players []player.MusicPlayerInterface) {
+	return p.players
+}
+
 func (p *MusicPlaylist) AddMusicPlayer(player player.MusicPlayerInterface) {
 	p.players = append(p.players, player)
 }
