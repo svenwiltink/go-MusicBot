@@ -21,7 +21,12 @@ type IRC struct {
 	Master   string
 }
 
+const DEFAULT_API_PORT = 7070
+
 type API struct {
+	Host string
+	Port int
+
 	Username string
 	Password string
 }
@@ -34,10 +39,16 @@ func ReadConfig(path string) (conf *MusicBot, err error) {
 
 	decoder := json.NewDecoder(file)
 	conf = &MusicBot{}
+	conf.ApplyDefaults()
+
 	err = decoder.Decode(&conf)
 	if err != nil {
 		return
 	}
 
 	return
+}
+
+func (c *MusicBot) ApplyDefaults() {
+	c.API.Port = DEFAULT_API_PORT
 }

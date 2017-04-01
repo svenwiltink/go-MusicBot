@@ -48,7 +48,8 @@ func (api *API) Start() {
 		api.registerRoute(r)
 	}
 
-	log.Fatal(http.ListenAndServe(":7070", api.Router))
+	err := http.ListenAndServe(fmt.Sprintf("%s:%d", api.Configuration.Host, api.Configuration.Port), api.Router)
+	log.Fatal(err)
 }
 
 func (api *API) authenticator(inner http.HandlerFunc) http.HandlerFunc {
