@@ -3,6 +3,7 @@ package playlist
 import (
 	"errors"
 	"fmt"
+	"github.com/vansante/go-event-emitter"
 	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"math/rand"
 	"sync"
@@ -10,6 +11,8 @@ import (
 )
 
 type MusicPlaylist struct {
+	*eventemitter.Emitter
+
 	currentItem ItemInterface
 	items       []ItemInterface
 	status      Status
@@ -26,7 +29,8 @@ type MusicPlaylist struct {
 
 func NewPlaylist() (playlist *MusicPlaylist) {
 	playlist = &MusicPlaylist{
-		status: STOPPED,
+		Emitter: eventemitter.NewEmitter(),
+		status:  STOPPED,
 	}
 	return
 }
@@ -85,6 +89,9 @@ func (p *MusicPlaylist) AddItems(url string) (addedItems []ItemInterface, err er
 	defer p.controlMutex.Unlock()
 
 	p.items = append(p.items, addedItems...)
+
+	p.EmitEvent("items_added", addedItems)
+	p.EmitEvent("list_updated", p.items)
 	return
 }
 
@@ -96,12 +103,14 @@ func (p *MusicPlaylist) ShuffleList() {
 		j := rand.Intn(i + 1)
 		p.items[i], p.items[j] = p.items[j], p.items[i]
 	}
+	p.EmitEvent("list_updated", p.items)
 }
 func (p *MusicPlaylist) EmptyList() {
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
 
 	p.items = make([]ItemInterface, 0)
+	p.EmitEvent("list_updated", p.items)
 }
 
 func (p *MusicPlaylist) GetStatus() (status Status) {
@@ -132,6 +141,7 @@ func (p *MusicPlaylist) playWait() {
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
 
+	p.EmitEvent("play_done", p.currentItem)
 	p.currentItem = nil
 
 	if len(p.items) == 0 {
@@ -173,6 +183,7 @@ func (p *MusicPlaylist) next() (item ItemInterface, err error) {
 	p.endTime = time.Now().Add(item.GetDuration())
 	// Start waiting for the song to be done
 	go p.playWait()
+	p.EmitEvent("play_start", p.currentItem)
 	return
 }
 
@@ -199,6 +210,7 @@ func (p *MusicPlaylist) stop() (err error) {
 		// Kill the current playWait()
 		p.playTimer.Stop()
 	}
+	p.EmitEvent("stop")
 	return
 }
 
@@ -225,6 +237,8 @@ func (p *MusicPlaylist) pause() (err error) {
 		p.endTime = time.Now().Add(p.remainingDuration)
 		// Restart the play wait goroutine with the new time
 		go p.playWait()
+
+		p.EmitEvent("unpause", p.currentItem, p.remainingDuration)
 	} else {
 		p.status = PAUSED
 		p.remainingDuration = p.endTime.Sub(time.Now())
@@ -232,6 +246,7 @@ func (p *MusicPlaylist) pause() (err error) {
 			// Kill the current playWait()
 			p.playTimer.Stop()
 		}
+		p.EmitEvent("pause", p.currentItem, p.remainingDuration)
 	}
 	return
 }
