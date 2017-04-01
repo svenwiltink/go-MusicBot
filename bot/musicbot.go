@@ -5,6 +5,7 @@ import (
 	irc "github.com/thoj/go-ircevent"
 	"gitlab.transip.us/swiltink/go-MusicBot/config"
 	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
+	"gitlab.transip.us/swiltink/go-MusicBot/util"
 	"os"
 	"os/signal"
 	"strings"
@@ -12,10 +13,11 @@ import (
 )
 
 type MusicBot struct {
-	Commands      map[string]Command
-	Whitelist     []string
-	playlist      playlist.ListInterface
-	Configuration *config.IRC
+	ircConn   *irc.Connection
+	commands  map[string]Command
+	whitelist []string
+	playlist  playlist.ListInterface
+	conf      *config.IRC
 }
 
 func NewMusicBot(conf *config.IRC, playlst playlist.ListInterface) (mb *MusicBot, err error) {
@@ -25,22 +27,22 @@ func NewMusicBot(conf *config.IRC, playlst playlist.ListInterface) (mb *MusicBot
 	}
 
 	mb = &MusicBot{
-		Commands:      make(map[string]Command),
-		Whitelist:     whitelist,
-		Configuration: conf,
-		playlist:      playlst,
+		commands:  make(map[string]Command),
+		whitelist: whitelist,
+		conf:      conf,
+		playlist:  playlst,
 	}
 	return
 }
 
 func (m *MusicBot) getCommand(name string) (command Command, exists bool) {
-	command, exists = m.Commands[name]
+	command, exists = m.commands[name]
 	return
 }
 
 func (m *MusicBot) registerCommand(command Command) bool {
 	if _, exists := m.getCommand(command.Name); !exists {
-		m.Commands[strings.ToLower(command.Name)] = command
+		m.commands[strings.ToLower(command.Name)] = command
 		fmt.Println("registered the " + command.Name + " command")
 		return true
 	}
@@ -48,7 +50,7 @@ func (m *MusicBot) registerCommand(command Command) bool {
 }
 
 func (m *MusicBot) isUserWhitelisted(realname string) (iswhitelisted bool, index int) {
-	for index, name := range m.Whitelist {
+	for index, name := range m.whitelist {
 		if name == realname {
 			return true, index
 		}
@@ -73,25 +75,25 @@ func (m *MusicBot) Start() (err error) {
 	m.registerCommand(VolDownCommand)
 	m.registerCommand(VolCommand)
 
-	irccon := irc.IRC(m.Configuration.Nick, m.Configuration.Realname)
-	irccon.Password = m.Configuration.Password
-	irccon.UseTLS = m.Configuration.Ssl
+	m.ircConn = irc.IRC(m.conf.Nick, m.conf.Realname)
+	m.ircConn.Password = m.conf.Password
+	m.ircConn.UseTLS = m.conf.Ssl
 
-	err = irccon.Connect(m.Configuration.Server)
+	err = m.ircConn.Connect(m.conf.Server)
 	if err != nil {
 		return
 	}
 
-	irccon.AddCallback("001", func(event *irc.Event) {
-		event.Connection.Join(m.Configuration.Channel)
+	m.ircConn.AddCallback("001", func(event *irc.Event) {
+		event.Connection.Join(m.conf.Channel)
 	})
-	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
+	m.ircConn.AddCallback("PRIVMSG", func(event *irc.Event) {
 		channel := event.Arguments[0]
 		message := event.Arguments[len(event.Arguments)-1]
 		realname := event.User
 
 		if strings.HasPrefix(message, "!music") {
-			if isWhiteListed, _ := m.isUserWhitelisted(realname); m.Configuration.Master == realname || isWhiteListed {
+			if isWhiteListed, _ := m.isUserWhitelisted(realname); m.conf.Master == realname || isWhiteListed {
 				arguments := strings.Split(message, " ")[1:]
 				if len(arguments) > 0 {
 					commandName := strings.ToLower(arguments[0])
@@ -106,9 +108,25 @@ func (m *MusicBot) Start() (err error) {
 		}
 	})
 
+	m.playlist.AddListener("play_start", m.onPlay)
+
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	<-sigs
 	m.playlist.Stop()
+	return
+}
+
+func (m *MusicBot) onPlay(args ...interface{}) {
+	if len(args) < 1 {
+		return
+	}
+
+	itm, ok := args[0].(playlist.ItemInterface)
+	if !ok {
+		return
+	}
+
+	m.ircConn.Privmsgf(m.conf.Channel, "/me plays: %s [%s]", itm.GetTitle(), util.FormatSongLength(itm.GetDuration()))
 }

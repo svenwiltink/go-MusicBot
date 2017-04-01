@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/thoj/go-ircevent"
 	"gitlab.transip.us/swiltink/go-MusicBot/config"
+	"gitlab.transip.us/swiltink/go-MusicBot/util"
 	"os/exec"
 	"strings"
 )
@@ -22,7 +23,7 @@ var HelpCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		message := "Available commands: "
-		for commandName := range bot.Commands {
+		for commandName := range bot.commands {
 			message += " " + commandName
 		}
 
@@ -31,7 +32,7 @@ var HelpCommand = Command{
 }
 
 var WhitelistCommand = Command{
-	Name: "Whitelist",
+	Name: "whitelist",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		realname := event.User
@@ -45,7 +46,7 @@ var WhitelistCommand = Command{
 		case "show":
 			{
 				message := "Current whitelist: "
-				for _, name := range bot.Whitelist {
+				for _, name := range bot.whitelist {
 					message += " " + name
 				}
 
@@ -58,16 +59,16 @@ var WhitelistCommand = Command{
 					return
 				}
 				user := parameters[1]
-				if realname == bot.Configuration.Master {
+				if realname == bot.conf.Master {
 					if isWhitelisted, _ := bot.isUserWhitelisted(user); !isWhitelisted {
-						bot.Whitelist = append(bot.Whitelist, user)
+						bot.whitelist = append(bot.whitelist, user)
 
-						err := config.WriteWhitelist(bot.Configuration.WhiteListPath, bot.Whitelist)
+						err := config.WriteWhitelist(bot.conf.WhiteListPath, bot.whitelist)
 						if err != nil {
 							event.Connection.Privmsg(channel, err.Error())
 							return
 						}
-						event.Connection.Privmsg(channel, "User added to whitelist")
+						event.Connection.Privmsgf(channel, "User %s added to whitelist", user)
 					}
 				}
 			}
@@ -78,16 +79,16 @@ var WhitelistCommand = Command{
 					return
 				}
 				user := parameters[1]
-				if realname == bot.Configuration.Master {
+				if realname == bot.conf.Master {
 					if isWhitelisted, index := bot.isUserWhitelisted(user); isWhitelisted {
-						bot.Whitelist = append(bot.Whitelist[:index], bot.Whitelist[index+1:]...)
+						bot.whitelist = append(bot.whitelist[:index], bot.whitelist[index+1:]...)
 
-						err := config.WriteWhitelist(bot.Configuration.WhiteListPath, bot.Whitelist)
+						err := config.WriteWhitelist(bot.conf.WhiteListPath, bot.whitelist)
 						if err != nil {
 							event.Connection.Privmsg(channel, err.Error())
 							return
 						}
-						event.Connection.Privmsg(channel, "User removed from whitelist")
+						event.Connection.Privmsgf(channel, "User %s removed from whitelist", user)
 					}
 				}
 			}
@@ -99,11 +100,9 @@ var NextCommand = Command{
 	Name: "Next",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
-		item, err := bot.playlist.Next()
+		_, err := bot.playlist.Next()
 		if err != nil {
 			event.Connection.Privmsg(channel, err.Error())
-		} else {
-			event.Connection.Privmsg(channel, fmt.Sprintf("/me plays: %s", item.GetTitle()))
 		}
 	},
 }
@@ -112,11 +111,9 @@ var PlayCommand = Command{
 	Name: "Play",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
-		item, err := bot.playlist.Play()
+		_, err := bot.playlist.Play()
 		if err != nil {
 			event.Connection.Privmsg(channel, err.Error())
-		} else {
-			event.Connection.Privmsg(channel, fmt.Sprintf("/me plays: %s", item.GetTitle()))
 		}
 	},
 }
@@ -142,12 +139,12 @@ var CurrentCommand = Command{
 			title = song.GetTitle()
 		}
 
-		event.Connection.Privmsg(channel, fmt.Sprintf("Current song: %s (%d seconds remaining)", title, int(remaining.Seconds())))
+		event.Connection.Privmsg(channel, fmt.Sprintf("Current song: %s [%s] (%s remaining)", title, util.FormatSongLength(song.GetDuration()), util.FormatSongLength(remaining)))
 	},
 }
 
 var OpenCommand = Command{
-	Name: "Open",
+	Name: "add",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		if len(parameters) < 1 {
 			channel := event.Arguments[0]
@@ -156,7 +153,7 @@ var OpenCommand = Command{
 		}
 		channel := event.Arguments[0]
 		url := parameters[0]
-		fmt.Println(url)
+
 		items, err := bot.playlist.AddItems(url)
 		if err != nil {
 			event.Connection.Privmsg(channel, err.Error())
@@ -171,7 +168,7 @@ var OpenCommand = Command{
 					break
 				}
 			}
-			event.Connection.Privmsg(channel, fmt.Sprintf("/me added song(s): %s", strings.Join(songs, ", ")))
+			event.Connection.Privmsgf(channel, "%s added song(s): %s", event.Nick, strings.Join(songs, ", "))
 		}
 		bot.playlist.Play()
 	},
@@ -193,9 +190,8 @@ var ShuffleCommand = Command{
 	Name: "shuffle",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
-		message := fmt.Sprint("Shuffling queue")
 		bot.playlist.ShuffleList()
-		event.Connection.Privmsg(channel, message)
+		event.Connection.Privmsg(channel, "Shuffling queue")
 	},
 }
 
@@ -203,9 +199,14 @@ var ListCommand = Command{
 	Name: "list",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
-		for i, item := range bot.playlist.GetItems() {
-			message := fmt.Sprintf("#%d %s", (i + 1), item.GetTitle())
-			event.Connection.Privmsg(channel, message)
+		items := bot.playlist.GetItems()
+		for i, item := range items {
+			event.Connection.Privmsgf(channel, "%d. %s [%s]", i+1, item.GetTitle(), util.FormatSongLength(item.GetDuration()))
+
+			if i > 10 && len(items) > 12 {
+				event.Connection.Privmsgf(channel, "And %d more..", len(items)-10)
+				return
+			}
 		}
 	},
 }
