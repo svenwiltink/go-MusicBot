@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/gorilla/websocket"
 	"github.com/vansante/go-event-emitter"
 	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
@@ -24,16 +25,6 @@ type ControlWebsocket struct {
 	playlist  playlist.ListInterface
 	capturer  *eventemitter.Capturer
 	writeLock sync.Mutex
-}
-
-type Event struct {
-	Event     string
-	Arguments []interface{}
-}
-
-type Command struct {
-	Command   string
-	Arguments []string
 }
 
 func NewControlWebsocket(ws *websocket.Conn, readOnly bool, playlist playlist.ListInterface) (cws *ControlWebsocket) {
@@ -122,11 +113,41 @@ func (cws *ControlWebsocket) socketReader() {
 
 func (cws *ControlWebsocket) executeCommand(cmd *Command) {
 	switch cmd.Command {
+	case "add-items":
+		if len(cmd.Arguments) < 1 {
+			err := errors.New("Missing URL argument")
+			cws.write(getCommandResponse(cmd, err))
+			return
+		}
+		_, err := cws.playlist.AddItems(cmd.Arguments[0])
+		cws.write(getCommandResponse(cmd, err))
+	case "play":
+		_, err := cws.playlist.Play()
+		cws.write(getCommandResponse(cmd, err))
+	case "pause":
+		err := cws.playlist.Pause()
+		cws.write(getCommandResponse(cmd, err))
+	case "status":
+		itm, remaining := cws.playlist.GetCurrentItem()
+		resp := getCommandResponse(cmd, nil)
+		resp.Status = &Status{
+			Status:  cws.playlist.GetStatus(),
+			Current: getAPIItem(itm, remaining),
+			List:    getAPIItems(cws.playlist.GetItems()),
+		}
+		cws.write(resp)
+	case "next":
+		_, err := cws.playlist.Next()
+		cws.write(getCommandResponse(cmd, err))
 	case "stop":
 		err := cws.playlist.Stop()
-		if err != nil {
-			cws.write("Error: " + err.Error())
-		}
+		cws.write(getCommandResponse(cmd, err))
+	case "empty-list":
+		cws.playlist.EmptyList()
+		cws.write(getCommandResponse(cmd, nil))
+	case "shuffle-list":
+		cws.playlist.ShuffleList()
+		cws.write(getCommandResponse(cmd, nil))
 	}
 }
 
