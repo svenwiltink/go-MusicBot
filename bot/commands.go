@@ -3,6 +3,7 @@ package bot
 import (
 	"fmt"
 	"github.com/thoj/go-ircevent"
+	"gitlab.transip.us/swiltink/go-MusicBot/config"
 	"os/exec"
 	"strings"
 )
@@ -60,8 +61,13 @@ var WhitelistCommand = Command{
 				if realname == bot.Configuration.Master {
 					if isWhitelisted, _ := bot.isUserWhitelisted(user); !isWhitelisted {
 						bot.Whitelist = append(bot.Whitelist, user)
+
+						err := config.WriteWhitelist(bot.Configuration.WhiteListPath, bot.Whitelist)
+						if err != nil {
+							event.Connection.Privmsg(channel, err.Error())
+							return
+						}
 						event.Connection.Privmsg(channel, "User added to whitelist")
-						writeWhitelist(bot.Whitelist)
 					}
 				}
 			}
@@ -75,8 +81,13 @@ var WhitelistCommand = Command{
 				if realname == bot.Configuration.Master {
 					if isWhitelisted, index := bot.isUserWhitelisted(user); isWhitelisted {
 						bot.Whitelist = append(bot.Whitelist[:index], bot.Whitelist[index+1:]...)
+
+						err := config.WriteWhitelist(bot.Configuration.WhiteListPath, bot.Whitelist)
+						if err != nil {
+							event.Connection.Privmsg(channel, err.Error())
+							return
+						}
 						event.Connection.Privmsg(channel, "User removed from whitelist")
-						writeWhitelist(bot.Whitelist)
 					}
 				}
 			}
