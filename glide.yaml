@@ -12,3 +12,4 @@ import:
 - package: github.com/vansante/go-spotify-control
 - package: github.com/zmb3/spotify
 - package: golang.org/x/oauth2
+- package: github.com/vansante/go-event-emitter
