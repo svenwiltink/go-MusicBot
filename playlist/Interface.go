@@ -1,6 +1,9 @@
 package playlist
 
-import "time"
+import (
+	"github.com/vansante/go-event-emitter"
+	"time"
+)
 
 type Status int
 
@@ -11,6 +14,8 @@ const (
 )
 
 type ListInterface interface {
+	eventemitter.Observable
+
 	GetItems() (items []ItemInterface)
 	GetCurrentItem() (item ItemInterface, remaining time.Duration)
 	AddItems(url string) (addedItems []ItemInterface, err error)
