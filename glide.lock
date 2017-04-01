@@ -1,10 +1,10 @@
-hash: 6c2f34af74413ec9262088c4cde9a1dcf4e31e49b58cd78796576801830f76aa
-updated: 2017-03-29T12:34:05.805787734+02:00
+hash: 8f3f227b51e23b3e7d798ae086caa12761c1f0b70252d5b2ca98150143e08528
+updated: 2017-04-01T13:46:05.162794945+02:00
 imports:
 - name: github.com/channelmeter/iso8601duration
   version: 8da3af7a2a61a4eb5ae9bddec06bf637fa9593da
 - name: github.com/golang/protobuf
-  version: c9c7427a2a70d2eb3bafa0ab2dc163e45f143317
+  version: 2bba0603135d7d7f5cb73b2125beeda19c09f4ef
   subpackages:
   - proto
 - name: github.com/gorilla/context
@@ -13,6 +13,8 @@ imports:
   version: 392c28fe23e1c45ddba891b0320b3b5df220beea
 - name: github.com/thoj/go-ircevent
   version: a6b1561a016c2a4aae183c3ef152c25d134c095d
+- name: github.com/vansante/go-event-emitter
+  version: edccaed41b31702346fbbbd4eaf9f596cf7da56f
 - name: github.com/vansante/go-spotify-control
   version: 698a948a0e19d1d7ef3aa0de854c059ec348fda5
 - name: github.com/zmb3/spotify
