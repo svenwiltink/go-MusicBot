@@ -2,6 +2,7 @@ package playlist
 
 import (
 	"github.com/vansante/go-event-emitter"
+	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"time"
 )
 
@@ -16,6 +17,7 @@ const (
 type ListInterface interface {
 	eventemitter.Observable
 
+	GetPlayers() (players []player.MusicPlayerInterface)
 	GetItems() (items []ItemInterface)
 	GetCurrentItem() (item ItemInterface, remaining time.Duration)
 	AddItems(url string) (addedItems []ItemInterface, err error)
