@@ -1,9 +1,11 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 	"gitlab.transip.us/swiltink/go-MusicBot/config"
 	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
 	"log"
@@ -12,10 +14,11 @@ import (
 )
 
 type API struct {
-	Configuration *config.API
-	Router        *mux.Router
-	playlist      playlist.ListInterface
-	Routes        []Route
+	config     *config.API
+	router     *mux.Router
+	playlist   playlist.ListInterface
+	routes     []Route
+	wsUpgrader *websocket.Upgrader
 }
 
 type Item struct {
@@ -34,9 +37,17 @@ type Status struct {
 
 func NewAPI(conf *config.API, playl playlist.ListInterface) *API {
 	return &API{
-		Configuration: conf,
-		Router:        mux.NewRouter(),
-		playlist:      playl,
+		config: conf,
+		router: mux.NewRouter(),
+		wsUpgrader: &websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool {
+				// For the musicbot we are not gonna care
+				return true
+			},
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+		},
+		playlist: playl,
 	}
 }
 
@@ -44,30 +55,38 @@ func (api *API) Start() {
 	api.initializeRoutes()
 
 	// Register all routes
-	for _, r := range api.Routes {
+	for _, r := range api.routes {
 		api.registerRoute(r)
 	}
 
-	err := http.ListenAndServe(fmt.Sprintf("%s:%d", api.Configuration.Host, api.Configuration.Port), api.Router)
+	err := http.ListenAndServe(fmt.Sprintf("%s:%d", api.config.Host, api.config.Port), api.router)
 	log.Fatal(err)
 }
 
-func (api *API) authenticator(inner http.HandlerFunc) http.HandlerFunc {
+func (api *API) authenticator(inner http.HandlerFunc, optional bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		username, password, _ := r.BasicAuth()
+		authenticated := true
 
-		if api.Configuration.Username != username || api.Configuration.Password != password {
+		username, password, _ := r.BasicAuth()
+		if api.config.Username != username || api.config.Password != password {
+			authenticated = false
+		}
+
+		if !optional && !authenticated {
 			w.Header().Set("WWW-Authenticate", "Basic realm=\"MusicBot\"")
 			http.Error(w, "401 Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		inner.ServeHTTP(w, r)
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, "isAuthenticated", authenticated)
+		ctx = context.WithValue(ctx, "user", api.config.Username)
+		inner.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
 
 func (api *API) initializeRoutes() {
-	api.Routes = []Route{
+	api.routes = []Route{
 		{
 			Pattern: "/status",
 			Method:  http.MethodGet,
@@ -83,30 +102,34 @@ func (api *API) initializeRoutes() {
 		}, {
 			Pattern: "/play",
 			Method:  http.MethodGet,
-			handler: api.authenticator(api.PlayHandler),
+			handler: api.authenticator(api.PlayHandler, false),
 		}, {
 			Pattern: "/pause",
 			Method:  http.MethodGet,
-			handler: api.authenticator(api.PauseHandler),
+			handler: api.authenticator(api.PauseHandler, false),
 		}, {
 			Pattern: "/stop",
 			Method:  http.MethodGet,
-			handler: api.authenticator(api.StopHandler),
+			handler: api.authenticator(api.StopHandler, false),
 		}, {
 			Pattern: "/next",
 			Method:  http.MethodGet,
-			handler: api.authenticator(api.NextHandler),
+			handler: api.authenticator(api.NextHandler, false),
 		}, {
 			Pattern: "/add",
 			Method:  http.MethodGet,
-			handler: api.authenticator(api.AddHandler),
+			handler: api.authenticator(api.AddHandler, false),
+		}, {
+			Pattern: "/socket",
+			Method:  http.MethodGet,
+			handler: api.authenticator(api.SocketHandler, true),
 		},
 	}
 }
 
 // registerRoute - Register a rout with the
 func (api *API) registerRoute(route Route) bool {
-	api.Router.HandleFunc(route.Pattern, route.handler).Methods(route.Method)
+	api.router.HandleFunc(route.Pattern, route.handler).Methods(route.Method)
 
 	return true
 }
@@ -209,6 +232,19 @@ func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+func (api *API) SocketHandler(w http.ResponseWriter, r *http.Request) {
+	readOnly := r.Context().Value("isAuthenticated").(bool)
+
+	ws, err := api.wsUpgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Sprintf("API socket error: %v", err)
+		return
+	}
+
+	cws := NewControlWebsocket(ws, readOnly, api.playlist)
+	cws.Start()
 }
 
 func (api *API) convertItem(itm playlist.ItemInterface, remaining time.Duration) (newItem *Item) {
