@@ -35,6 +35,13 @@ type Status struct {
 	List    []Item
 }
 
+type Context string
+
+const (
+	CONTEXT_AUTHENTICATED Context = "IS_AUTHENTICATED"
+	CONTEXT_USERNAME      Context = "USERNAME"
+)
+
 func NewAPI(conf *config.API, playl playlist.ListInterface) *API {
 	return &API{
 		config: conf,
@@ -79,8 +86,8 @@ func (api *API) authenticator(inner http.HandlerFunc, optional bool) http.Handle
 		}
 
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, "isAuthenticated", authenticated)
-		ctx = context.WithValue(ctx, "user", api.config.Username)
+		ctx = context.WithValue(ctx, CONTEXT_AUTHENTICATED, authenticated)
+		ctx = context.WithValue(ctx, CONTEXT_USERNAME, api.config.Username)
 		inner.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
@@ -235,7 +242,7 @@ func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) SocketHandler(w http.ResponseWriter, r *http.Request) {
-	readOnly := r.Context().Value("isAuthenticated").(bool)
+	readOnly := !r.Context().Value(CONTEXT_AUTHENTICATED).(bool)
 
 	ws, err := api.wsUpgrader.Upgrade(w, r, nil)
 	if err != nil {
