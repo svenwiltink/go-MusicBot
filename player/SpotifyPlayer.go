@@ -80,6 +80,24 @@ func (p *SpotifyPlayer) GetItems(url string) (items []ListItem, err error) {
 	return
 }
 
+func (p *SpotifyPlayer) SearchItems(searchStr string, limit int) (items []ListItem, err error) {
+	results, err := spotify.DefaultClient.SearchOpt(searchStr, spotify.SearchTypeTrack, &spotify.Options{
+		Limit: &limit,
+	})
+	if err != nil {
+		err = fmt.Errorf("[SpotifyPlayer] Could not search for tracks: %v", err)
+		return
+	}
+	for _, track := range results.Tracks.Tracks {
+		name := track.Name
+		if len(track.Artists) > 0 {
+			name = fmt.Sprintf("%s - %s", track.Name, track.Artists[0].Name)
+		}
+		items = append(items, *NewListItem(name, track.TimeDuration(), string(track.URI)))
+	}
+	return
+}
+
 func (p *SpotifyPlayer) Play(url string) (err error) {
 	_, err = p.control.Play(url)
 	return

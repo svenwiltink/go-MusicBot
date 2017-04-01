@@ -174,18 +174,6 @@ var OpenCommand = Command{
 	},
 }
 
-var SearchCommand = Command{
-	Name: "search",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		channel := event.Arguments[0]
-		if len(parameters) < 1 {
-			event.Connection.Privmsg(channel, "!music search <search term>")
-			return
-		}
-		event.Connection.Privmsg(channel, "Not implemented")
-	},
-}
-
 var ShuffleCommand = Command{
 	Name: "shuffle",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
@@ -218,6 +206,65 @@ var FlushCommand = Command{
 
 		bot.playlist.EmptyList()
 		event.Connection.Privmsg(channel, fmt.Sprint("Flushing queue"))
+	},
+}
+
+var SearchCommand = Command{
+	Name: "search",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		channel := event.Arguments[0]
+		if len(parameters) < 1 {
+			event.Connection.Privmsg(channel, "!music search <search term>")
+			return
+		}
+		searchStr := parameters[0]
+		resultsFound := false
+		for _, p := range bot.playlist.GetPlayers() {
+			items, err := p.SearchItems(searchStr, 3)
+			if err != nil {
+				event.Connection.Privmsg(channel, err.Error())
+				continue
+			}
+			for i, item := range items {
+				resultsFound = true
+				event.Connection.Privmsgf(channel, "[%s #%d] %s [%s] - %s", p.Name(), i+1, item.GetTitle(), util.FormatSongLength(item.GetDuration()), item.GetURL())
+			}
+		}
+		if !resultsFound {
+			event.Connection.Privmsg(channel, "Nothing found!")
+		}
+	},
+}
+
+var SearchAddCommand = Command{
+	Name: "search-add",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		channel := event.Arguments[0]
+		if len(parameters) < 1 {
+			event.Connection.Privmsg(channel, "!music search-add <search term>")
+			return
+		}
+		searchStr := parameters[0]
+		resultsFound := false
+		for _, p := range bot.playlist.GetPlayers() {
+			items, err := p.SearchItems(searchStr, 1)
+			if err != nil {
+				event.Connection.Privmsg(channel, err.Error())
+				continue
+			}
+			for _, item := range items {
+				resultsFound = true
+				_, err := bot.playlist.AddItems(item.GetURL())
+				if err != nil {
+					event.Connection.Privmsg(channel, err.Error())
+					continue
+				}
+				event.Connection.Privmsgf(channel, "%s added song: %s [%s]", event.Nick, item.GetTitle(), util.FormatSongLength(item.GetDuration()))
+			}
+		}
+		if !resultsFound {
+			event.Connection.Privmsg(channel, "Nothing found!")
+		}
 	},
 }
 
