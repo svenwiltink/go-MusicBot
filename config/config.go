@@ -12,16 +12,17 @@ type MusicBot struct {
 }
 
 type IRC struct {
-	Server   string
-	Ssl      bool
-	Channel  string
-	Realname string
-	Nick     string
-	Password string
-	Master   string
+	Server        string
+	Ssl           bool
+	Channel       string
+	Realname      string
+	Nick          string
+	Password      string
+	Master        string
+	WhiteListPath string
 }
 
-const DEFAULT_API_PORT = 7070
+const DEFAULT_WHITELIST_PATH = "whitelist.txt"
 
 type API struct {
 	Host string
@@ -30,6 +31,8 @@ type API struct {
 	Username string
 	Password string
 }
+
+const DEFAULT_API_PORT = 7070
 
 func ReadConfig(path string) (conf *MusicBot, err error) {
 	file, err := os.Open(path)
@@ -50,5 +53,7 @@ func ReadConfig(path string) (conf *MusicBot, err error) {
 }
 
 func (c *MusicBot) ApplyDefaults() {
+	c.IRC.WhiteListPath = DEFAULT_WHITELIST_PATH
+
 	c.API.Port = DEFAULT_API_PORT
 }
