@@ -1,6 +1,8 @@
 package player
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestYoutubeSearching(t *testing.T) {
 	p, err := NewYoutubePlayer()
@@ -9,7 +11,7 @@ func TestYoutubeSearching(t *testing.T) {
 		t.Fail()
 	}
 
-	items, err := p.SearchItems("RHCP necessities", 3)
+	items, err := p.SearchItems("totalbiscuit", 3)
 	if err != nil {
 		t.Log(err)
 		t.Fail()

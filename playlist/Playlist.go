@@ -109,6 +109,7 @@ func (p *MusicPlaylist) ShuffleList() {
 	}
 	p.EmitEvent("list_updated", p.items)
 }
+
 func (p *MusicPlaylist) EmptyList() {
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
@@ -208,6 +209,7 @@ func (p *MusicPlaylist) stop() (err error) {
 		err = fmt.Errorf("[%s] Error stopping: %v", p.currentPlayer.Name(), err)
 		return
 	}
+	p.status = STOPPED
 	p.currentItem = nil
 	p.currentPlayer = nil
 	if p.playTimer != nil {

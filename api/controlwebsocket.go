@@ -44,6 +44,23 @@ func (cws *ControlWebsocket) Start() {
 }
 
 func (cws *ControlWebsocket) onEvent(event string, args ...interface{}) {
+	for i := range args {
+		itms, ok := args[i].([]playlist.ItemInterface)
+		if ok {
+			args[i] = getAPIItems(itms)
+			continue
+		}
+		itm, ok := args[i].(playlist.ItemInterface)
+		if ok {
+			args[i] = getAPIItem(itm, itm.GetDuration())
+			continue
+		}
+		dur, ok := args[i].(time.Duration)
+		if ok {
+			args[i] = int(dur.Seconds())
+			continue
+		}
+	}
 	evt := Event{
 		Event:     event,
 		Arguments: args,
