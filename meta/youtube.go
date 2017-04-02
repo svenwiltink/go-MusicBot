@@ -121,7 +121,10 @@ func (yt *YouTube) GetMetasForPlaylistURL(source string) (items []Meta, err erro
 }
 
 func (yt *YouTube) SearchForMetas(searchStr string, limit int) (items []Meta, err error) {
-	call := yt.service.Search.List("id,snippet").Q(searchStr).MaxResults(int64(limit)).Type("video")
+	call := yt.service.Search.List("id").
+		Q(searchStr).
+		Type("video").
+		MaxResults(int64(limit))
 
 	response, err := call.Do()
 	if err != nil {
@@ -129,12 +132,12 @@ func (yt *YouTube) SearchForMetas(searchStr string, limit int) (items []Meta, er
 		return
 	}
 
-	// TODO: FIXME: Why does this never return any results?
 	for _, item := range response.Items {
-		if item.Kind == "youtube#video" {
-			item, err := yt.GetMetaForIdentifier(item.Id.VideoId)
+		switch item.Id.Kind {
+		case "youtube#video":
+			meta, err := yt.GetMetaForIdentifier(item.Id.VideoId)
 			if err == nil {
-				items = append(items, *item)
+				items = append(items, *meta)
 			}
 		}
 	}

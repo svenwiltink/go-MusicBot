@@ -6,8 +6,8 @@ import (
 	"gitlab.transip.us/swiltink/go-MusicBot/config"
 	"gitlab.transip.us/swiltink/go-MusicBot/util"
 	"os/exec"
-	"strings"
 	"sort"
+	"strings"
 )
 
 type Command struct {
@@ -135,7 +135,7 @@ var CurrentCommand = Command{
 		channel := event.Arguments[0]
 		song, remaining := bot.playlist.GetCurrentItem()
 		if song != nil {
-			event.Connection.Privmsgf(channel, "Current song: %s "+italicText("(%s remaining)"), formatSong(song), util.FormatSongLength(remaining))
+			event.Connection.Privmsgf(channel, "Current song: %s%s%s "+italicText("(%s remaining)"), BOLD_CHARACTER, formatSong(song), BOLD_CHARACTER, util.FormatSongLength(remaining))
 		} else {
 			event.Connection.Privmsg(channel, italicText("Nothing currently playing"))
 		}
@@ -163,11 +163,11 @@ var OpenCommand = Command{
 				songs = append(songs, formatSong(item))
 				i--
 				if i < 0 {
-					songs = append(songs, italicText(fmt.Sprintf("(and %d more)", len(items)-8)))
+					songs = append(songs, italicText(fmt.Sprintf("and %d more..", len(items)-8)))
 					break
 				}
 			}
-			event.Connection.Privmsgf(channel, "%s added song(s): %s", event.Nick, strings.Join(songs, ", "))
+			event.Connection.Privmsgf(channel, "%s added song(s): %s", event.Nick, strings.Join(songs, " | "))
 		}
 		bot.playlist.Play()
 	},
@@ -194,7 +194,7 @@ var ListCommand = Command{
 		for i, item := range items {
 			event.Connection.Privmsgf(channel, "%d. %s", i+1, formatSong(item))
 
-			if i > 10 {
+			if i >= 9 {
 				event.Connection.Privmsgf(channel, italicText("And %d more.."), len(items)-10)
 				return
 			}
