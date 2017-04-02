@@ -105,6 +105,8 @@ func (m *MusicBot) Start() (err error) {
 					}
 				}
 				event.Connection.Privmsg(channel, "Unknown command. Use !music help to list all the commands available")
+			} else {
+				event.Connection.Privmsgf(channel, "I will not obey you, %s", realname)
 			}
 		}
 	})
@@ -129,5 +131,5 @@ func (m *MusicBot) onPlay(args ...interface{}) {
 		return
 	}
 
-	m.ircConn.Privmsgf(m.conf.Channel, "/me plays: %s [%s]", itm.GetTitle(), util.FormatSongLength(itm.GetDuration()))
+	m.ircConn.Actionf(m.conf.Channel, "starts playing: %s [%s]", itm.GetTitle(), util.FormatSongLength(itm.GetDuration()))
 }

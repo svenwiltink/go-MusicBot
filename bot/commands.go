@@ -7,6 +7,7 @@ import (
 	"gitlab.transip.us/swiltink/go-MusicBot/util"
 	"os/exec"
 	"strings"
+	"sort"
 )
 
 type Command struct {
@@ -22,12 +23,12 @@ var HelpCommand = Command{
 	Name: "Help",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
-		message := "Available commands: "
+		var names []string
 		for commandName := range bot.commands {
-			message += " " + commandName
+			names = append(names, boldText(commandName))
 		}
-
-		event.Connection.Privmsg(channel, message)
+		sort.Strings(names)
+		event.Connection.Privmsgf(channel, "Available commands: %s", strings.Join(names, ", "))
 	},
 }
 
@@ -47,9 +48,8 @@ var WhitelistCommand = Command{
 			{
 				message := "Current whitelist: "
 				for _, name := range bot.whitelist {
-					message += " " + name
+					message += " " + underlineText(name)
 				}
-
 				event.Connection.Privmsg(channel, message)
 			}
 		case "add":
@@ -102,7 +102,7 @@ var NextCommand = Command{
 		channel := event.Arguments[0]
 		_, err := bot.playlist.Next()
 		if err != nil {
-			event.Connection.Privmsg(channel, err.Error())
+			event.Connection.Privmsg(channel, inverseText(err.Error()))
 		}
 	},
 }
@@ -113,7 +113,7 @@ var PlayCommand = Command{
 		channel := event.Arguments[0]
 		_, err := bot.playlist.Play()
 		if err != nil {
-			event.Connection.Privmsg(channel, err.Error())
+			event.Connection.Privmsg(channel, inverseText(err.Error()))
 		}
 	},
 }
@@ -124,7 +124,7 @@ var PauseCommand = Command{
 		channel := event.Arguments[0]
 		err := bot.playlist.Pause()
 		if err != nil {
-			event.Connection.Privmsg(channel, err.Error())
+			event.Connection.Privmsg(channel, inverseText(err.Error()))
 		}
 	},
 }
@@ -134,12 +134,11 @@ var CurrentCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		song, remaining := bot.playlist.GetCurrentItem()
-		title := "Not playing"
 		if song != nil {
-			title = song.GetTitle()
+			event.Connection.Privmsgf(channel, "Current song: %s "+italicText("(%s remaining)"), formatSong(song), util.FormatSongLength(remaining))
+		} else {
+			event.Connection.Privmsg(channel, italicText("Nothing currently playing"))
 		}
-
-		event.Connection.Privmsg(channel, fmt.Sprintf("Current song: %s [%s] (%s remaining)", title, util.FormatSongLength(song.GetDuration()), util.FormatSongLength(remaining)))
 	},
 }
 
@@ -148,7 +147,7 @@ var OpenCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		if len(parameters) < 1 {
 			channel := event.Arguments[0]
-			event.Connection.Privmsg(channel, "!music open <music link>")
+			event.Connection.Privmsg(channel, boldText("!music add <music link>"))
 			return
 		}
 		channel := event.Arguments[0]
@@ -156,15 +155,15 @@ var OpenCommand = Command{
 
 		items, err := bot.playlist.AddItems(url)
 		if err != nil {
-			event.Connection.Privmsg(channel, err.Error())
+			event.Connection.Privmsg(channel, inverseText(err.Error()))
 		} else {
 			var songs []string
 			i := 8
 			for _, item := range items {
-				songs = append(songs, item.GetTitle())
+				songs = append(songs, formatSong(item))
 				i--
 				if i < 0 {
-					songs = append(songs, fmt.Sprintf("(and %d more)", len(items)-8))
+					songs = append(songs, italicText(fmt.Sprintf("(and %d more)", len(items)-8)))
 					break
 				}
 			}
@@ -179,7 +178,7 @@ var ShuffleCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		bot.playlist.ShuffleList()
-		event.Connection.Privmsg(channel, "Shuffling queue")
+		event.Connection.Privmsg(channel, italicText("The playlist has been shuffled"))
 	},
 }
 
@@ -188,11 +187,15 @@ var ListCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		items := bot.playlist.GetItems()
-		for i, item := range items {
-			event.Connection.Privmsgf(channel, "%d. %s [%s]", i+1, item.GetTitle(), util.FormatSongLength(item.GetDuration()))
+		if len(items) == 0 {
+			event.Connection.Privmsg(channel, italicText("The playlist is empty"))
+		}
 
-			if i > 10 && len(items) > 12 {
-				event.Connection.Privmsgf(channel, "And %d more..", len(items)-10)
+		for i, item := range items {
+			event.Connection.Privmsgf(channel, "%d. %s", i+1, formatSong(item))
+
+			if i > 10 {
+				event.Connection.Privmsgf(channel, italicText("And %d more.."), len(items)-10)
 				return
 			}
 		}
@@ -205,7 +208,7 @@ var FlushCommand = Command{
 		channel := event.Arguments[0]
 
 		bot.playlist.EmptyList()
-		event.Connection.Privmsg(channel, fmt.Sprint("Flushing queue"))
+		event.Connection.Privmsg(channel, italicText("The playlist is now empty"))
 	},
 }
 
@@ -217,21 +220,21 @@ var SearchCommand = Command{
 			event.Connection.Privmsg(channel, "!music search <search term>")
 			return
 		}
-		searchStr := parameters[0]
+		searchStr := strings.Join(parameters, " ")
 		resultsFound := false
 		for _, p := range bot.playlist.GetPlayers() {
 			items, err := p.SearchItems(searchStr, 3)
 			if err != nil {
-				event.Connection.Privmsg(channel, err.Error())
+				event.Connection.Privmsg(channel, inverseText(err.Error()))
 				continue
 			}
 			for i, item := range items {
 				resultsFound = true
-				event.Connection.Privmsgf(channel, "[%s #%d] %s [%s] - %s", p.Name(), i+1, item.GetTitle(), util.FormatSongLength(item.GetDuration()), item.GetURL())
+				event.Connection.Privmsgf(channel, "[%s #%d] %s - %s", p.Name(), i+1, formatSong(&item), item.GetURL())
 			}
 		}
 		if !resultsFound {
-			event.Connection.Privmsg(channel, "Nothing found!")
+			event.Connection.Privmsg(channel, inverseText("Nothing found!"))
 		}
 	},
 }
@@ -244,27 +247,28 @@ var SearchAddCommand = Command{
 			event.Connection.Privmsg(channel, "!music search-add <search term>")
 			return
 		}
-		searchStr := parameters[0]
+		searchStr := strings.Join(parameters, " ")
 		resultsFound := false
 		for _, p := range bot.playlist.GetPlayers() {
 			items, err := p.SearchItems(searchStr, 1)
 			if err != nil {
-				event.Connection.Privmsg(channel, err.Error())
+				event.Connection.Privmsg(channel, inverseText(err.Error()))
 				continue
 			}
 			for _, item := range items {
 				resultsFound = true
 				_, err := bot.playlist.AddItems(item.GetURL())
 				if err != nil {
-					event.Connection.Privmsg(channel, err.Error())
+					event.Connection.Privmsg(channel, inverseText(err.Error()))
 					continue
 				}
-				event.Connection.Privmsgf(channel, "%s added song: %s [%s]", event.Nick, item.GetTitle(), util.FormatSongLength(item.GetDuration()))
+				event.Connection.Privmsgf(channel, "%s added song: %s", event.Nick, formatSong(&item))
 			}
 		}
 		if !resultsFound {
-			event.Connection.Privmsg(channel, "Nothing found!")
+			event.Connection.Privmsg(channel, inverseText("Nothing found!"))
 		}
+		bot.playlist.Play()
 	},
 }
 
