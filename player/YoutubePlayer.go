@@ -44,7 +44,7 @@ func (p *YoutubePlayer) Init() (err error) {
 }
 
 func (p *YoutubePlayer) Name() (name string) {
-	return "SpotifyPlayer"
+	return "YoutubePlayer"
 }
 
 func (p *YoutubePlayer) CanPlay(url string) (canPlay bool) {

@@ -5,7 +5,6 @@ import (
 	irc "github.com/thoj/go-ircevent"
 	"gitlab.transip.us/swiltink/go-MusicBot/config"
 	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
-	"gitlab.transip.us/swiltink/go-MusicBot/util"
 	"os"
 	"os/signal"
 	"strings"
@@ -131,5 +130,5 @@ func (m *MusicBot) onPlay(args ...interface{}) {
 		return
 	}
 
-	m.ircConn.Actionf(m.conf.Channel, "starts playing: %s [%s]", itm.GetTitle(), util.FormatSongLength(itm.GetDuration()))
+	m.ircConn.Actionf(m.conf.Channel, "starts playing: %s", boldText(formatSong(itm)))
 }
