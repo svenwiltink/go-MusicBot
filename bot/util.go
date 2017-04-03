@@ -2,8 +2,10 @@ package bot
 
 import (
 	"fmt"
+	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
 	"gitlab.transip.us/swiltink/go-MusicBot/util"
+	"strings"
 )
 
 const (
@@ -75,5 +77,32 @@ func colourText(foreground, backgroundColor Color, s string) (cs string) {
 
 func formatSong(song playlist.ItemInterface) (s string) {
 	s = fmt.Sprintf("%s %s%s%s", song.GetTitle(), getColourCode(COLOUR_TEAL, COLOUR_NONE), util.FormatSongLength(song.GetDuration()), getColourCode(COLOUR_DEFAULT, COLOUR_NONE))
+	return
+}
+
+func searchSongs(plylst playlist.ListInterface, parameters []string) (results map[string][]playlist.ItemInterface, err error) {
+	results = make(map[string][]playlist.ItemInterface)
+
+	searchFunc := func(p player.MusicPlayerInterface, searchStr string) {
+		var items []player.ListItem
+		items, err = p.SearchItems(searchStr, 3)
+		if err != nil {
+			return
+		}
+		for _, item := range items {
+			itm := item
+			results[p.Name()] = append(results[p.Name()], &itm)
+		}
+	}
+
+	plyr := plylst.GetPlayer(parameters[0])
+	if plyr != nil {
+		searchFunc(plyr, strings.Join(parameters[1:], " "))
+		return
+	}
+
+	for _, plyr := range plylst.GetPlayers() {
+		searchFunc(plyr, strings.Join(parameters, " "))
+	}
 	return
 }
