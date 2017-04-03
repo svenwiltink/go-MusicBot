@@ -6,6 +6,7 @@ import (
 	"github.com/vansante/go-event-emitter"
 	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"math/rand"
+	"strings"
 	"sync"
 	"time"
 )
@@ -31,6 +32,16 @@ func NewPlaylist() (playlist *MusicPlaylist) {
 	playlist = &MusicPlaylist{
 		Emitter: eventemitter.NewEmitter(),
 		status:  STOPPED,
+	}
+	return
+}
+
+func (p *MusicPlaylist) GetPlayer(name string) (plyr player.MusicPlayerInterface) {
+	for _, plr := range p.players {
+		if strings.ToLower(plr.Name()) == strings.ToLower(name) {
+			plyr = plr
+			return
+		}
 	}
 	return
 }

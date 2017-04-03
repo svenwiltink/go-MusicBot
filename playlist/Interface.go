@@ -17,6 +17,7 @@ const (
 type ListInterface interface {
 	eventemitter.Observable
 
+	GetPlayer(name string) (player player.MusicPlayerInterface)
 	GetPlayers() (players []player.MusicPlayerInterface)
 	GetItems() (items []ItemInterface)
 	GetCurrentItem() (item ItemInterface, remaining time.Duration)
