@@ -22,6 +22,7 @@ type ListInterface interface {
 	GetItems() (items []ItemInterface)
 	GetCurrentItem() (item ItemInterface, remaining time.Duration)
 	AddItems(url string) (addedItems []ItemInterface, err error)
+	InsertItems(url string, position int) (addedItems []ItemInterface, err error)
 	ShuffleList()
 	EmptyList()
 	GetStatus() (status Status)
