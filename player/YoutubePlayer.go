@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
-	"syscall"
+	//"syscall"
 )
 
 type YoutubePlayer struct {
@@ -32,7 +32,7 @@ func (p *YoutubePlayer) Init() (err error) {
 	p.mpvMutex.Lock()
 	defer p.mpvMutex.Unlock()
 
-	syscall.Mknod(".mpv-input", syscall.S_IFIFO|0666, 0)
+	//syscall.Mknod(".mpv-input", syscall.S_IFIFO|0666, 0)
 	file, err := os.OpenFile(".mpv-input", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0660)
 	if err != nil {
 		err = fmt.Errorf("[YoutubePlayer] Error opening control file: %v", err)
@@ -44,7 +44,7 @@ func (p *YoutubePlayer) Init() (err error) {
 }
 
 func (p *YoutubePlayer) Name() (name string) {
-	return "YoutubePlayer"
+	return "Youtube"
 }
 
 func (p *YoutubePlayer) CanPlay(url string) (canPlay bool) {
