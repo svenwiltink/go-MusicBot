@@ -194,7 +194,7 @@ var ListCommand = Command{
 		for i, item := range items {
 			event.Connection.Privmsgf(channel, "%d. %s", i+1, formatSong(item))
 
-			if i >= 9 {
+			if i >= 9 && len(items) > 10 {
 				event.Connection.Privmsgf(channel, italicText("And %d more.."), len(items)-10)
 				return
 			}
