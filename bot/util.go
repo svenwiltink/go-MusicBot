@@ -35,6 +35,7 @@ const (
 	COLOUR_GREY        Color = "14"
 	COLOUR_LIGHT_GREY  Color = "15"
 	COLOUR_DEFAULT     Color = "99"
+	COLOUR_NONE        Color = ""
 )
 
 func boldText(s string) (bs string) {
@@ -54,6 +55,13 @@ func inverseText(s string) (is string) {
 }
 
 func getColourCode(foreground, background Color) (code string) {
+	if foreground == COLOUR_NONE {
+		return
+	}
+	if background == COLOUR_NONE {
+		code = fmt.Sprintf("%s%s", COLOUR_CHARACTER, foreground)
+		return
+	}
 	code = fmt.Sprintf("%s%s,%s", COLOUR_CHARACTER, foreground, background)
 	return
 }
@@ -66,6 +74,6 @@ func colourText(foreground, backgroundColor Color, s string) (cs string) {
 }
 
 func formatSong(song playlist.ItemInterface) (s string) {
-	s = fmt.Sprintf("%s %s%s%s", song.GetTitle(), getColourCode(COLOUR_TEAL, COLOUR_DEFAULT), util.FormatSongLength(song.GetDuration()), getColourCode(COLOUR_DEFAULT, COLOUR_DEFAULT))
+	s = fmt.Sprintf("%s %s%s%s", song.GetTitle(), getColourCode(COLOUR_TEAL, COLOUR_NONE), util.FormatSongLength(song.GetDuration()), getColourCode(COLOUR_DEFAULT, COLOUR_NONE))
 	return
 }
