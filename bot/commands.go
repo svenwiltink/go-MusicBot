@@ -142,7 +142,7 @@ var CurrentCommand = Command{
 	},
 }
 
-var OpenCommand = Command{
+var AddCommand = Command{
 	Name: "add",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		if len(parameters) < 1 {
@@ -170,6 +170,37 @@ var OpenCommand = Command{
 			event.Connection.Privmsgf(channel, "%s added song(s): %s", event.Nick, strings.Join(songs, " | "))
 		}
 		bot.playlist.Play()
+	},
+}
+
+var OpenCommand = Command{
+	Name: "open",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		if len(parameters) < 1 {
+			channel := event.Arguments[0]
+			event.Connection.Privmsg(channel, boldText("!music open <music link>"))
+			return
+		}
+		channel := event.Arguments[0]
+		url := parameters[0]
+
+		items, err := bot.playlist.InsertItems(url, 0)
+		if err != nil {
+			event.Connection.Privmsg(channel, inverseText(err.Error()))
+		} else {
+			var songs []string
+			i := 8
+			for _, item := range items {
+				songs = append(songs, formatSong(item))
+				i--
+				if i < 0 {
+					songs = append(songs, italicText(fmt.Sprintf("and %d more..", len(items)-8)))
+					break
+				}
+			}
+			event.Connection.Privmsgf(channel, "%s added song(s): %s", event.Nick, strings.Join(songs, " | "))
+		}
+		bot.playlist.Next()
 	},
 }
 

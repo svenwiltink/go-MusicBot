@@ -85,6 +85,25 @@ func (p *MusicPlaylist) findPlayer(url string) (musicPlayer player.MusicPlayerIn
 }
 
 func (p *MusicPlaylist) AddItems(url string) (addedItems []ItemInterface, err error) {
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
+	return p.insertItems(url, len(p.items))
+}
+
+func (p *MusicPlaylist) InsertItems(url string, position int) (addedItems []ItemInterface, err error) {
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
+	if position < 0 || position > len(p.items) {
+		err = errors.New("invalid position to insert items")
+		return
+	}
+
+	return p.insertItems(url, position)
+}
+
+func (p *MusicPlaylist) insertItems(url string, position int) (addedItems []ItemInterface, err error) {
 	musicPlayer, err := p.findPlayer(url)
 	if err != nil {
 		return
@@ -100,10 +119,12 @@ func (p *MusicPlaylist) AddItems(url string) (addedItems []ItemInterface, err er
 		tempItem := plItem
 		addedItems = append(addedItems, &tempItem)
 	}
-	p.controlMutex.Lock()
-	defer p.controlMutex.Unlock()
 
-	p.items = append(p.items, addedItems...)
+	for i, addItem := range addedItems {
+		p.items = append(p.items, nil)
+		copy(p.items[position+i+1:], p.items[position+i:])
+		p.items[position+i] = addItem
+	}
 
 	p.EmitEvent("items_added", addedItems)
 	p.EmitEvent("list_updated", p.items)

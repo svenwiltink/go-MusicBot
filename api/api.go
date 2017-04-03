@@ -112,6 +112,10 @@ func (api *API) initializeRoutes() {
 			Method:  http.MethodGet,
 			handler: api.authenticator(api.AddHandler, false),
 		}, {
+			Pattern: "/open",
+			Method:  http.MethodGet,
+			handler: api.authenticator(api.OpenHandler, false),
+		}, {
 			Pattern: "/socket",
 			Method:  http.MethodGet,
 			handler: api.authenticator(api.SocketHandler, true),
@@ -213,6 +217,21 @@ func (api *API) NextHandler(w http.ResponseWriter, r *http.Request) {
 
 func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
 	items, err := api.playlist.AddItems(r.URL.Query().Get("url"))
+	if err != nil {
+		fmt.Printf("API add error: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = json.NewEncoder(w).Encode(getAPIItems(items))
+	if err != nil {
+		fmt.Printf("API add encode error: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (api *API) OpenHandler(w http.ResponseWriter, r *http.Request) {
+	items, err := api.playlist.InsertItems("url", 0)
 	if err != nil {
 		fmt.Printf("API add error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
