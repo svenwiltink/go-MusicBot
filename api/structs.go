@@ -1,12 +1,13 @@
 package api
 
 import (
-	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
+	"gitlab.transip.us/swiltink/go-MusicBot/player"
+	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
 	"gitlab.transip.us/swiltink/go-MusicBot/util"
 	"time"
 )
 
-type Item struct {
+type Song struct {
 	Title            string
 	Seconds          int
 	SecondsRemaining int
@@ -15,9 +16,9 @@ type Item struct {
 }
 
 type Status struct {
-	Status  playlist.Status
-	Current *Item
-	List    []Item
+	Status  player.Status
+	Current *Song
+	List    []Song
 }
 
 type Event struct {
@@ -37,13 +38,13 @@ type CommandResponse struct {
 	Status  *Status `json:",omitempty"`
 }
 
-func getAPIItem(itm playlist.ItemInterface, remaining time.Duration) (newItem *Item) {
-	if itm != nil {
-		duration := itm.GetDuration()
+func getAPISong(song songplayer.Playable, remaining time.Duration) (apiSong *Song) {
+	if song != nil {
+		duration := song.GetDuration()
 
-		newItem = &Item{
-			Title:            itm.GetTitle(),
-			URL:              itm.GetURL(),
+		apiSong = &Song{
+			Title:            song.GetTitle(),
+			URL:              song.GetURL(),
 			Seconds:          int(duration.Seconds()),
 			SecondsRemaining: int(remaining.Seconds()),
 			FormattedTime:    util.FormatSongLength(duration),
@@ -52,12 +53,12 @@ func getAPIItem(itm playlist.ItemInterface, remaining time.Duration) (newItem *I
 	return
 }
 
-func getAPIItems(itms []playlist.ItemInterface) (newItems []Item) {
-	for _, itm := range itms {
-		if itm == nil {
+func getAPISongs(songs []songplayer.Playable) (apiSongs []Song) {
+	for _, song := range songs {
+		if song == nil {
 			continue
 		}
-		newItems = append(newItems, *getAPIItem(itm, itm.GetDuration()))
+		apiSongs = append(apiSongs, *getAPISong(song, song.GetDuration()))
 	}
 	return
 }
