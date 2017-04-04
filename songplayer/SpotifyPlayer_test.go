@@ -1,4 +1,4 @@
-package player
+package songplayer
 
 import "testing"
 
@@ -16,7 +16,7 @@ func TestSpotifyURLParsing(t *testing.T) {
 		t.Fail()
 	}
 
-	tp, id, uid, err = p.getTypeAndIDFromURL("https://open.spotify.com/user/tana.cross/playlist/2xLFotd9GVVQ6Jde7B3i3B")
+	tp, id, uid, err = p.getTypeAndIDFromURL("https://open.spotify.com/user/tana.cross/player/2xLFotd9GVVQ6Jde7B3i3B")
 	if tp != TYPE_PLAYLIST || id != "2xLFotd9GVVQ6Jde7B3i3B" || err != nil || uid != "tana.cross" {
 		t.Log(string(tp), id, uid, err)
 		t.Fail()
@@ -28,7 +28,7 @@ func TestSpotifyURLParsing(t *testing.T) {
 		t.Fail()
 	}
 
-	tp, id, uid, err = p.getTypeAndIDFromURL("spotify:user:111208973:playlist:4XGuyS11n99eMqe1OvN8jq")
+	tp, id, uid, err = p.getTypeAndIDFromURL("spotify:user:111208973:player:4XGuyS11n99eMqe1OvN8jq")
 	if tp != TYPE_PLAYLIST || id != "4XGuyS11n99eMqe1OvN8jq" || err != nil || uid != "111208973" {
 		t.Log(string(tp), id, uid, err)
 		t.Fail()
@@ -37,21 +37,21 @@ func TestSpotifyURLParsing(t *testing.T) {
 
 func TestSpotifySearching(t *testing.T) {
 	p := &SpotifyPlayer{}
-	items, err := p.SearchItems("green day boulevard", 3)
+	items, err := p.SearchSongs("green day boulevard", 3)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
 	}
 	t.Log("Findings: ", items)
 
-	items, err = p.SearchItems("adele chasing pavement", 3)
+	items, err = p.SearchSongs("adele chasing pavement", 3)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
 	}
 	t.Log("Findings: ", items)
 
-	items, err = p.SearchItems("hallelujah", 3)
+	items, err = p.SearchSongs("hallelujah", 3)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
