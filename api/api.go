@@ -57,11 +57,11 @@ func (api *API) Start() {
 
 func (api *API) authenticator(inner http.HandlerFunc, optional bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		authenticated := true
+		authenticated := false
 
 		username, password, _ := r.BasicAuth()
-		if api.config.Username != username || api.config.Password != password {
-			authenticated = false
+		if api.config.Username == username && api.config.Password == password {
+			authenticated = true
 		}
 
 		if !optional && !authenticated {
