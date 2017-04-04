@@ -20,7 +20,7 @@ func (c *Command) execute(bot *MusicBot, event *irc.Event, parameters []string) 
 }
 
 var HelpCommand = Command{
-	Name: "Help",
+	Name: "help",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		var names []string
@@ -97,7 +97,7 @@ var WhitelistCommand = Command{
 }
 
 var NextCommand = Command{
-	Name: "Next",
+	Name: "next",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		_, err := bot.playlist.Next()
@@ -108,7 +108,7 @@ var NextCommand = Command{
 }
 
 var PlayCommand = Command{
-	Name: "Play",
+	Name: "play",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		_, err := bot.playlist.Play()
@@ -119,7 +119,7 @@ var PlayCommand = Command{
 }
 
 var PauseCommand = Command{
-	Name: "Pause",
+	Name: "pause",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		err := bot.playlist.Pause()
@@ -129,8 +129,19 @@ var PauseCommand = Command{
 	},
 }
 
+var StopCommand = Command{
+	Name: "stop",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		channel := event.Arguments[0]
+		err := bot.playlist.Stop()
+		if err != nil {
+			event.Connection.Privmsg(channel, inverseText(err.Error()))
+		}
+	},
+}
+
 var CurrentCommand = Command{
-	Name: "Current",
+	Name: "current",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 		song, remaining := bot.playlist.GetCurrentItem()
