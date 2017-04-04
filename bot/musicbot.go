@@ -60,15 +60,20 @@ func (m *MusicBot) isUserWhitelisted(realname string) (iswhitelisted bool, index
 func (m *MusicBot) Start() (err error) {
 	m.registerCommand(HelpCommand)
 	m.registerCommand(WhitelistCommand)
+
 	m.registerCommand(NextCommand)
 	m.registerCommand(PlayCommand)
 	m.registerCommand(PauseCommand)
+	m.registerCommand(StopCommand)
+
 	m.registerCommand(CurrentCommand)
 	m.registerCommand(ShuffleCommand)
 	m.registerCommand(ListCommand)
 	m.registerCommand(FlushCommand)
+
 	m.registerCommand(AddCommand)
 	m.registerCommand(OpenCommand)
+
 	m.registerCommand(SearchCommand)
 	m.registerCommand(SearchAddCommand)
 
