@@ -1,4 +1,4 @@
-package player
+package songplayer
 
 import (
 	"time"
@@ -20,8 +20,8 @@ func (p *MemoryPlayer) CanPlay(url string) (canPlay bool) {
 	return true
 }
 
-func (p *MemoryPlayer) GetItems(url string) (items []ListItem, err error) {
-	items = append(items, *NewListItem(url, time.Minute, url))
+func (p *MemoryPlayer) GetItems(url string) (items []Song, err error) {
+	items = append(items, *NewSong(url, time.Minute, url))
 	return
 }
 

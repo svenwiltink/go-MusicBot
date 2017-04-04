@@ -1,4 +1,4 @@
-package player
+package songplayer
 
 import (
 	"fmt"
@@ -51,14 +51,14 @@ func (p *YoutubePlayer) CanPlay(url string) (canPlay bool) {
 	return strings.Contains(strings.ToLower(url), "youtube")
 }
 
-func (p *YoutubePlayer) GetItems(url string) (items []ListItem, err error) {
+func (p *YoutubePlayer) GetSongs(url string) (songs []Playable, err error) {
 	lowerURL := strings.ToLower(url)
-	if strings.Contains(lowerURL, "playlist") || strings.Contains(lowerURL, "list=") {
+	if strings.Contains(lowerURL, "player") || strings.Contains(lowerURL, "list=") {
 		var metaDatas []meta.Meta
 		metaDatas, err = p.ytService.GetMetasForPlaylistURL(url)
 		if err == nil {
 			for _, metaData := range metaDatas {
-				items = append(items, *NewListItem(metaData.Title, metaData.Duration, metaData.Source))
+				songs = append(songs, NewSong(metaData.Title, metaData.Duration, metaData.Source))
 			}
 			return
 		}
@@ -70,12 +70,11 @@ func (p *YoutubePlayer) GetItems(url string) (items []ListItem, err error) {
 		err = fmt.Errorf("[YoutubePlayer] Error getting meta data: %v", err)
 		return
 	}
-
-	items = append(items, *NewListItem(metaData.Title, metaData.Duration, metaData.Source))
+	songs = append(songs, NewSong(metaData.Title, metaData.Duration, metaData.Source))
 	return
 }
 
-func (p *YoutubePlayer) SearchItems(searchStr string, limit int) (items []ListItem, err error) {
+func (p *YoutubePlayer) SearchSongs(searchStr string, limit int) (songs []Playable, err error) {
 	metaDatas, err := p.ytService.SearchForMetas(searchStr, limit)
 	if err != nil {
 		err = fmt.Errorf("[YoutubePlayer] Error searching meta data: %v", err)
@@ -83,7 +82,7 @@ func (p *YoutubePlayer) SearchItems(searchStr string, limit int) (items []ListIt
 	}
 
 	for _, metaData := range metaDatas {
-		items = append(items, *NewListItem(metaData.Title, metaData.Duration, metaData.Source))
+		songs = append(songs, NewSong(metaData.Title, metaData.Duration, metaData.Source))
 	}
 	return
 }

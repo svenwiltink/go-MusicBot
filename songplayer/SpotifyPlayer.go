@@ -1,4 +1,4 @@
-package player
+package songplayer
 
 import (
 	"errors"
@@ -43,7 +43,7 @@ func (p *SpotifyPlayer) CanPlay(url string) (canPlay bool) {
 	return
 }
 
-func (p *SpotifyPlayer) GetItems(url string) (items []ListItem, err error) {
+func (p *SpotifyPlayer) GetSongs(url string) (songs []Playable, err error) {
 	tp, id, _, err := p.getTypeAndIDFromURL(url)
 	var tracks []spotify.SimpleTrack
 	switch tp {
@@ -75,17 +75,17 @@ func (p *SpotifyPlayer) GetItems(url string) (items []ListItem, err error) {
 		if len(track.Artists) > 0 {
 			name = fmt.Sprintf("%s - %s", track.Name, track.Artists[0].Name)
 		}
-		items = append(items, *NewListItem(name, track.TimeDuration(), string(track.URI)))
+		songs = append(songs, NewSong(name, track.TimeDuration(), string(track.URI)))
 	}
 	return
 }
 
-func (p *SpotifyPlayer) SearchItems(searchStr string, limit int) (items []ListItem, err error) {
+func (p *SpotifyPlayer) SearchSongs(searchStr string, limit int) (songs []Playable, err error) {
 	results, err := spotify.DefaultClient.SearchOpt(searchStr, spotify.SearchTypeTrack, &spotify.Options{
 		Limit: &limit,
 	})
 	if err != nil {
-		err = fmt.Errorf("[SpotifyPlayer] Could not search for tracks: %v", err)
+		err = fmt.Errorf("[SpotifyPlayer] Could not search for songs: %v", err)
 		return
 	}
 	for _, track := range results.Tracks.Tracks {
@@ -93,7 +93,7 @@ func (p *SpotifyPlayer) SearchItems(searchStr string, limit int) (items []ListIt
 		if len(track.Artists) > 0 {
 			name = fmt.Sprintf("%s - %s", track.Name, track.Artists[0].Name)
 		}
-		items = append(items, *NewListItem(name, track.TimeDuration(), string(track.URI)))
+		songs = append(songs, NewSong(name, track.TimeDuration(), string(track.URI)))
 	}
 	return
 }
@@ -152,10 +152,10 @@ func (p *SpotifyPlayer) getTypeAndIDFromURL(url string) (tp Type, id, userID str
 		case strings.Contains(lowerURL, "/album/"):
 			tp = TYPE_ALBUM
 			idPos = strings.LastIndex(lowerURL, "/album/") + len("/album/")
-		case strings.Contains(lowerURL, "/playlist/"):
+		case strings.Contains(lowerURL, "/player/"):
 			//https://open.spotify.com/user/tana.cross/playlist/2xLFotd9GVVQ6Jde7B3i3B
 			tp = TYPE_PLAYLIST
-			idPos = strings.LastIndex(lowerURL, "/playlist/")
+			idPos = strings.LastIndex(lowerURL, "/player/")
 			uidPos := strings.LastIndex(lowerURL, "/user/") + len("/user/")
 			if uidPos >= idPos {
 				err = errors.New("Invalid spotify URL format")
@@ -163,7 +163,7 @@ func (p *SpotifyPlayer) getTypeAndIDFromURL(url string) (tp Type, id, userID str
 			}
 			userID = url[uidPos:idPos]
 
-			idPos += len("/playlist/")
+			idPos += len("/player/")
 		default:
 			err = fmt.Errorf("Unknown spotify URL format: %s", url)
 			return
@@ -181,10 +181,10 @@ func (p *SpotifyPlayer) getTypeAndIDFromURL(url string) (tp Type, id, userID str
 	case strings.Contains(lowerURL, ":album:"):
 		tp = TYPE_ALBUM
 		idPos = strings.LastIndex(lowerURL, ":album:") + len(":album:")
-	case strings.Contains(lowerURL, ":playlist:"):
+	case strings.Contains(lowerURL, ":player:"):
 		// spotify:user:111208973:playlist:4XGuyS11n99eMqe1OvN8jq
 		tp = TYPE_PLAYLIST
-		idPos = strings.LastIndex(lowerURL, ":playlist:")
+		idPos = strings.LastIndex(lowerURL, ":player:")
 		uidPos := strings.LastIndex(lowerURL, ":user:") + len(":user:")
 		if uidPos >= idPos {
 			err = errors.New("Invalid spotify URL format")
@@ -192,7 +192,7 @@ func (p *SpotifyPlayer) getTypeAndIDFromURL(url string) (tp Type, id, userID str
 		}
 		userID = url[uidPos:idPos]
 
-		idPos += len(":playlist:")
+		idPos += len(":player:")
 	default:
 		err = fmt.Errorf("Unknown spotify URL format: %s", url)
 		return
