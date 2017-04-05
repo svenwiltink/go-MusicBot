@@ -11,15 +11,20 @@ import (
 )
 
 type YoutubePlayer struct {
-	MpvProcess   *exec.Cmd
+	mpvBinPath   string
+	mpvInputPath string
+
+	mpvProcess   *exec.Cmd
 	mpvIsRunning bool
-	ControlFile  *os.File
+	controlFile  *os.File
 	ytService    *meta.YouTube
 	mpvMutex     sync.Mutex
 }
 
-func NewYoutubePlayer() (player *YoutubePlayer, err error) {
+func NewYoutubePlayer(mpvBinPath, mpvInputPath string) (player *YoutubePlayer, err error) {
 	player = &YoutubePlayer{
+		mpvBinPath:   mpvBinPath,
+		mpvInputPath: mpvInputPath,
 		mpvIsRunning: false,
 		ytService:    meta.NewYoutubeService(),
 	}
@@ -39,7 +44,7 @@ func (p *YoutubePlayer) Init() (err error) {
 		return
 	}
 
-	p.ControlFile = file
+	p.controlFile = file
 	return
 }
 
@@ -91,13 +96,13 @@ func (p *YoutubePlayer) Play(url string) (err error) {
 	p.mpvMutex.Lock()
 	if p.mpvIsRunning {
 		fmt.Println("[YoutubePlayer] Killing Mpv")
-		p.MpvProcess.Process.Kill()
+		p.mpvProcess.Process.Kill()
 		p.mpvIsRunning = false
 		p.mpvMutex.Unlock()
 		return
 	}
 	command := exec.Command("mpv", "--no-video", "--input-file=.mpv-input", url)
-	p.MpvProcess = command
+	p.mpvProcess = command
 
 	go func() {
 		command.Start()
@@ -114,11 +119,11 @@ func (p *YoutubePlayer) Pause(pauseState bool) (err error) {
 	p.mpvMutex.Lock()
 	defer p.mpvMutex.Unlock()
 
-	_, err = p.ControlFile.WriteString("cycle pause\n")
+	_, err = p.controlFile.WriteString("cycle pause\n")
 	if err != nil {
 		return
 	}
-	err = p.ControlFile.Truncate(0)
+	err = p.controlFile.Truncate(0)
 	return
 }
 
@@ -128,7 +133,7 @@ func (p *YoutubePlayer) Stop() (err error) {
 
 	if p.mpvIsRunning {
 		fmt.Println("[YoutubePlayer] Killing mpv")
-		p.MpvProcess.Process.Kill()
+		p.mpvProcess.Process.Kill()
 		p.mpvIsRunning = false
 	}
 	return
