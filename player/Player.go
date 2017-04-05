@@ -216,6 +216,7 @@ func (p *Player) next() (song songplayer.Playable, err error) {
 	// Start waiting for the song to be done
 	go p.playWait()
 	p.EmitEvent("play_start", p.currentSong)
+	p.EmitEvent("queue_updated", p.queue)
 	return
 }
 
