@@ -5,7 +5,7 @@ import (
 )
 
 func TestYoutubeSearching(t *testing.T) {
-	p, err := NewYoutubePlayer()
+	p, err := NewYoutubePlayer("mpv", "/tmp/.bot-mpv-input")
 	if err != nil {
 		t.Log(err)
 		t.Fail()
