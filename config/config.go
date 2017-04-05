@@ -10,9 +10,10 @@ const DEFAULT_QUEUE_PATH = "queue.txt"
 type MusicBot struct {
 	QueuePath string
 
-	IRC IRC
-
-	API API
+	IRC           IRC
+	API           API
+	YoutubePlayer YoutubePlayer
+	SpotifyPlayer SpotifyPlayer
 }
 
 type IRC struct {
@@ -38,6 +39,20 @@ type API struct {
 
 const DEFAULT_API_PORT = 7070
 
+type YoutubePlayer struct {
+	Enabled      bool
+	MpvBinPath   string
+	MpvInputPath string
+}
+
+const DEFAULT_MPV_BIN_PATH = "mpv"
+const DEFAULT_MPV_INPUT_PATH = ".mpv-input"
+
+type SpotifyPlayer struct {
+	Enabled bool
+	Host    string
+}
+
 func ReadConfig(path string) (conf *MusicBot, err error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -58,8 +73,10 @@ func ReadConfig(path string) (conf *MusicBot, err error) {
 
 func (c *MusicBot) ApplyDefaults() {
 	c.QueuePath = DEFAULT_QUEUE_PATH
-
 	c.IRC.WhiteListPath = DEFAULT_WHITELIST_PATH
-
 	c.API.Port = DEFAULT_API_PORT
+	c.SpotifyPlayer.Enabled = true
+	c.YoutubePlayer.Enabled = true
+	c.YoutubePlayer.MpvBinPath = DEFAULT_MPV_BIN_PATH
+	c.YoutubePlayer.MpvInputPath = DEFAULT_MPV_INPUT_PATH
 }
