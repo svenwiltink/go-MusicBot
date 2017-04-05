@@ -11,5 +11,14 @@
   "API": {
      "Username": "admin",
      "Password": "bla"
+  },
+  "YoutubePlayer": {
+     "Enabled": true,
+     "MpvBinPath": "mpv",
+     "MpvInputPath": ".mpv-input"
+  },
+  "SpotifyPlayer": {
+     "Enabled": true,
+     "Host": "127.0.0.1"
   }
 }
