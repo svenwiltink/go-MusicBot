@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"github.com/thoj/go-ircevent"
 	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
 	"gitlab.transip.us/swiltink/go-MusicBot/util"
@@ -102,6 +103,18 @@ func searchSongs(player player.MusicPlayer, parameters []string) (results map[st
 
 	for _, songPlayer := range player.GetSongPlayers() {
 		searchFunc(songPlayer, strings.Join(parameters, " "))
+	}
+	return
+}
+
+func getTarget(event *irc.Event) (target string, isPrivate bool) {
+	if len(event.Arguments) == 0 {
+		return
+	}
+	target = event.Arguments[0]
+	if !strings.HasPrefix(target, "#") {
+		target = event.Nick
+		isPrivate = true
 	}
 	return
 }
