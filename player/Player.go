@@ -121,8 +121,8 @@ func (p *Player) insertSongs(url string, position int) (addedSongs []songplayer.
 		p.queue[position+i] = addSong
 	}
 
-	p.EmitEvent("items_added", addedSongs)
-	p.EmitEvent("list_updated", p.queue)
+	p.EmitEvent("songs_added", addedSongs, position)
+	p.EmitEvent("queue_updated", p.queue)
 	return
 }
 
@@ -134,7 +134,7 @@ func (p *Player) ShuffleQueue() {
 		j := rand.Intn(i + 1)
 		p.queue[i], p.queue[j] = p.queue[j], p.queue[i]
 	}
-	p.EmitEvent("list_updated", p.queue)
+	p.EmitEvent("queue_updated", p.queue)
 }
 
 func (p *Player) EmptyQueue() {
@@ -142,7 +142,7 @@ func (p *Player) EmptyQueue() {
 	defer p.controlMutex.Unlock()
 
 	p.queue = make([]songplayer.Playable, 0)
-	p.EmitEvent("list_updated", p.queue)
+	p.EmitEvent("queue_updated", p.queue)
 }
 
 func (p *Player) GetStatus() (status Status) {
