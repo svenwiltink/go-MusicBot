@@ -6,10 +6,12 @@ import (
 	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
 	"os"
 	"strings"
+	"sync"
 )
 
 type QueueStorage struct {
-	path string
+	path  string
+	mutex sync.Mutex
 }
 
 func NewQueueStorage(path string) (qs *QueueStorage) {
@@ -38,6 +40,9 @@ func (qs *QueueStorage) OnListUpdate(args ...interface{}) {
 }
 
 func (qs *QueueStorage) saveQueue(urls []string) (err error) {
+	qs.mutex.Lock()
+	defer qs.mutex.Unlock()
+
 	file, err := os.Create(qs.path)
 	if err != nil {
 		return
@@ -56,6 +61,9 @@ func (qs *QueueStorage) saveQueue(urls []string) (err error) {
 }
 
 func (qs *QueueStorage) ReadQueue() (urls []string, err error) {
+	qs.mutex.Lock()
+	defer qs.mutex.Unlock()
+
 	file, err := os.Open(qs.path)
 	if err != nil {
 		return
