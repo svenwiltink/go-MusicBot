@@ -94,22 +94,23 @@ func (p *YoutubePlayer) SearchSongs(searchStr string, limit int) (songs []Playab
 
 func (p *YoutubePlayer) Play(url string) (err error) {
 	p.mpvMutex.Lock()
-	if p.mpvIsRunning {
-		fmt.Println("[YoutubePlayer] Killing Mpv")
-		p.mpvProcess.Process.Kill()
-		p.mpvIsRunning = false
-		p.mpvMutex.Unlock()
+	err = p.stop()
+	if err != nil {
 		return
 	}
+
 	command := exec.Command("mpv", "--no-video", "--input-file=.mpv-input", url)
 	p.mpvProcess = command
 
 	go func() {
-		command.Start()
-		p.mpvIsRunning = true
+		err = command.Start()
+		p.mpvIsRunning = err == nil
 		p.mpvMutex.Unlock()
+		if err != nil {
+			return
+		}
 
-		command.Wait()
+		err = command.Wait()
 		p.mpvIsRunning = false
 	}()
 	return
@@ -131,10 +132,13 @@ func (p *YoutubePlayer) Stop() (err error) {
 	p.mpvMutex.Lock()
 	defer p.mpvMutex.Unlock()
 
+	return p.stop()
+}
+
+func (p *YoutubePlayer) stop() (err error) {
 	if p.mpvIsRunning {
-		fmt.Println("[YoutubePlayer] Killing mpv")
-		p.mpvProcess.Process.Kill()
-		p.mpvIsRunning = false
+		err = p.mpvProcess.Process.Kill()
+		p.mpvIsRunning = err == nil
 	}
 	return
 }
