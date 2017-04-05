@@ -18,16 +18,18 @@ const (
 )
 
 type SpotifyPlayer struct {
+	host    string
 	control *spotifycontrol.SpotifyControl
 }
 
-func NewSpotifyPlayer() (p *SpotifyPlayer, err error) {
-	cntrl, err := spotifycontrol.NewSpotifyControl("", 1*time.Second)
+func NewSpotifyPlayer(host string) (p *SpotifyPlayer, err error) {
+	cntrl, err := spotifycontrol.NewSpotifyControl(host, 1*time.Second)
 	if err != nil {
 		return
 	}
 
 	p = &SpotifyPlayer{
+		host:    host,
 		control: cntrl,
 	}
 	return
@@ -129,7 +131,7 @@ func (p *SpotifyPlayer) restartAndRetry(spErr error, retryFunc func()) (err erro
 	fmt.Printf("[SpotifyPlayer] Error encountered, restarting control to try again. (%v)", spErr)
 
 	var control *spotifycontrol.SpotifyControl
-	control, err = spotifycontrol.NewSpotifyControl("", 1*time.Second)
+	control, err = spotifycontrol.NewSpotifyControl(p.host, 1*time.Second)
 	if err != nil {
 		fmt.Printf("[SpotifyPlayer] Restart unsuccessful: %v", err)
 		err = spErr

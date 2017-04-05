@@ -16,7 +16,7 @@ func TestPlay(t *testing.T) {
 	p := NewPlayer()
 	p.AddSongPlayer(s)
 
-	items, err := p.AddItems("spotify:album:3fa5cl6Nplripk1h9z1SFv")
+	items, err := p.AddSongs("spotify:album:3fa5cl6Nplripk1h9z1SFv")
 	if len(items) != 8 || err != nil {
 		t.Log(items)
 		t.Log(err)

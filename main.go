@@ -19,20 +19,24 @@ func main() {
 	queueStorage := config.NewQueueStorage(conf.QueuePath)
 	playr := player.NewPlayer()
 
-	ytPlayer, err := songplayer.NewYoutubePlayer()
-	if err != nil {
-		fmt.Printf("Error creating Youtube player: %v\n", err)
-	} else {
-		playr.AddSongPlayer(ytPlayer)
-		fmt.Println("Added Youtube player")
+	if conf.YoutubePlayer.Enabled {
+		ytPlayer, err := songplayer.NewYoutubePlayer(conf.YoutubePlayer.MpvBinPath, conf.YoutubePlayer.MpvInputPath)
+		if err != nil {
+			fmt.Printf("Error creating Youtube player: %v\n", err)
+		} else {
+			playr.AddSongPlayer(ytPlayer)
+			fmt.Println("Added Youtube player")
+		}
 	}
 
-	spPlayer, err := songplayer.NewSpotifyPlayer()
-	if err != nil {
-		fmt.Printf("Error creating Spotify player: %v\n", err)
-	} else {
-		playr.AddSongPlayer(spPlayer)
-		fmt.Println("Added Spotify player")
+	if conf.SpotifyPlayer.Enabled {
+		spPlayer, err := songplayer.NewSpotifyPlayer(conf.SpotifyPlayer.Host)
+		if err != nil {
+			fmt.Printf("Error creating Spotify player: %v\n", err)
+		} else {
+			playr.AddSongPlayer(spPlayer)
+			fmt.Println("Added Spotify player")
+		}
 	}
 
 	urls, err := queueStorage.ReadQueue()
