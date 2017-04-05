@@ -37,8 +37,9 @@ func (p *YoutubePlayer) Init() (err error) {
 	p.mpvMutex.Lock()
 	defer p.mpvMutex.Unlock()
 
-	syscall.Mknod(".mpv-input", syscall.S_IFIFO|0666, 0)
-	file, err := os.OpenFile(".mpv-input", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0660)
+	fmt.Printf("[YoutubePlayer] Creating MPV control node on %s\n", p.mpvInputPath)
+	syscall.Mknod(p.mpvInputPath, syscall.S_IFIFO|0666, 0)
+	file, err := os.OpenFile(p.mpvInputPath, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0660)
 	if err != nil {
 		err = fmt.Errorf("[YoutubePlayer] Error opening control file: %v", err)
 		return
@@ -99,18 +100,22 @@ func (p *YoutubePlayer) Play(url string) (err error) {
 		return
 	}
 
-	command := exec.Command("mpv", "--no-video", "--input-file=.mpv-input", url)
+	fmt.Printf("[YoutubePlayer] Starting MPV %s with control %s and url %s\n", p.mpvBinPath, p.mpvInputPath, url)
+	command := exec.Command(p.mpvBinPath, "--no-video", "--input-file="+p.mpvInputPath, url)
 	p.mpvProcess = command
 
-	go func() {
-		err = command.Start()
-		p.mpvIsRunning = err == nil
-		p.mpvMutex.Unlock()
-		if err != nil {
-			return
-		}
+	err = command.Start()
+	p.mpvIsRunning = err == nil
+	p.mpvMutex.Unlock()
+	if err != nil {
+		return
+	}
 
-		err = command.Wait()
+	go func() {
+		err := command.Wait()
+		if err != nil {
+			fmt.Printf("[YoutubePlayer] Error while waiting for mpv: %v\n", err)
+		}
 		p.mpvIsRunning = false
 	}()
 	return
@@ -120,6 +125,7 @@ func (p *YoutubePlayer) Pause(pauseState bool) (err error) {
 	p.mpvMutex.Lock()
 	defer p.mpvMutex.Unlock()
 
+	fmt.Printf("[YoutubePlayer] Sending MPV control %s pause command\n", p.mpvInputPath)
 	_, err = p.controlFile.WriteString("cycle pause\n")
 	if err != nil {
 		return
