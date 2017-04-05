@@ -28,7 +28,7 @@ func TestSpotifyURLParsing(t *testing.T) {
 		t.Fail()
 	}
 
-	tp, id, uid, err = p.getTypeAndIDFromURL("spotify:user:111208973:player:4XGuyS11n99eMqe1OvN8jq")
+	tp, id, uid, err = p.getTypeAndIDFromURL("spotify:user:111208973:playlist:4XGuyS11n99eMqe1OvN8jq")
 	if tp != TYPE_PLAYLIST || id != "4XGuyS11n99eMqe1OvN8jq" || err != nil || uid != "111208973" {
 		t.Log(string(tp), id, uid, err)
 		t.Fail()
