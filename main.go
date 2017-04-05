@@ -16,6 +16,7 @@ func main() {
 		log.Fatalf("Error reading config: %v", err)
 	}
 
+	queueStorage := config.NewQueueStorage(conf.QueuePath)
 	playr := player.NewPlayer()
 
 	ytPlayer, err := songplayer.NewYoutubePlayer()
@@ -33,6 +34,16 @@ func main() {
 		playr.AddSongPlayer(spPlayer)
 		fmt.Println("Added Spotify player")
 	}
+
+	urls, err := queueStorage.ReadQueue()
+	if err != nil {
+		fmt.Printf("Error reading queue file: %v\n", err)
+	} else {
+		for _, url := range urls {
+			playr.AddSongs(url)
+		}
+	}
+	playr.AddListener("queue_updated", queueStorage.OnListUpdate)
 
 	// Initialize the API
 	apiObject := api.NewAPI(&conf.API, playr)
