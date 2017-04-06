@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"fmt"
 	"github.com/thoj/go-ircevent"
 	"gitlab.transip.us/swiltink/go-MusicBot/config"
 	"gitlab.transip.us/swiltink/go-MusicBot/util"
@@ -163,22 +162,12 @@ var AddCommand = Command{
 		}
 		url := parameters[0]
 
-		items, err := bot.player.AddSongs(url)
+		songs, err := bot.player.AddSongs(url)
 		if err != nil {
 			event.Connection.Privmsg(target, inverseText(err.Error()))
-		} else {
-			var songs []string
-			i := 8
-			for _, item := range items {
-				songs = append(songs, formatSong(item))
-				i--
-				if i < 0 {
-					songs = append(songs, italicText(fmt.Sprintf("and %d more..", len(items)-8)))
-					break
-				}
-			}
-			event.Connection.Privmsgf(target, "%s added song(s): %s", event.Nick, strings.Join(songs, " | "))
+			return
 		}
+		announceAddedSongs(bot, event, songs)
 		bot.player.Play()
 	},
 }
@@ -193,22 +182,12 @@ var OpenCommand = Command{
 		}
 		url := parameters[0]
 
-		items, err := bot.player.InsertSongs(url, 0)
+		songs, err := bot.player.InsertSongs(url, 0)
 		if err != nil {
 			event.Connection.Privmsg(target, inverseText(err.Error()))
-		} else {
-			var songs []string
-			i := 8
-			for _, item := range items {
-				songs = append(songs, formatSong(item))
-				i--
-				if i < 0 {
-					songs = append(songs, italicText(fmt.Sprintf("and %d more..", len(items)-8)))
-					break
-				}
-			}
-			event.Connection.Privmsgf(target, "%s added song(s): %s", event.Nick, strings.Join(songs, " | "))
+			return
 		}
+		announceAddedSongs(bot, event, songs)
 		bot.player.Next()
 	},
 }
@@ -218,7 +197,7 @@ var ShuffleCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		target, _ := getTarget(event)
 		bot.player.ShuffleQueue()
-		event.Connection.Privmsg(target, italicText("The player has been shuffled"))
+		event.Connection.Privmsg(target, italicText("The playlist has been shuffled"))
 	},
 }
 
@@ -248,7 +227,7 @@ var FlushCommand = Command{
 		target, _ := getTarget(event)
 
 		bot.player.EmptyQueue()
-		event.Connection.Privmsg(target, italicText("The player is now empty"))
+		event.Connection.Privmsg(target, italicText("The playlist is now empty"))
 	},
 }
 
