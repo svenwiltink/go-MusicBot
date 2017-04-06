@@ -34,7 +34,7 @@ func NewSpotifyPlayer() (p *SpotifyPlayer, err error) {
 }
 
 func (p *SpotifyPlayer) Name() (name string) {
-	return "SpotifyPlayer"
+	return "Spotify"
 }
 
 func (p *SpotifyPlayer) CanPlay(url string) (canPlay bool) {
@@ -80,18 +80,63 @@ func (p *SpotifyPlayer) GetItems(url string) (items []ListItem, err error) {
 	return
 }
 
+func (p *SpotifyPlayer) SearchItems(searchStr string, limit int) (items []ListItem, err error) {
+	results, err := spotify.DefaultClient.SearchOpt(searchStr, spotify.SearchTypeTrack, &spotify.Options{
+		Limit: &limit,
+	})
+	if err != nil {
+		err = fmt.Errorf("[SpotifyPlayer] Could not search for tracks: %v", err)
+		return
+	}
+	for _, track := range results.Tracks.Tracks {
+		name := track.Name
+		if len(track.Artists) > 0 {
+			name = fmt.Sprintf("%s - %s", track.Name, track.Artists[0].Name)
+		}
+		items = append(items, *NewListItem(name, track.TimeDuration(), string(track.URI)))
+	}
+	return
+}
+
 func (p *SpotifyPlayer) Play(url string) (err error) {
 	_, err = p.control.Play(url)
+	p.restartAndRetry(err, func() {
+		_, err = p.control.Play(url)
+	})
 	return
 }
 
 func (p *SpotifyPlayer) Pause(pauseState bool) (err error) {
 	_, err = p.control.SetPauseState(pauseState)
+	p.restartAndRetry(err, func() {
+		_, err = p.control.SetPauseState(pauseState)
+	})
 	return
 }
 
 func (p *SpotifyPlayer) Stop() (err error) {
 	_, err = p.control.SetPauseState(true)
+	p.restartAndRetry(err, func() {
+		_, err = p.control.SetPauseState(true)
+	})
+	return
+}
+
+func (p *SpotifyPlayer) restartAndRetry(spErr error, retryFunc func()) (err error) {
+	if spErr == nil {
+		return
+	}
+	fmt.Printf("[SpotifyPlayer] Error encountered, restarting control to try again. (%v)", spErr)
+
+	var control *spotifycontrol.SpotifyControl
+	control, err = spotifycontrol.NewSpotifyControl("", 1*time.Second)
+	if err != nil {
+		fmt.Printf("[SpotifyPlayer] Restart unsuccessful: %v", err)
+		err = spErr
+		return
+	}
+	p.control = control
+	retryFunc()
 	return
 }
 
