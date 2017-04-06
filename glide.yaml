@@ -5,5 +5,10 @@ import:
 - package: github.com/gorilla/mux
   version: ~1.3.0
 - package: github.com/channelmeter/iso8601duration
-- package: google.golang.org/api/googleapi/transport
-- package: google.golang.org/api/youtube/v3
+- package: google.golang.org/api
+  subpackages:
+  - googleapi/transport
+  - youtube/v3
+- package: github.com/vansante/go-spotify-control
+- package: github.com/zmb3/spotify
+- package: golang.org/x/oauth2
