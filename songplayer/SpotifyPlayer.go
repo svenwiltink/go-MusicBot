@@ -155,10 +155,10 @@ func (p *SpotifyPlayer) getTypeAndIDFromURL(url string) (tp Type, id, userID str
 			// Handle: https://open.spotify.com/album/4vSfHrq6XxVyMcJ6PguFR2
 			tp = TYPE_ALBUM
 			idPos = strings.LastIndex(lowerURL, "/album/") + len("/album/")
-		case strings.Contains(lowerURL, "/player/"):
+		case strings.Contains(lowerURL, "/playlist/"):
 			// Handle: https://open.spotify.com/user/tana.cross/playlist/2xLFotd9GVVQ6Jde7B3i3B
 			tp = TYPE_PLAYLIST
-			idPos = strings.LastIndex(lowerURL, "/player/")
+			idPos = strings.LastIndex(lowerURL, "/playlist/")
 			uidPos := strings.LastIndex(lowerURL, "/user/") + len("/user/")
 			if uidPos >= idPos {
 				err = errors.New("Invalid spotify URL format")
@@ -166,7 +166,7 @@ func (p *SpotifyPlayer) getTypeAndIDFromURL(url string) (tp Type, id, userID str
 			}
 			userID = url[uidPos:idPos]
 
-			idPos += len("/player/")
+			idPos += len("/playlist/")
 		default:
 			err = fmt.Errorf("Unknown spotify URL format: %s", url)
 			return
