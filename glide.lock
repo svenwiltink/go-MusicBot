@@ -1,19 +1,31 @@
-hash: d980646463cbc2ffaf72bce4c6f3ec68cfa04a06b4790c92ccaa76a271af72fb
-updated: 2017-03-11T17:56:27.852996654+01:00
+hash: 6c2f34af74413ec9262088c4cde9a1dcf4e31e49b58cd78796576801830f76aa
+updated: 2017-03-29T12:34:05.805787734+02:00
 imports:
 - name: github.com/channelmeter/iso8601duration
   version: 8da3af7a2a61a4eb5ae9bddec06bf637fa9593da
+- name: github.com/golang/protobuf
+  version: c9c7427a2a70d2eb3bafa0ab2dc163e45f143317
+  subpackages:
+  - proto
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux
   version: 392c28fe23e1c45ddba891b0320b3b5df220beea
 - name: github.com/thoj/go-ircevent
   version: a6b1561a016c2a4aae183c3ef152c25d134c095d
+- name: github.com/vansante/go-spotify-control
+  version: 698a948a0e19d1d7ef3aa0de854c059ec348fda5
+- name: github.com/zmb3/spotify
+  version: d12d726b0e288deb2a8d21212da3f64268612fe5
 - name: golang.org/x/net
   version: a6577fac2d73be281a500b310739095313165611
   subpackages:
   - context
   - context/ctxhttp
+- name: golang.org/x/oauth2
+  version: 7fdf09982454086d5570c7db3e11f360194830ca
+  subpackages:
+  - internal
 - name: google.golang.org/api
   version: 1202890e803f07684581b575fda809bf335a533f
   subpackages:
@@ -22,4 +34,14 @@ imports:
   - googleapi/internal/uritemplates
   - googleapi/transport
   - youtube/v3
+- name: google.golang.org/appengine
+  version: 56d253d1dd14aa01937e12c73a0971bcfd797ff2
+  subpackages:
+  - internal
+  - internal/base
+  - internal/datastore
+  - internal/log
+  - internal/remote_api
+  - internal/urlfetch
+  - urlfetch
 testImports: []
