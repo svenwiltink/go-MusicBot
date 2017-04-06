@@ -5,10 +5,13 @@ import (
 	"gitlab.transip.us/swiltink/go-MusicBot/meta"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"sync"
 	"syscall"
 )
+
+var youtubeURLRegex, _ = regexp.Compile(`^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$`)
 
 type YoutubePlayer struct {
 	mpvBinPath   string
@@ -54,7 +57,7 @@ func (p *YoutubePlayer) Name() (name string) {
 }
 
 func (p *YoutubePlayer) CanPlay(url string) (canPlay bool) {
-	return strings.Contains(strings.ToLower(url), "youtube")
+	return youtubeURLRegex.MatchString(url)
 }
 
 func (p *YoutubePlayer) GetSongs(url string) (songs []Playable, err error) {
