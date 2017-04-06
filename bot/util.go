@@ -132,9 +132,9 @@ func announceAddedSongs(bot *MusicBot, event *irc.Event, songs []songplayer.Play
 			break
 		}
 	}
-	bot.ircConn.Privmsgf(target, "%s added song(s): %s", event.Nick, strings.Join(songTitles, " | "))
+	event.Connection.Privmsgf(target, "%s added song(s): %s", event.Nick, strings.Join(songTitles, " | "))
 	if isPrivate {
 		// Announce it to the main channel as well
-		bot.ircConn.Privmsgf(bot.conf.Channel, "%s added song(s): %s", event.Nick, strings.Join(songTitles, " | "))
+		event.Connection.Privmsgf(bot.conf.Channel, "%s added song(s): %s", event.Nick, strings.Join(songTitles, " | "))
 	}
 }
