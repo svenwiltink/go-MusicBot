@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/thoj/go-ircevent"
 	"os/exec"
+	"strings"
 )
 
 type Command struct {
@@ -86,21 +87,37 @@ var WhitelistCommand = Command{
 var NextCommand = Command{
 	Name: "Next",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		bot.MusicPlayer.Next()
+		channel := event.Arguments[0]
+		item, err := bot.playlist.Next()
+		if err != nil {
+			event.Connection.Privmsg(channel, err.Error())
+		} else {
+			event.Connection.Privmsg(channel, fmt.Sprintf("/me plays: %s", item.GetTitle()))
+		}
 	},
 }
 
 var PlayCommand = Command{
 	Name: "Play",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		bot.MusicPlayer.Pause()
+		channel := event.Arguments[0]
+		item, err := bot.playlist.Play()
+		if err != nil {
+			event.Connection.Privmsg(channel, err.Error())
+		} else {
+			event.Connection.Privmsg(channel, fmt.Sprintf("/me plays: %s", item.GetTitle()))
+		}
 	},
 }
 
 var PauseCommand = Command{
 	Name: "Pause",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		bot.MusicPlayer.Pause()
+		channel := event.Arguments[0]
+		err := bot.playlist.Pause()
+		if err != nil {
+			event.Connection.Privmsg(channel, err.Error())
+		}
 	},
 }
 
@@ -108,14 +125,13 @@ var CurrentCommand = Command{
 	Name: "Current",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
-		song := bot.MusicPlayer.GetCurrentSong()
+		song, remaining := bot.playlist.GetCurrentItem()
 		title := "Not playing"
 		if song != nil {
 			title = song.GetTitle()
 		}
 
-		message := fmt.Sprintf("Current song: %s", title)
-		event.Connection.Privmsg(channel, message)
+		event.Connection.Privmsg(channel, fmt.Sprintf("Current song: %s (%d seconds remaining)", title, int(remaining.Seconds())))
 	},
 }
 
@@ -124,13 +140,29 @@ var OpenCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		if len(parameters) < 1 {
 			channel := event.Arguments[0]
-			event.Connection.Privmsg(channel, "!music open <youtube link>")
+			event.Connection.Privmsg(channel, "!music open <music link>")
 			return
 		}
-
+		channel := event.Arguments[0]
 		url := parameters[0]
 		fmt.Println(url)
-		bot.MusicPlayer.AddSong(url)
+		items, err := bot.playlist.AddItems(url)
+		if err != nil {
+			event.Connection.Privmsg(channel, err.Error())
+		} else {
+			var songs []string
+			i := 8
+			for _, item := range items {
+				songs = append(songs, item.GetTitle())
+				i--
+				if i < 0 {
+					songs = append(songs, fmt.Sprintf("(and %d more)", len(items)-8))
+					break
+				}
+			}
+			event.Connection.Privmsg(channel, fmt.Sprintf("/me added song(s): %s", strings.Join(songs, ", ")))
+		}
+		bot.playlist.Play()
 	},
 }
 
@@ -150,8 +182,8 @@ var ShuffleCommand = Command{
 	Name: "shuffle",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
-		message := fmt.Sprint("Shuffeling queue")
-		bot.MusicPlayer.ShuffleQueue()
+		message := fmt.Sprint("Shuffling queue")
+		bot.playlist.ShuffleList()
 		event.Connection.Privmsg(channel, message)
 	},
 }
@@ -160,8 +192,8 @@ var ListCommand = Command{
 	Name: "list",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
-		for i, item := range bot.MusicPlayer.GetQueueItems() {
-			message := fmt.Sprintf("#%d %s", i, item.GetTitle())
+		for i, item := range bot.playlist.GetItems() {
+			message := fmt.Sprintf("#%d %s", (i + 1), item.GetTitle())
 			event.Connection.Privmsg(channel, message)
 		}
 	},
@@ -172,9 +204,8 @@ var FlushCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		channel := event.Arguments[0]
 
-		message := fmt.Sprint("Flushing queue")
-		bot.MusicPlayer.FlushQueue()
-		event.Connection.Privmsg(channel, message)
+		bot.playlist.EmptyList()
+		event.Connection.Privmsg(channel, fmt.Sprint("Flushing queue"))
 	},
 }
 
