@@ -12,3 +12,15 @@ type Meta struct {
 	Source     string
 	Duration   time.Duration
 }
+
+func (m *Meta) GetTitle() string {
+	return m.Title
+}
+
+func (m *Meta) GetDuration() time.Duration {
+	return m.Duration
+}
+
+func (m *Meta) GetURL() string {
+	return m.Source
+}

@@ -39,6 +39,14 @@ func main() {
 	go apiObject.Start()
 
 	// Initialize the IRC bot
-	botObject := bot.NewMusicBot(&conf.IRC, play)
-	botObject.Start()
+	botObject, err := bot.NewMusicBot(&conf.IRC, play)
+	if err != nil {
+		fmt.Printf("Error creating IRC bot: %v\n", err)
+		return
+	}
+	err = botObject.Start()
+	if err != nil {
+		fmt.Printf("Error starting IRC bot: %v\n", err)
+		return
+	}
 }

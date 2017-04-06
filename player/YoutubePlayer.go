@@ -44,7 +44,7 @@ func (p *YoutubePlayer) Init() (err error) {
 }
 
 func (p *YoutubePlayer) Name() (name string) {
-	return "SpotifyPlayer"
+	return "Youtube"
 }
 
 func (p *YoutubePlayer) CanPlay(url string) (canPlay bool) {
@@ -71,7 +71,20 @@ func (p *YoutubePlayer) GetItems(url string) (items []ListItem, err error) {
 		return
 	}
 
-	items = append(items, *NewListItem(metaData.Title, metaData.Duration, url))
+	items = append(items, *NewListItem(metaData.Title, metaData.Duration, metaData.Source))
+	return
+}
+
+func (p *YoutubePlayer) SearchItems(searchStr string, limit int) (items []ListItem, err error) {
+	metaDatas, err := p.ytService.SearchForMetas(searchStr, limit)
+	if err != nil {
+		err = fmt.Errorf("[YoutubePlayer] Error searching meta data: %v", err)
+		return
+	}
+
+	for _, metaData := range metaDatas {
+		items = append(items, *NewListItem(metaData.Title, metaData.Duration, metaData.Source))
+	}
 	return
 }
 

@@ -3,13 +3,17 @@ package playlist
 import (
 	"errors"
 	"fmt"
+	"github.com/vansante/go-event-emitter"
 	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"math/rand"
+	"strings"
 	"sync"
 	"time"
 )
 
 type MusicPlaylist struct {
+	*eventemitter.Emitter
+
 	currentItem ItemInterface
 	items       []ItemInterface
 	status      Status
@@ -26,9 +30,24 @@ type MusicPlaylist struct {
 
 func NewPlaylist() (playlist *MusicPlaylist) {
 	playlist = &MusicPlaylist{
-		status: STOPPED,
+		Emitter: eventemitter.NewEmitter(),
+		status:  STOPPED,
 	}
 	return
+}
+
+func (p *MusicPlaylist) GetPlayer(name string) (plyr player.MusicPlayerInterface) {
+	for _, plr := range p.players {
+		if strings.ToLower(plr.Name()) == strings.ToLower(name) {
+			plyr = plr
+			return
+		}
+	}
+	return
+}
+
+func (p *MusicPlaylist) GetPlayers() (players []player.MusicPlayerInterface) {
+	return p.players
 }
 
 func (p *MusicPlaylist) AddMusicPlayer(player player.MusicPlayerInterface) {
@@ -66,6 +85,25 @@ func (p *MusicPlaylist) findPlayer(url string) (musicPlayer player.MusicPlayerIn
 }
 
 func (p *MusicPlaylist) AddItems(url string) (addedItems []ItemInterface, err error) {
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
+	return p.insertItems(url, len(p.items))
+}
+
+func (p *MusicPlaylist) InsertItems(url string, position int) (addedItems []ItemInterface, err error) {
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
+	if position < 0 || position > len(p.items) {
+		err = errors.New("invalid position to insert items")
+		return
+	}
+
+	return p.insertItems(url, position)
+}
+
+func (p *MusicPlaylist) insertItems(url string, position int) (addedItems []ItemInterface, err error) {
 	musicPlayer, err := p.findPlayer(url)
 	if err != nil {
 		return
@@ -81,10 +119,15 @@ func (p *MusicPlaylist) AddItems(url string) (addedItems []ItemInterface, err er
 		tempItem := plItem
 		addedItems = append(addedItems, &tempItem)
 	}
-	p.controlMutex.Lock()
-	defer p.controlMutex.Unlock()
 
-	p.items = append(p.items, addedItems...)
+	for i, addItem := range addedItems {
+		p.items = append(p.items, nil)
+		copy(p.items[position+i+1:], p.items[position+i:])
+		p.items[position+i] = addItem
+	}
+
+	p.EmitEvent("items_added", addedItems)
+	p.EmitEvent("list_updated", p.items)
 	return
 }
 
@@ -96,12 +139,15 @@ func (p *MusicPlaylist) ShuffleList() {
 		j := rand.Intn(i + 1)
 		p.items[i], p.items[j] = p.items[j], p.items[i]
 	}
+	p.EmitEvent("list_updated", p.items)
 }
+
 func (p *MusicPlaylist) EmptyList() {
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
 
 	p.items = make([]ItemInterface, 0)
+	p.EmitEvent("list_updated", p.items)
 }
 
 func (p *MusicPlaylist) GetStatus() (status Status) {
@@ -132,6 +178,7 @@ func (p *MusicPlaylist) playWait() {
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
 
+	p.EmitEvent("play_done", p.currentItem)
 	p.currentItem = nil
 
 	if len(p.items) == 0 {
@@ -173,6 +220,7 @@ func (p *MusicPlaylist) next() (item ItemInterface, err error) {
 	p.endTime = time.Now().Add(item.GetDuration())
 	// Start waiting for the song to be done
 	go p.playWait()
+	p.EmitEvent("play_start", p.currentItem)
 	return
 }
 
@@ -193,12 +241,14 @@ func (p *MusicPlaylist) stop() (err error) {
 		err = fmt.Errorf("[%s] Error stopping: %v", p.currentPlayer.Name(), err)
 		return
 	}
+	p.status = STOPPED
 	p.currentItem = nil
 	p.currentPlayer = nil
 	if p.playTimer != nil {
 		// Kill the current playWait()
 		p.playTimer.Stop()
 	}
+	p.EmitEvent("stop")
 	return
 }
 
@@ -225,6 +275,8 @@ func (p *MusicPlaylist) pause() (err error) {
 		p.endTime = time.Now().Add(p.remainingDuration)
 		// Restart the play wait goroutine with the new time
 		go p.playWait()
+
+		p.EmitEvent("unpause", p.currentItem, p.remainingDuration)
 	} else {
 		p.status = PAUSED
 		p.remainingDuration = p.endTime.Sub(time.Now())
@@ -232,6 +284,7 @@ func (p *MusicPlaylist) pause() (err error) {
 			// Kill the current playWait()
 			p.playTimer.Stop()
 		}
+		p.EmitEvent("pause", p.currentItem, p.remainingDuration)
 	}
 	return
 }
