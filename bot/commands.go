@@ -3,6 +3,7 @@ package bot
 import (
 	"github.com/thoj/go-ircevent"
 	"gitlab.transip.us/swiltink/go-MusicBot/config"
+	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"gitlab.transip.us/swiltink/go-MusicBot/util"
 	"os/exec"
 	"sort"
@@ -102,7 +103,9 @@ var NextCommand = Command{
 		_, err := bot.player.Next()
 		if err != nil {
 			event.Connection.Privmsg(target, inverseText(err.Error()))
+			return
 		}
+		bot.announceMessage(true, event, boldText(event.Nick)+" skipped the song")
 	},
 }
 
@@ -113,7 +116,9 @@ var PlayCommand = Command{
 		_, err := bot.player.Play()
 		if err != nil {
 			event.Connection.Privmsg(target, inverseText(err.Error()))
+			return
 		}
+		bot.announceMessage(true, event, boldText(event.Nick)+" started the player")
 	},
 }
 
@@ -124,6 +129,14 @@ var PauseCommand = Command{
 		err := bot.player.Pause()
 		if err != nil {
 			event.Connection.Privmsg(target, inverseText(err.Error()))
+			return
+		}
+		state := bot.player.GetStatus()
+		switch state {
+		case player.PAUSED:
+			bot.announceMessage(false, event, boldText(event.Nick)+" paused the player")
+		case player.PLAYING:
+			bot.announceMessage(false, event, boldText(event.Nick)+" unpaused the player")
 		}
 	},
 }
@@ -136,6 +149,7 @@ var StopCommand = Command{
 		if err != nil {
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 		}
+		bot.announceMessage(true, event, boldText(event.Nick)+" stopped the player")
 	},
 }
 
@@ -167,7 +181,7 @@ var AddCommand = Command{
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
 		}
-		announceAddedSongs(bot, event, songs)
+		bot.announceAddedSongs(event, songs)
 		bot.player.Play()
 	},
 }
@@ -187,7 +201,7 @@ var OpenCommand = Command{
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
 		}
-		announceAddedSongs(bot, event, songs)
+		bot.announceAddedSongs(event, songs)
 		bot.player.Next()
 	},
 }
@@ -195,9 +209,8 @@ var OpenCommand = Command{
 var ShuffleCommand = Command{
 	Name: "shuffle",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _ := getTarget(event)
 		bot.player.ShuffleQueue()
-		event.Connection.Privmsg(target, italicText("The playlist has been shuffled"))
+		bot.announceMessage(true, event, boldText(event.Nick)+" shuffled the playlist")
 	},
 }
 
@@ -224,10 +237,8 @@ var ListCommand = Command{
 var FlushCommand = Command{
 	Name: "flush",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _ := getTarget(event)
-
 		bot.player.EmptyQueue()
-		event.Connection.Privmsg(target, italicText("The playlist is now empty"))
+		bot.announceMessage(true, event, boldText(event.Nick)+" emptied the playlist")
 	},
 }
 
@@ -277,7 +288,7 @@ var SearchAddCommand = Command{
 		}
 		for plyr, res := range results {
 			for _, item := range res {
-				event.Connection.Privmsgf(target, "%s added song: %s (%s)", event.Nick, formatSong(item), italicText(plyr))
+				bot.announceMessagef(false, event, "%s added song: %s (%s)", boldText(event.Nick), formatSong(item), italicText(plyr))
 				_, err := bot.player.AddSongs(item.GetURL())
 				if err != nil {
 					event.Connection.Privmsg(target, inverseText(err.Error()))
