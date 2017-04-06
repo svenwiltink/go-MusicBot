@@ -16,7 +16,7 @@ func TestSpotifyURLParsing(t *testing.T) {
 		t.Fail()
 	}
 
-	tp, id, uid, err = p.getTypeAndIDFromURL("https://open.spotify.com/user/tana.cross/player/2xLFotd9GVVQ6Jde7B3i3B")
+	tp, id, uid, err = p.getTypeAndIDFromURL("https://open.spotify.com/user/tana.cross/playlist/2xLFotd9GVVQ6Jde7B3i3B")
 	if tp != TYPE_PLAYLIST || id != "2xLFotd9GVVQ6Jde7B3i3B" || err != nil || uid != "tana.cross" {
 		t.Log(string(tp), id, uid, err)
 		t.Fail()

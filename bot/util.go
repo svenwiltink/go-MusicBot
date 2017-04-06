@@ -118,3 +118,23 @@ func getTarget(event *irc.Event) (target string, isPrivate bool) {
 	}
 	return
 }
+
+func announceAddedSongs(bot *MusicBot, event *irc.Event, songs []songplayer.Playable) {
+	target, isPrivate := getTarget(event)
+
+	var songTitles []string
+	i := 6
+	for _, song := range songs {
+		songTitles = append(songTitles, formatSong(song))
+		i--
+		if i < 0 {
+			songTitles = append(songTitles, italicText(fmt.Sprintf("and %d more..", len(songs)-6)))
+			break
+		}
+	}
+	bot.ircConn.Privmsgf(target, "%s added song(s): %s", event.Nick, strings.Join(songTitles, " | "))
+	if isPrivate {
+		// Announce it to the main channel as well
+		bot.ircConn.Privmsgf(bot.conf.Channel, "%s added song(s): %s", event.Nick, strings.Join(songTitles, " | "))
+	}
+}
