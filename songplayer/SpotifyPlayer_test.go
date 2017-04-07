@@ -1,4 +1,4 @@
-package player
+package songplayer
 
 import "testing"
 
@@ -37,21 +37,21 @@ func TestSpotifyURLParsing(t *testing.T) {
 
 func TestSpotifySearching(t *testing.T) {
 	p := &SpotifyPlayer{}
-	items, err := p.SearchItems("green day boulevard", 3)
+	items, err := p.SearchSongs("green day boulevard", 3)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
 	}
 	t.Log("Findings: ", items)
 
-	items, err = p.SearchItems("adele chasing pavement", 3)
+	items, err = p.SearchSongs("adele chasing pavement", 3)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
 	}
 	t.Log("Findings: ", items)
 
-	items, err = p.SearchItems("hallelujah", 3)
+	items, err = p.SearchSongs("hallelujah", 3)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
