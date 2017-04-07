@@ -1,22 +1,22 @@
-package playlist
+package player
 
 import (
-	"gitlab.transip.us/swiltink/go-MusicBot/player"
+	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
 	"testing"
 	"time"
 )
 
 func TestPlay(t *testing.T) {
-	s, err := player.NewSpotifyPlayer()
+	s, err := songplayer.NewSpotifyPlayer()
 	if err != nil {
 		t.Log(err)
 		t.Fail()
 	}
 
-	p := NewPlaylist()
-	p.AddMusicPlayer(s)
+	p := NewPlayer()
+	p.AddSongPlayer(s)
 
-	items, err := p.AddItems("spotify:album:3fa5cl6Nplripk1h9z1SFv")
+	items, err := p.AddSongs("spotify:album:3fa5cl6Nplripk1h9z1SFv")
 	if len(items) != 8 || err != nil {
 		t.Log(items)
 		t.Log(err)

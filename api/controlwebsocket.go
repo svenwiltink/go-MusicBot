@@ -5,7 +5,8 @@ import (
 	"errors"
 	"github.com/gorilla/websocket"
 	"github.com/vansante/go-event-emitter"
-	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
+	"gitlab.transip.us/swiltink/go-MusicBot/player"
+	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
 	"io/ioutil"
 	"sync"
 	"time"
@@ -22,22 +23,22 @@ type ControlWebsocket struct {
 	ws        *websocket.Conn
 	readOnly  bool
 	hasClosed bool
-	playlist  playlist.ListInterface
+	player    player.MusicPlayer
 	capturer  *eventemitter.Capturer
 	writeLock sync.Mutex
 }
 
-func NewControlWebsocket(ws *websocket.Conn, readOnly bool, playlist playlist.ListInterface) (cws *ControlWebsocket) {
+func NewControlWebsocket(ws *websocket.Conn, readOnly bool, player player.MusicPlayer) (cws *ControlWebsocket) {
 	cws = &ControlWebsocket{
 		ws:       ws,
 		readOnly: readOnly,
-		playlist: playlist,
+		player:   player,
 	}
 	return
 }
 
 func (cws *ControlWebsocket) Start() {
-	cws.playlist.AddCapturer(cws.onEvent)
+	cws.player.AddCapturer(cws.onEvent)
 
 	go cws.socketWriter()
 	cws.socketReader()
@@ -45,14 +46,14 @@ func (cws *ControlWebsocket) Start() {
 
 func (cws *ControlWebsocket) onEvent(event string, args ...interface{}) {
 	for i := range args {
-		itms, ok := args[i].([]playlist.ItemInterface)
+		songs, ok := args[i].([]songplayer.Playable)
 		if ok {
-			args[i] = getAPIItems(itms)
+			args[i] = getAPISongs(songs)
 			continue
 		}
-		itm, ok := args[i].(playlist.ItemInterface)
+		song, ok := args[i].(songplayer.Playable)
 		if ok {
-			args[i] = getAPIItem(itm, itm.GetDuration())
+			args[i] = getAPISong(song, song.GetDuration())
 			continue
 		}
 		dur, ok := args[i].(time.Duration)
@@ -130,40 +131,48 @@ func (cws *ControlWebsocket) socketReader() {
 
 func (cws *ControlWebsocket) executeCommand(cmd *Command) {
 	switch cmd.Command {
-	case "add-items":
+	case "add":
 		if len(cmd.Arguments) < 1 {
 			err := errors.New("Missing URL argument")
 			cws.write(getCommandResponse(cmd, err))
 			return
 		}
-		_, err := cws.playlist.AddItems(cmd.Arguments[0])
+		_, err := cws.player.AddSongs(cmd.Arguments[0])
+		cws.write(getCommandResponse(cmd, err))
+	case "open":
+		if len(cmd.Arguments) < 1 {
+			err := errors.New("Missing URL argument")
+			cws.write(getCommandResponse(cmd, err))
+			return
+		}
+		_, err := cws.player.InsertSongs(cmd.Arguments[0], 0)
 		cws.write(getCommandResponse(cmd, err))
 	case "play":
-		_, err := cws.playlist.Play()
+		_, err := cws.player.Play()
 		cws.write(getCommandResponse(cmd, err))
 	case "pause":
-		err := cws.playlist.Pause()
+		err := cws.player.Pause()
 		cws.write(getCommandResponse(cmd, err))
 	case "status":
-		itm, remaining := cws.playlist.GetCurrentItem()
+		song, remaining := cws.player.GetCurrentSong()
 		resp := getCommandResponse(cmd, nil)
 		resp.Status = &Status{
-			Status:  cws.playlist.GetStatus(),
-			Current: getAPIItem(itm, remaining),
-			List:    getAPIItems(cws.playlist.GetItems()),
+			Status:  cws.player.GetStatus(),
+			Current: getAPISong(song, remaining),
+			List:    getAPISongs(cws.player.GetQueuedSongs()),
 		}
 		cws.write(resp)
 	case "next":
-		_, err := cws.playlist.Next()
+		_, err := cws.player.Next()
 		cws.write(getCommandResponse(cmd, err))
 	case "stop":
-		err := cws.playlist.Stop()
+		err := cws.player.Stop()
 		cws.write(getCommandResponse(cmd, err))
 	case "empty-list":
-		cws.playlist.EmptyList()
+		cws.player.EmptyQueue()
 		cws.write(getCommandResponse(cmd, nil))
 	case "shuffle-list":
-		cws.playlist.ShuffleList()
+		cws.player.ShuffleQueue()
 		cws.write(getCommandResponse(cmd, nil))
 	}
 }
@@ -182,7 +191,7 @@ func (cws *ControlWebsocket) closeConnection() {
 	cws.ws.Close()
 
 	// Remove our event capturer
-	cws.playlist.RemoveCapturer(cws.capturer)
+	cws.player.RemoveCapturer(cws.capturer)
 }
 
 func (cws *ControlWebsocket) write(data interface{}) {

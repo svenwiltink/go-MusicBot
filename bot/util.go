@@ -3,7 +3,7 @@ package bot
 import (
 	"fmt"
 	"gitlab.transip.us/swiltink/go-MusicBot/player"
-	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
+	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
 	"gitlab.transip.us/swiltink/go-MusicBot/util"
 	"strings"
 )
@@ -75,34 +75,33 @@ func colourText(foreground, backgroundColor Color, s string) (cs string) {
 	return
 }
 
-func formatSong(song playlist.ItemInterface) (s string) {
+func formatSong(song songplayer.Playable) (s string) {
 	s = fmt.Sprintf("%s %s%s%s", song.GetTitle(), getColourCode(COLOUR_TEAL, COLOUR_NONE), util.FormatSongLength(song.GetDuration()), getColourCode(COLOUR_DEFAULT, COLOUR_NONE))
 	return
 }
 
-func searchSongs(plylst playlist.ListInterface, parameters []string) (results map[string][]playlist.ItemInterface, err error) {
-	results = make(map[string][]playlist.ItemInterface)
+func searchSongs(player player.MusicPlayer, parameters []string) (results map[string][]songplayer.Playable, err error) {
+	results = make(map[string][]songplayer.Playable)
 
-	searchFunc := func(p player.MusicPlayerInterface, searchStr string) {
-		var items []player.ListItem
-		items, err = p.SearchItems(searchStr, 3)
+	searchFunc := func(songPlayer songplayer.SongPlayer, searchStr string) {
+		var items []songplayer.Playable
+		items, err = songPlayer.SearchSongs(searchStr, 3)
 		if err != nil {
 			return
 		}
 		for _, item := range items {
-			itm := item
-			results[p.Name()] = append(results[p.Name()], &itm)
+			results[songPlayer.Name()] = append(results[songPlayer.Name()], item)
 		}
 	}
 
-	plyr := plylst.GetPlayer(parameters[0])
+	plyr := player.GetSongPlayer(parameters[0])
 	if plyr != nil {
 		searchFunc(plyr, strings.Join(parameters[1:], " "))
 		return
 	}
 
-	for _, plyr := range plylst.GetPlayers() {
-		searchFunc(plyr, strings.Join(parameters, " "))
+	for _, songPlayer := range player.GetSongPlayers() {
+		searchFunc(songPlayer, strings.Join(parameters, " "))
 	}
 	return
 }

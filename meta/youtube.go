@@ -104,7 +104,7 @@ func (yt *YouTube) GetMetasForPlaylistURL(source string) (items []Meta, err erro
 		return
 	}
 
-	call := yt.service.PlaylistItems.List("snippet,contentDetails").PlaylistId(identifier)
+	call := yt.service.PlaylistItems.List("snippet,contentDetails").MaxResults(50).PlaylistId(identifier)
 	response, err := call.Do()
 	if err != nil {
 		err = fmt.Errorf("[YoutubeMeta] Request failed: %v", err)
@@ -112,11 +112,12 @@ func (yt *YouTube) GetMetasForPlaylistURL(source string) (items []Meta, err erro
 	}
 
 	for _, item := range response.Items {
-		if item.Kind == "youtube#playlistItem" {
-			item, err := yt.GetMetaForIdentifier(item.ContentDetails.VideoId)
-			if err == nil {
-				items = append(items, *item)
-			}
+		if item.Kind != "youtube#playlistItem" {
+			continue
+		}
+		item, err := yt.GetMetaForIdentifier(item.ContentDetails.VideoId)
+		if err == nil {
+			items = append(items, *item)
 		}
 	}
 	return
