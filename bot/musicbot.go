@@ -127,6 +127,19 @@ func (m *MusicBot) Start() (err error) {
 	return
 }
 
+func (m *MusicBot) getTarget(event *irc.Event) (target string, isPrivate, isMain bool) {
+	if len(event.Arguments) == 0 {
+		return
+	}
+	target = event.Arguments[0]
+	if !strings.HasPrefix(target, "#") {
+		target = event.Nick
+		isPrivate = true
+	}
+	isMain = target == m.conf.Channel
+	return
+}
+
 func (m *MusicBot) announceAddedSongs(event *irc.Event, songs []songplayer.Playable) {
 	var songTitles []string
 	i := 6
@@ -141,23 +154,23 @@ func (m *MusicBot) announceAddedSongs(event *irc.Event, songs []songplayer.Playa
 	m.announceMessagef(false, event, "%s added song(s): %s", boldText(event.Nick), strings.Join(songTitles, " | "))
 }
 
-func (m *MusicBot) announceMessage(privateOnly bool, event *irc.Event, message string) {
-	target, isPrivate := getTarget(event)
+func (m *MusicBot) announceMessage(nonMainOnly bool, event *irc.Event, message string) {
+	target, isPrivate, isMain := m.getTarget(event)
 	if isPrivate {
 		event.Connection.Privmsg(target, message)
 	}
-	if isPrivate || (!isPrivate && !privateOnly) {
+	if isPrivate || (!isMain && !nonMainOnly) {
 		// Announce it to the main channel as well
 		event.Connection.Privmsg(m.conf.Channel, message)
 	}
 }
 
-func (m *MusicBot) announceMessagef(privateOnly bool, event *irc.Event, format string, a ...interface{}) {
-	target, isPrivate := getTarget(event)
+func (m *MusicBot) announceMessagef(nonMainOnly bool, event *irc.Event, format string, a ...interface{}) {
+	target, isPrivate, isMain := m.getTarget(event)
 	if isPrivate {
 		event.Connection.Privmsgf(target, format, a...)
 	}
-	if isPrivate || (!isPrivate && !privateOnly) {
+	if isPrivate || (!isMain && !nonMainOnly) {
 		// Announce it to the main channel as well
 		event.Connection.Privmsgf(m.conf.Channel, format, a...)
 	}
