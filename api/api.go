@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"gitlab.transip.us/swiltink/go-MusicBot/config"
-	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
+	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"log"
 	"net/http"
 )
@@ -15,7 +15,7 @@ import (
 type API struct {
 	config     *config.API
 	router     *mux.Router
-	playlist   playlist.ListInterface
+	player     player.MusicPlayer
 	routes     []Route
 	wsUpgrader *websocket.Upgrader
 }
@@ -27,7 +27,7 @@ const (
 	CONTEXT_USERNAME      Context = "USERNAME"
 )
 
-func NewAPI(conf *config.API, playl playlist.ListInterface) *API {
+func NewAPI(conf *config.API, player player.MusicPlayer) *API {
 	return &API{
 		config: conf,
 		router: mux.NewRouter(),
@@ -39,7 +39,7 @@ func NewAPI(conf *config.API, playl playlist.ListInterface) *API {
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
 		},
-		playlist: playl,
+		player: player,
 	}
 }
 
@@ -131,12 +131,12 @@ func (api *API) registerRoute(route Route) bool {
 }
 
 func (api *API) StatusHandler(w http.ResponseWriter, r *http.Request) {
-	itm, remaining := api.playlist.GetCurrentItem()
+	song, remaining := api.player.GetCurrentSong()
 
 	s := Status{
-		Status:  api.playlist.GetStatus(),
-		Current: getAPIItem(itm, remaining),
-		List:    getAPIItems(api.playlist.GetItems()),
+		Status:  api.player.GetStatus(),
+		Current: getAPISong(song, remaining),
+		List:    getAPISongs(api.player.GetQueuedSongs()),
 	}
 	err := json.NewEncoder(w).Encode(s)
 	if err != nil {
@@ -147,8 +147,8 @@ func (api *API) StatusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
-	items := api.playlist.GetItems()
-	err := json.NewEncoder(w).Encode(getAPIItems(items))
+	songs := api.player.GetQueuedSongs()
+	err := json.NewEncoder(w).Encode(getAPISongs(songs))
 	if err != nil {
 		fmt.Printf("API list encode error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -157,8 +157,8 @@ func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) CurrentHandler(w http.ResponseWriter, r *http.Request) {
-	itm, remaining := api.playlist.GetCurrentItem()
-	err := json.NewEncoder(w).Encode(getAPIItem(itm, remaining))
+	song, remaining := api.player.GetCurrentSong()
+	err := json.NewEncoder(w).Encode(getAPISong(song, remaining))
 	if err != nil {
 		fmt.Printf("API current encode error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -167,13 +167,13 @@ func (api *API) CurrentHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) PlayHandler(w http.ResponseWriter, r *http.Request) {
-	itm, err := api.playlist.Play()
+	song, err := api.player.Play()
 	if err != nil {
 		fmt.Printf("API play error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	err = json.NewEncoder(w).Encode(getAPIItem(itm, itm.GetDuration()))
+	err = json.NewEncoder(w).Encode(getAPISong(song, song.GetDuration()))
 	if err != nil {
 		fmt.Printf("API next encode error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -182,7 +182,7 @@ func (api *API) PlayHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) PauseHandler(w http.ResponseWriter, r *http.Request) {
-	err := api.playlist.Pause()
+	err := api.player.Pause()
 	if err != nil {
 		fmt.Printf("API pause error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -191,7 +191,7 @@ func (api *API) PauseHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) StopHandler(w http.ResponseWriter, r *http.Request) {
-	err := api.playlist.Stop()
+	err := api.player.Stop()
 	if err != nil {
 		fmt.Printf("API stop error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -200,14 +200,14 @@ func (api *API) StopHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) NextHandler(w http.ResponseWriter, r *http.Request) {
-	itm, err := api.playlist.Next()
+	song, err := api.player.Next()
 	if err != nil {
 		fmt.Printf("API next error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(getAPIItem(itm, itm.GetDuration()))
+	err = json.NewEncoder(w).Encode(getAPISong(song, song.GetDuration()))
 	if err != nil {
 		fmt.Printf("API next encode error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -216,13 +216,13 @@ func (api *API) NextHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
-	items, err := api.playlist.AddItems(r.URL.Query().Get("url"))
+	songs, err := api.player.AddSongs(r.URL.Query().Get("url"))
 	if err != nil {
 		fmt.Printf("API add error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	err = json.NewEncoder(w).Encode(getAPIItems(items))
+	err = json.NewEncoder(w).Encode(getAPISongs(songs))
 	if err != nil {
 		fmt.Printf("API add encode error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -231,13 +231,13 @@ func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) OpenHandler(w http.ResponseWriter, r *http.Request) {
-	items, err := api.playlist.InsertItems("url", 0)
+	songs, err := api.player.InsertSongs("url", 0)
 	if err != nil {
 		fmt.Printf("API add error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	err = json.NewEncoder(w).Encode(getAPIItems(items))
+	err = json.NewEncoder(w).Encode(getAPISongs(songs))
 	if err != nil {
 		fmt.Printf("API add encode error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -254,6 +254,6 @@ func (api *API) SocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cws := NewControlWebsocket(ws, readOnly, api.playlist)
+	cws := NewControlWebsocket(ws, readOnly, api.player)
 	cws.Start()
 }

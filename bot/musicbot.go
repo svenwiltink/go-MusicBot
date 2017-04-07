@@ -4,7 +4,8 @@ import (
 	"fmt"
 	irc "github.com/thoj/go-ircevent"
 	"gitlab.transip.us/swiltink/go-MusicBot/config"
-	"gitlab.transip.us/swiltink/go-MusicBot/playlist"
+	"gitlab.transip.us/swiltink/go-MusicBot/player"
+	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
 	"os"
 	"os/signal"
 	"strings"
@@ -15,11 +16,11 @@ type MusicBot struct {
 	ircConn   *irc.Connection
 	commands  map[string]Command
 	whitelist []string
-	playlist  playlist.ListInterface
+	player    player.MusicPlayer
 	conf      *config.IRC
 }
 
-func NewMusicBot(conf *config.IRC, playlst playlist.ListInterface) (mb *MusicBot, err error) {
+func NewMusicBot(conf *config.IRC, player player.MusicPlayer) (mb *MusicBot, err error) {
 	whitelist, err := config.ReadWhitelist(conf.WhiteListPath)
 	if err != nil {
 		return
@@ -29,7 +30,7 @@ func NewMusicBot(conf *config.IRC, playlst playlist.ListInterface) (mb *MusicBot
 		commands:  make(map[string]Command),
 		whitelist: whitelist,
 		conf:      conf,
-		playlist:  playlst,
+		player:    player,
 	}
 	return
 }
@@ -116,14 +117,63 @@ func (m *MusicBot) Start() (err error) {
 		}
 	})
 
-	m.playlist.AddListener("play_start", m.onPlay)
+	m.player.AddListener("play_start", m.onPlay)
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	<-sigs
-	m.playlist.Stop()
+	m.player.Stop()
 	return
+}
+
+func (m *MusicBot) getTarget(event *irc.Event) (target string, isPrivate, isMain bool) {
+	if len(event.Arguments) == 0 {
+		return
+	}
+	target = event.Arguments[0]
+	if !strings.HasPrefix(target, "#") {
+		target = event.Nick
+		isPrivate = true
+	}
+	isMain = target == m.conf.Channel
+	return
+}
+
+func (m *MusicBot) announceAddedSongs(event *irc.Event, songs []songplayer.Playable) {
+	var songTitles []string
+	i := 6
+	for _, song := range songs {
+		songTitles = append(songTitles, formatSong(song))
+		i--
+		if i < 0 {
+			songTitles = append(songTitles, italicText(fmt.Sprintf("and %d more..", len(songs)-6)))
+			break
+		}
+	}
+	m.announceMessagef(false, event, "%s added song(s): %s", boldText(event.Nick), strings.Join(songTitles, " | "))
+}
+
+func (m *MusicBot) announceMessage(nonMainOnly bool, event *irc.Event, message string) {
+	target, isPrivate, isMain := m.getTarget(event)
+	if isPrivate {
+		event.Connection.Privmsg(target, message)
+	}
+	if isPrivate || (!isMain && !nonMainOnly) {
+		// Announce it to the main channel as well
+		event.Connection.Privmsg(m.conf.Channel, message)
+	}
+}
+
+func (m *MusicBot) announceMessagef(nonMainOnly bool, event *irc.Event, format string, a ...interface{}) {
+	target, isPrivate, isMain := m.getTarget(event)
+	if isPrivate {
+		event.Connection.Privmsgf(target, format, a...)
+	}
+	if isPrivate || (!isMain && !nonMainOnly) {
+		// Announce it to the main channel as well
+		event.Connection.Privmsgf(m.conf.Channel, format, a...)
+	}
 }
 
 func (m *MusicBot) onPlay(args ...interface{}) {
@@ -131,7 +181,7 @@ func (m *MusicBot) onPlay(args ...interface{}) {
 		return
 	}
 
-	itm, ok := args[0].(playlist.ItemInterface)
+	itm, ok := args[0].(songplayer.Playable)
 	if !ok {
 		return
 	}
