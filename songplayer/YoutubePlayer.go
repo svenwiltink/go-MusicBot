@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 )
 
 var youtubeURLRegex, _ = regexp.Compile(`^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$`)
@@ -55,6 +56,9 @@ func (p *YoutubePlayer) init() (err error) {
 		err = fmt.Errorf("[YoutubePlayer] Error starting mpv: %v ", err)
 		return
 	}
+
+	// Give MPV a second or so to start and create the input socket
+	time.Sleep(time.Second)
 
 	fmt.Printf("[YoutubePlayer] Opening mpv ipc connection on %s\n", p.mpvInputPath)
 	p.mpvConn = mpvipc.NewConnection(p.mpvInputPath)
