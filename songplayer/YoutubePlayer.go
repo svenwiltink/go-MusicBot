@@ -85,11 +85,9 @@ func (p *YoutubePlayer) startMpv() (err error) {
 
 	go func() {
 		err := command.Wait()
-		if err != nil {
-			fmt.Printf("[YoutubePlayer] Error while waiting for mpv: %v\n", err)
-			return
-		}
-		fmt.Print("[YoutubePlayer] mpv has quit\n")
+
+		fmt.Printf("[YoutubePlayer] mpv has quit: %v\n", err)
+
 		p.mpvMutex.Lock()
 		p.mpvIsRunning = false
 		p.mpvProcess = nil
@@ -164,7 +162,7 @@ func (p *YoutubePlayer) Play(url string) (err error) {
 	if err != nil {
 		return
 	}
-	_, err = p.mpvConn.Call("loadfile", "\""+url+"\"", "replace")
+	_, err = p.mpvConn.Call("loadfile", url, "replace")
 	if err != nil {
 		err = fmt.Errorf("[YoutubePlayer] Error sending loadfile command: %v", err)
 		return
