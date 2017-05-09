@@ -10,6 +10,9 @@ import (
 	"gitlab.transip.us/swiltink/go-MusicBot/util"
 	"log"
 	"strings"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -58,7 +61,9 @@ func main() {
 		} else {
 			ips, err := util.GetExternalIPs()
 			ipStr := "???"
-			if err == nil {
+			if err != nil {
+				fmt.Printf("Error getting external IPs: %v\n", err)
+			} else {
 				ipStr = ""
 				for _, ip := range ips {
 					ipStr += ip.String() + " "
@@ -97,4 +102,11 @@ func main() {
 		}
 	}
 	playr.AddListener("queue_updated", queueStorage.OnListUpdate)
+
+	// Wait for a terminate signal
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	<-sigs
+	musicBot.Stop()
 }

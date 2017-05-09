@@ -6,10 +6,7 @@ import (
 	"gitlab.transip.us/swiltink/go-MusicBot/config"
 	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
-	"os"
-	"os/signal"
 	"strings"
-	"syscall"
 )
 
 type MusicBot struct {
@@ -118,12 +115,11 @@ func (m *MusicBot) Start() (err error) {
 	})
 
 	m.player.AddListener("play_start", m.onPlay)
+	return
+}
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
-	<-sigs
-	m.player.Stop()
+func (m *MusicBot) Stop() (err error) {
+	err = m.player.Stop()
 	return
 }
 
@@ -160,7 +156,7 @@ func (m *MusicBot) Announce(message string) {
 
 func (m *MusicBot) announceMessage(nonMainOnly bool, event *irc.Event, message string) {
 	target, isPrivate, isMain := m.getTarget(event)
-	if isPrivate {
+	if isPrivate || !nonMainOnly {
 		event.Connection.Privmsg(target, message)
 	}
 	if isPrivate || (!isMain && !nonMainOnly) {
@@ -171,7 +167,7 @@ func (m *MusicBot) announceMessage(nonMainOnly bool, event *irc.Event, message s
 
 func (m *MusicBot) announceMessagef(nonMainOnly bool, event *irc.Event, format string, a ...interface{}) {
 	target, isPrivate, isMain := m.getTarget(event)
-	if isPrivate {
+	if isPrivate || !nonMainOnly {
 		event.Connection.Privmsgf(target, format, a...)
 	}
 	if isPrivate || (!isMain && !nonMainOnly) {
