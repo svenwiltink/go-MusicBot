@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/vansante/go-spotify-control"
 	"github.com/zmb3/spotify"
-	"strings"
 	"time"
 )
 
@@ -32,20 +31,20 @@ func (p *SpotifyPlayer) Name() (name string) {
 }
 
 func (p *SpotifyPlayer) CanPlay(url string) (canPlay bool) {
-	_, id, _, err := p.getTypeAndIDFromURL(url)
+	_, id, _, err := GetSpotifyTypeAndIDFromURL(url)
 	canPlay = err == nil && id != ""
 	return
 }
 
 func (p *SpotifyPlayer) GetSongs(url string) (songs []Playable, err error) {
-	tp, id, _, err := p.getTypeAndIDFromURL(url)
+	tp, id, _, err := GetSpotifyTypeAndIDFromURL(url)
 	var tracks []spotify.SimpleTrack
 	switch tp {
 	case TYPE_TRACK:
 		var track *spotify.FullTrack
 		track, err = spotify.DefaultClient.GetTrack(spotify.ID(id))
 		if err != nil {
-			err = fmt.Errorf("[SpotifyConnectPlayer] Could not get track meta for URL: %v", err)
+			err = fmt.Errorf("[SpotifyPlayer] Could not get track meta for URL: %v", err)
 			return
 		}
 		tracks = append(tracks, track.SimpleTrack)
@@ -53,7 +52,7 @@ func (p *SpotifyPlayer) GetSongs(url string) (songs []Playable, err error) {
 		var album *spotify.FullAlbum
 		album, err = spotify.DefaultClient.GetAlbum(spotify.ID(id))
 		if err != nil {
-			err = fmt.Errorf("[SpotifyConnectPlayer] Could not get album meta for URL: %v", err)
+			err = fmt.Errorf("[SpotifyPlayer] Could not get album meta for URL: %v", err)
 			return
 		}
 		for _, track := range album.Tracks.Tracks {
@@ -79,7 +78,7 @@ func (p *SpotifyPlayer) SearchSongs(searchStr string, limit int) (songs []Playab
 		Limit: &limit,
 	})
 	if err != nil {
-		err = fmt.Errorf("[SpotifyConnectPlayer] Could not search for songs: %v", err)
+		err = fmt.Errorf("[SpotifyPlayer] Could not search for songs: %v", err)
 		return
 	}
 	for _, track := range results.Tracks.Tracks {
@@ -120,79 +119,16 @@ func (p *SpotifyPlayer) restartAndRetry(spErr error, retryFunc func()) (err erro
 	if spErr == nil {
 		return
 	}
-	fmt.Printf("[SpotifyConnectPlayer] Error encountered, restarting control to try again. (%v)", spErr)
+	fmt.Printf("[SpotifyPlayer] Error encountered, restarting control to try again. (%v)", spErr)
 
 	var control *spotifycontrol.SpotifyControl
 	control, err = spotifycontrol.NewSpotifyControl(p.host, 1*time.Second)
 	if err != nil {
-		fmt.Printf("[SpotifyConnectPlayer] Restart unsuccessful: %v", err)
+		fmt.Printf("[SpotifyPlayer] Restart unsuccessful: %v", err)
 		err = spErr
 		return
 	}
 	p.control = control
 	retryFunc()
-	return
-}
-
-func (p *SpotifyPlayer) getTypeAndIDFromURL(url string) (tp Type, id, userID string, err error) {
-	lowerURL := strings.ToLower(url)
-	if strings.Contains(lowerURL, "spotify.com") {
-		var idPos int
-		switch {
-		case strings.Contains(lowerURL, "/track/"):
-			//Handle: https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC
-			tp = TYPE_TRACK
-			idPos = strings.LastIndex(lowerURL, "/track/") + len("/track/")
-		case strings.Contains(lowerURL, "/album/"):
-			// Handle: https://open.spotify.com/album/4vSfHrq6XxVyMcJ6PguFR2
-			tp = TYPE_ALBUM
-			idPos = strings.LastIndex(lowerURL, "/album/") + len("/album/")
-		case strings.Contains(lowerURL, "/playlist/"):
-			// Handle: https://open.spotify.com/user/tana.cross/playlist/2xLFotd9GVVQ6Jde7B3i3B
-			tp = TYPE_PLAYLIST
-			idPos = strings.LastIndex(lowerURL, "/playlist/")
-			uidPos := strings.LastIndex(lowerURL, "/user/") + len("/user/")
-			if uidPos >= idPos {
-				err = errors.New("Invalid spotify URL format")
-				return
-			}
-			userID = url[uidPos:idPos]
-
-			idPos += len("/playlist/")
-		default:
-			err = fmt.Errorf("Unknown spotify URL format: %s", url)
-			return
-		}
-		id = url[idPos:]
-		return
-	}
-
-	var idPos int
-	switch {
-	case strings.Contains(lowerURL, ":track:"):
-		// Handle: spotify:track:2cBGl1Ehr1D9xbqNmraqb4
-		tp = TYPE_TRACK
-		idPos = strings.LastIndex(lowerURL, ":track:") + len(":track:")
-	case strings.Contains(lowerURL, ":album:"):
-		// Handle: spotify:album:35LnYSwPbgGPQSXNTjpOO8
-		tp = TYPE_ALBUM
-		idPos = strings.LastIndex(lowerURL, ":album:") + len(":album:")
-	case strings.Contains(lowerURL, ":playlist:"):
-		// Handle: spotify:user:111208973:playlist:4XGuyS11n99eMqe1OvN8jq
-		tp = TYPE_PLAYLIST
-		idPos = strings.LastIndex(lowerURL, ":playlist:")
-		uidPos := strings.LastIndex(lowerURL, ":user:") + len(":user:")
-		if uidPos >= idPos {
-			err = errors.New("Invalid spotify URL format")
-			return
-		}
-		userID = url[uidPos:idPos]
-
-		idPos += len(":playlist:")
-	default:
-		err = fmt.Errorf("Unknown spotify URL format: %s", url)
-		return
-	}
-	id = url[idPos:]
 	return
 }
