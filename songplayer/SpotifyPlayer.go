@@ -38,6 +38,10 @@ func (p *SpotifyPlayer) CanPlay(url string) (canPlay bool) {
 
 func (p *SpotifyPlayer) GetSongs(url string) (songs []Playable, err error) {
 	tp, id, _, err := GetSpotifyTypeAndIDFromURL(url)
+	if err != nil {
+		err = fmt.Errorf("[Spotifylayer] Could not parse URL: %v", err)
+		return
+	}
 	var tracks []spotify.SimpleTrack
 	switch tp {
 	case TYPE_TRACK:
