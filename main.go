@@ -9,9 +9,9 @@ import (
 	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
 	"gitlab.transip.us/swiltink/go-MusicBot/util"
 	"log"
-	"strings"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 )
 
