@@ -11,26 +11,25 @@ import (
 const DEFAULT_AUTHORISE_PORT = 5678
 const DEFAULT_AUTHORISE_URL = "http://musicbot:5678/authorise/"
 
-var ErrNotAuthorised = errors.New("[SpotifyConnectPlayer] Client has not been authorized yet")
+var ErrNotAuthorised = errors.New("[SpotifyConnectPlayer] Client has not been authorised yet")
 
 type SpotifyConnectPlayer struct {
 	sessionKey    string
 	client        *spotify.Client
 	user          *spotify.PrivateUser
-	playerState   *spotify.PlayerState
 	auth          *spotify.Authenticator
 	authListeners []func()
 }
 
-func NewSpotifyConnectPlayer(spotifyClientID, spotifyClientSecret, authoriseRedirectUrl string, authoriseHttpPort int) (p *SpotifyConnectPlayer, authURL string, err error) {
-	if authoriseRedirectUrl == "" {
-		authoriseRedirectUrl = DEFAULT_AUTHORISE_URL
+func NewSpotifyConnectPlayer(spotifyClientID, spotifyClientSecret, authoriseRedirectURL string, authoriseHTTPPort int) (p *SpotifyConnectPlayer, authURL string, err error) {
+	if authoriseRedirectURL == "" {
+		authoriseRedirectURL = DEFAULT_AUTHORISE_URL
 	}
-	if authoriseHttpPort <= 0 {
-		authoriseHttpPort = DEFAULT_AUTHORISE_PORT
+	if authoriseHTTPPort <= 0 {
+		authoriseHTTPPort = DEFAULT_AUTHORISE_PORT
 	}
 
-	auth := spotify.NewAuthenticator(authoriseRedirectUrl, spotify.ScopeUserReadCurrentlyPlaying, spotify.ScopeUserReadPlaybackState, spotify.ScopeUserModifyPlaybackState)
+	auth := spotify.NewAuthenticator(authoriseRedirectURL, spotify.ScopeUserReadCurrentlyPlaying, spotify.ScopeUserReadPlaybackState, spotify.ScopeUserModifyPlaybackState)
 	auth.SetAuthInfo(spotifyClientID, spotifyClientSecret)
 
 	p = &SpotifyConnectPlayer{
@@ -39,9 +38,9 @@ func NewSpotifyConnectPlayer(spotifyClientID, spotifyClientSecret, authoriseRedi
 	}
 
 	go func() {
-		err = http.ListenAndServe(fmt.Sprintf(":%d", authoriseHttpPort), p)
+		err = http.ListenAndServe(fmt.Sprintf(":%d", authoriseHTTPPort), p)
 		if err != nil {
-			log.Printf("[SpotifyConnect] Error, could not start HTTP server on port %d: %v\n", authoriseHttpPort, err)
+			log.Printf("[SpotifyConnect] Error, could not start HTTP server on port %d: %v\n", authoriseHTTPPort, err)
 			return
 		}
 	}()
@@ -92,7 +91,7 @@ func (p *SpotifyConnectPlayer) Name() (name string) {
 }
 
 func (p *SpotifyConnectPlayer) CanPlay(url string) (canPlay bool) {
-	_, id, _, err := getSpotifyTypeAndIDFromURL(url)
+	_, id, _, err := GetSpotifyTypeAndIDFromURL(url)
 	canPlay = err == nil && id != ""
 	return
 }
@@ -103,7 +102,7 @@ func (p *SpotifyConnectPlayer) GetSongs(url string) (songs []Playable, err error
 		return
 	}
 
-	tp, id, userID, err := getSpotifyTypeAndIDFromURL(url)
+	tp, id, userID, err := GetSpotifyTypeAndIDFromURL(url)
 	var tracks []spotify.SimpleTrack
 	switch tp {
 	case TYPE_TRACK:
