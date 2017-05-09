@@ -154,6 +154,10 @@ func (m *MusicBot) announceAddedSongs(event *irc.Event, songs []songplayer.Playa
 	m.announceMessagef(false, event, "%s added song(s): %s", boldText(event.Nick), strings.Join(songTitles, " | "))
 }
 
+func (m *MusicBot) Announce(message string) {
+	m.ircConn.Privmsg(m.conf.Channel, message)
+}
+
 func (m *MusicBot) announceMessage(nonMainOnly bool, event *irc.Event, message string) {
 	target, isPrivate, isMain := m.getTarget(event)
 	if isPrivate {

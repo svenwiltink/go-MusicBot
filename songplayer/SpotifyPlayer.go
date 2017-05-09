@@ -9,14 +9,6 @@ import (
 	"time"
 )
 
-type Type int
-
-const (
-	TYPE_TRACK Type = 1 + iota
-	TYPE_ALBUM
-	TYPE_PLAYLIST
-)
-
 type SpotifyPlayer struct {
 	host    string
 	control *spotifycontrol.SpotifyControl
@@ -53,7 +45,7 @@ func (p *SpotifyPlayer) GetSongs(url string) (songs []Playable, err error) {
 		var track *spotify.FullTrack
 		track, err = spotify.DefaultClient.GetTrack(spotify.ID(id))
 		if err != nil {
-			err = fmt.Errorf("[SpotifyPlayer] Could not get track meta for URL: %v", err)
+			err = fmt.Errorf("[SpotifyConnectPlayer] Could not get track meta for URL: %v", err)
 			return
 		}
 		tracks = append(tracks, track.SimpleTrack)
@@ -61,7 +53,7 @@ func (p *SpotifyPlayer) GetSongs(url string) (songs []Playable, err error) {
 		var album *spotify.FullAlbum
 		album, err = spotify.DefaultClient.GetAlbum(spotify.ID(id))
 		if err != nil {
-			err = fmt.Errorf("[SpotifyPlayer] Could not get album meta for URL: %v", err)
+			err = fmt.Errorf("[SpotifyConnectPlayer] Could not get album meta for URL: %v", err)
 			return
 		}
 		for _, track := range album.Tracks.Tracks {
@@ -87,7 +79,7 @@ func (p *SpotifyPlayer) SearchSongs(searchStr string, limit int) (songs []Playab
 		Limit: &limit,
 	})
 	if err != nil {
-		err = fmt.Errorf("[SpotifyPlayer] Could not search for songs: %v", err)
+		err = fmt.Errorf("[SpotifyConnectPlayer] Could not search for songs: %v", err)
 		return
 	}
 	for _, track := range results.Tracks.Tracks {
@@ -128,12 +120,12 @@ func (p *SpotifyPlayer) restartAndRetry(spErr error, retryFunc func()) (err erro
 	if spErr == nil {
 		return
 	}
-	fmt.Printf("[SpotifyPlayer] Error encountered, restarting control to try again. (%v)", spErr)
+	fmt.Printf("[SpotifyConnectPlayer] Error encountered, restarting control to try again. (%v)", spErr)
 
 	var control *spotifycontrol.SpotifyControl
 	control, err = spotifycontrol.NewSpotifyControl(p.host, 1*time.Second)
 	if err != nil {
-		fmt.Printf("[SpotifyPlayer] Restart unsuccessful: %v", err)
+		fmt.Printf("[SpotifyConnectPlayer] Restart unsuccessful: %v", err)
 		err = spErr
 		return
 	}

@@ -1,5 +1,5 @@
-hash: 31a70c8629f7c90e0b9602aca2d975b87f3fd0eedb17a94a45d9984155358367
-updated: 2017-04-01T14:57:39.721880621+02:00
+hash: bbda5794fc4675368ed1b0974774d751b2fa4335347434bcd376b522c3bf57c3
+updated: 2017-05-09T21:16:32.121983+02:00
 imports:
 - name: github.com/channelmeter/iso8601duration
   version: 8da3af7a2a61a4eb5ae9bddec06bf637fa9593da
@@ -20,13 +20,12 @@ imports:
 - name: github.com/vansante/go-spotify-control
   version: 698a948a0e19d1d7ef3aa0de854c059ec348fda5
 - name: github.com/zmb3/spotify
-  version: d12d726b0e288deb2a8d21212da3f64268612fe5
+  version: 84bf5e353eaccd52f17bbbfdfd1accfc56361bb6
 - name: golang.org/x/net
   version: a6577fac2d73be281a500b310739095313165611
   subpackages:
   - context
   - context/ctxhttp
-  - websocket
 - name: golang.org/x/oauth2
   version: 7fdf09982454086d5570c7db3e11f360194830ca
   subpackages:
