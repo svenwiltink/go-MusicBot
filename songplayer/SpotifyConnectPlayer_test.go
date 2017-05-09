@@ -1,12 +1,14 @@
 package songplayer
 
 import (
+	"github.com/zmb3/spotify"
+	"log"
 	"testing"
 	"time"
 )
 
 func TestSpotifyConnectSearching(t *testing.T) {
-	p, authURL, err := NewSpotifyConnectPlayer("5b83b8fcf4c142aba7f84ee7985a45c9", "<SECRIT>", "", 0)
+	p, authURL, err := NewSpotifyConnectPlayer("5b83b8fcf4c142aba7f84ee7985a45c9", "<secrit>", "", 0)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -46,4 +48,20 @@ func TestSpotifyConnectSearching(t *testing.T) {
 		t.Fail()
 	}
 	t.Log("Findings: ", items)
+
+	tp, id, uid, err := GetSpotifyTypeAndIDFromURL("spotify:user:111208973:playlist:4XGuyS11n99eMqe1OvN8jq")
+	if tp != TYPE_PLAYLIST || id != "4XGuyS11n99eMqe1OvN8jq" || err != nil || uid != "111208973" {
+		t.Log(string(tp), id, uid, err)
+		t.Fail()
+	}
+
+	tracks, err := p.client.GetPlaylistTracks(uid, spotify.ID(id))
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+
+	for _, t := range tracks.Tracks {
+		log.Println(t.Track.Name)
+	}
 }

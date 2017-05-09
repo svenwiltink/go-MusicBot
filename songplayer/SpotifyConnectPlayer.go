@@ -29,7 +29,7 @@ func NewSpotifyConnectPlayer(spotifyClientID, spotifyClientSecret, authoriseRedi
 		authoriseHTTPPort = DEFAULT_AUTHORISE_PORT
 	}
 
-	auth := spotify.NewAuthenticator(authoriseRedirectURL, spotify.ScopeUserReadCurrentlyPlaying, spotify.ScopeUserReadPlaybackState, spotify.ScopeUserModifyPlaybackState)
+	auth := spotify.NewAuthenticator(authoriseRedirectURL, spotify.ScopeUserReadCurrentlyPlaying, spotify.ScopeUserReadPlaybackState, spotify.ScopeUserModifyPlaybackState, spotify.ScopePlaylistReadCollaborative, spotify.ScopePlaylistReadPrivate)
 	auth.SetAuthInfo(spotifyClientID, spotifyClientSecret)
 
 	p = &SpotifyConnectPlayer{
@@ -103,13 +103,17 @@ func (p *SpotifyConnectPlayer) GetSongs(url string) (songs []Playable, err error
 	}
 
 	tp, id, userID, err := GetSpotifyTypeAndIDFromURL(url)
+	if err != nil {
+		err = fmt.Errorf("[SpotifyConnectPlayer] Could not parse URL: %v", err)
+		return
+	}
 	var tracks []spotify.SimpleTrack
 	switch tp {
 	case TYPE_TRACK:
 		var track *spotify.FullTrack
 		track, err = p.client.GetTrack(spotify.ID(id))
 		if err != nil {
-			err = fmt.Errorf("[SpotifyConnectPlayer] Could not get track meta for URL: %v", err)
+			err = fmt.Errorf("[SpotifyConnectPlayer] Could not get track data for URL: %v", err)
 			return
 		}
 		tracks = append(tracks, track.SimpleTrack)
@@ -133,7 +137,6 @@ func (p *SpotifyConnectPlayer) GetSongs(url string) (songs []Playable, err error
 		for _, track := range listTracks.Tracks {
 			tracks = append(tracks, track.Track.SimpleTrack)
 		}
-		return
 	}
 
 	for _, track := range tracks {
