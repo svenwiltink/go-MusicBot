@@ -15,7 +15,7 @@ const (
 	TYPE_PLAYLIST
 )
 
-func getSpotifyTypeAndIDFromURL(url string) (tp Type, id, userID string, err error) {
+func GetSpotifyTypeAndIDFromURL(url string) (tp Type, id, userID string, err error) {
 	lowerURL := strings.ToLower(url)
 	if strings.Contains(lowerURL, "spotify.com") {
 		var idPos int

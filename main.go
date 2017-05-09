@@ -7,7 +7,9 @@ import (
 	"gitlab.transip.us/swiltink/go-MusicBot/config"
 	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
+	"gitlab.transip.us/swiltink/go-MusicBot/util"
 	"log"
+	"strings"
 )
 
 func main() {
@@ -54,7 +56,16 @@ func main() {
 
 			musicBot.Announce(fmt.Sprintf("[SpotifyConnect] Error creating player: %v", err))
 		} else {
-			musicBot.Announce(fmt.Sprintf("[SpotifyConnect] Please authorise the MusicBot by visiting the following page in your browser: %s", authURL))
+			ips, err := util.GetExternalIPs()
+			ipStr := "???"
+			if err == nil {
+				ipStr = ""
+				for _, ip := range ips {
+					ipStr += ip.String() + " "
+				}
+				ipStr = strings.TrimSpace(ipStr)
+			}
+			musicBot.Announce(fmt.Sprintf("[SpotifyConnect] Authorisation: Please add the external IP (%s) of the musicbot to your host file under 'musicbot' and visit the follow URL: %s", ipStr, authURL))
 
 			spPlayer.AddAuthorisationListener(func() {
 				playr.AddSongPlayer(spPlayer)
