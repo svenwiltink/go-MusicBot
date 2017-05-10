@@ -70,13 +70,13 @@ func main() {
 				}
 				ipStr = strings.TrimSpace(ipStr)
 			}
-			musicBot.Announce(fmt.Sprintf("[SpotifyConnect] Authorisation: Please add the external IP (%s) of the musicbot to your host file under 'musicbot' and visit the follow URL: %s", ipStr, authURL))
+			musicBot.Announce(fmt.Sprintf("[SpotifyConnect] Authorisation: Add the external IP (%s) of the bot to your hosts file under 'musicbot' and visit: %s", ipStr, authURL))
 
 			spPlayer.AddAuthorisationListener(func() {
 				playr.AddSongPlayer(spPlayer)
 				fmt.Println("Added SpotifyConnect player")
 
-				musicBot.Announce("[SpotifyConnect] The musicbot was successfully authenticated!")
+				musicBot.Announce("[SpotifyConnect] The musicbot was successfully authorised!")
 			})
 		}
 	} else if conf.SpotifyPlayer.Enabled && !conf.SpotifyPlayer.UseConnect {
