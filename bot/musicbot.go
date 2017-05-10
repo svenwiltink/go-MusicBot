@@ -156,7 +156,7 @@ func (m *MusicBot) announceAddedSongs(event *irc.Event, songs []songplayer.Playa
 
 func (m *MusicBot) announceMessage(nonMainOnly bool, event *irc.Event, message string) {
 	target, isPrivate, isMain := m.getTarget(event)
-	if isPrivate {
+	if isPrivate || !nonMainOnly {
 		event.Connection.Privmsg(target, message)
 	}
 	if isPrivate || (!isMain && !nonMainOnly) {
@@ -167,7 +167,7 @@ func (m *MusicBot) announceMessage(nonMainOnly bool, event *irc.Event, message s
 
 func (m *MusicBot) announceMessagef(nonMainOnly bool, event *irc.Event, format string, a ...interface{}) {
 	target, isPrivate, isMain := m.getTarget(event)
-	if isPrivate {
+	if isPrivate || !nonMainOnly {
 		event.Connection.Privmsgf(target, format, a...)
 	}
 	if isPrivate || (!isMain && !nonMainOnly) {
