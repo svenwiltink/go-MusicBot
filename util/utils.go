@@ -56,6 +56,8 @@ func GetExternalIPs() (ips []net.IP, err error) {
 			ips = append(ips, ip)
 		}
 	}
-	err = errors.New("are you connected to the network?")
+	if len(ips) == 0 {
+		err = errors.New("are you connected to the network?")
+	}
 	return
 }

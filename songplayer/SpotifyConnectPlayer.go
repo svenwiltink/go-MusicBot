@@ -33,7 +33,7 @@ func NewSpotifyConnectPlayer(spotifyClientID, spotifyClientSecret, authoriseRedi
 	auth.SetAuthInfo(spotifyClientID, spotifyClientSecret)
 
 	p = &SpotifyConnectPlayer{
-		sessionKey: RandStringBytes(24),
+		sessionKey: RandStringBytes(12),
 		auth:       &auth,
 	}
 
