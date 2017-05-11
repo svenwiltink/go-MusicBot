@@ -1,8 +1,10 @@
-hash: bbda5794fc4675368ed1b0974774d751b2fa4335347434bcd376b522c3bf57c3
-updated: 2017-05-09T21:16:32.121983+02:00
+hash: 4df62e494e3fe982f0db372c7ae770dd73d250dc6cbdaabf9cbbd19046c6d22a
+updated: 2017-05-11T09:37:08.320217668+02:00
 imports:
 - name: github.com/channelmeter/iso8601duration
   version: 8da3af7a2a61a4eb5ae9bddec06bf637fa9593da
+- name: github.com/DexterLB/mpvipc
+  version: 642a40c6e5c6fc3fb28bf37cf723f95a2033baac
 - name: github.com/golang/protobuf
   version: 2bba0603135d7d7f5cb73b2125beeda19c09f4ef
   subpackages:
