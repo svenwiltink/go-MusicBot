@@ -16,3 +16,4 @@ import:
 - package: github.com/vansante/go-event-emitter
 - package: github.com/gorilla/websocket
   version: ^1.1.0
+- package: github.com/DexterLB/mpvipc
