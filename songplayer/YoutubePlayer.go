@@ -2,16 +2,19 @@ package songplayer
 
 import (
 	"fmt"
+	"github.com/DexterLB/mpvipc"
 	"gitlab.transip.us/swiltink/go-MusicBot/meta"
 	"os"
 	"os/exec"
 	"regexp"
 	"strings"
 	"sync"
-	"syscall"
+	"time"
 )
 
-var youtubeURLRegex, _ = regexp.Compile(`^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$`)
+var youtubeURLRegex, _ = regexp.Compile(`^(https?://)?(www\.)?(youtube\.com|youtu\.?be)/.+$`)
+
+const RETRY_ATTEMPTS = 5
 
 type YoutubePlayer struct {
 	mpvBinPath   string
@@ -19,7 +22,7 @@ type YoutubePlayer struct {
 
 	mpvProcess   *exec.Cmd
 	mpvIsRunning bool
-	controlFile  *os.File
+	mpvConn      *mpvipc.Connection
 	ytService    *meta.YouTube
 	mpvMutex     sync.Mutex
 }
@@ -32,23 +35,84 @@ func NewYoutubePlayer(mpvBinPath, mpvInputPath string) (player *YoutubePlayer, e
 		ytService:    meta.NewYoutubeService(),
 	}
 
-	err = player.Init()
+	err = player.init()
 	return
 }
 
-func (p *YoutubePlayer) Init() (err error) {
+func (p *YoutubePlayer) init() (err error) {
 	p.mpvMutex.Lock()
 	defer p.mpvMutex.Unlock()
 
-	fmt.Printf("[YoutubePlayer] Creating MPV control node on %s\n", p.mpvInputPath)
-	syscall.Mknod(p.mpvInputPath, syscall.S_IFIFO|0666, 0)
-	file, err := os.OpenFile(p.mpvInputPath, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0660)
+	fi, err := os.Stat(p.mpvInputPath)
+	if err == nil && !fi.IsDir() {
+		fmt.Printf("[YoutubePlayer] Removing existing MPV control node on %s\n", p.mpvInputPath)
+		err = os.Remove(p.mpvInputPath)
+		if err != nil {
+			err = fmt.Errorf("[YoutubePlayer] Error removing existing input %s: %v", p.mpvInputPath, err)
+			return
+		}
+	}
+
+	err = p.startMpv()
 	if err != nil {
-		err = fmt.Errorf("[YoutubePlayer] Error opening control file: %v", err)
+		err = fmt.Errorf("[YoutubePlayer] Error starting mpv: %v ", err)
 		return
 	}
 
-	p.controlFile = file
+	attempts := 0
+	for {
+		// Give MPV a second or so to start and create the input socket
+		time.Sleep(500 * time.Millisecond)
+
+		fmt.Printf("[YoutubePlayer] Opening mpv ipc connection on %s\n", p.mpvInputPath)
+		p.mpvConn = mpvipc.NewConnection(p.mpvInputPath)
+		err = p.mpvConn.Open()
+		if err != nil {
+			err = fmt.Errorf("[YoutubePlayer] Error opening IPC connection on %s: %v ", p.mpvInputPath, err)
+			if attempts >= RETRY_ATTEMPTS {
+				return
+			}
+		} else {
+			err = nil
+			return
+		}
+		attempts++
+	}
+	return
+}
+
+func (p *YoutubePlayer) startMpv() (err error) {
+	fmt.Printf("[YoutubePlayer] Starting MPV %s with control %s in idle mode\n", p.mpvBinPath, p.mpvInputPath)
+
+	command := exec.Command(p.mpvBinPath, "--no-video", "--idle", "--input-ipc-server="+p.mpvInputPath)
+	p.mpvProcess = command
+
+	err = command.Start()
+	p.mpvIsRunning = err == nil
+
+	if err != nil {
+		return
+	}
+
+	go func() {
+		err := command.Wait()
+
+		fmt.Printf("[YoutubePlayer] mpv has quit: %v\n", err)
+
+		p.mpvMutex.Lock()
+		p.mpvIsRunning = false
+		p.mpvProcess = nil
+		p.mpvMutex.Unlock()
+	}()
+	return
+}
+
+func (p *YoutubePlayer) checkRunning() (err error) {
+	if p.mpvIsRunning && p.mpvProcess != nil {
+		return
+	}
+	fmt.Print("[YoutubePlayer] mpv is not running, restarting mpv\n")
+	err = p.init()
 	return
 }
 
@@ -98,29 +162,22 @@ func (p *YoutubePlayer) SearchSongs(searchStr string, limit int) (songs []Playab
 
 func (p *YoutubePlayer) Play(url string) (err error) {
 	p.mpvMutex.Lock()
+	defer p.mpvMutex.Unlock()
+
+	err = p.checkRunning()
+	if err != nil {
+		return
+	}
+
 	err = p.stop()
 	if err != nil {
 		return
 	}
-
-	fmt.Printf("[YoutubePlayer] Starting MPV %s with control %s and url %s\n", p.mpvBinPath, p.mpvInputPath, url)
-	command := exec.Command(p.mpvBinPath, "--no-video", "--input-file="+p.mpvInputPath, url)
-	p.mpvProcess = command
-
-	err = command.Start()
-	p.mpvIsRunning = err == nil
-	p.mpvMutex.Unlock()
+	_, err = p.mpvConn.Call("loadfile", url, "replace")
 	if err != nil {
+		err = fmt.Errorf("[YoutubePlayer] Error sending loadfile command: %v", err)
 		return
 	}
-
-	go func() {
-		err := command.Wait()
-		if err != nil {
-			fmt.Printf("[YoutubePlayer] Error while waiting for mpv: %v\n", err)
-		}
-		p.mpvIsRunning = false
-	}()
 	return
 }
 
@@ -128,12 +185,15 @@ func (p *YoutubePlayer) Pause(pauseState bool) (err error) {
 	p.mpvMutex.Lock()
 	defer p.mpvMutex.Unlock()
 
-	fmt.Printf("[YoutubePlayer] Sending MPV control %s pause command\n", p.mpvInputPath)
-	_, err = p.controlFile.WriteString("cycle pause\n")
+	err = p.checkRunning()
 	if err != nil {
 		return
 	}
-	err = p.controlFile.Truncate(0)
+
+	err = p.mpvConn.Set("pause", pauseState)
+	if err != nil {
+		err = fmt.Errorf("[YoutubePlayer] Error sending pause state property: %v", err)
+	}
 	return
 }
 
@@ -145,9 +205,14 @@ func (p *YoutubePlayer) Stop() (err error) {
 }
 
 func (p *YoutubePlayer) stop() (err error) {
-	if p.mpvIsRunning {
-		err = p.mpvProcess.Process.Kill()
-		p.mpvIsRunning = err == nil
+	err = p.checkRunning()
+	if err != nil {
+		return
+	}
+
+	_, err = p.mpvConn.Call("stop")
+	if err != nil {
+		err = fmt.Errorf("[YoutubePlayer] Error sending stop command: %v", err)
 	}
 	return
 }
