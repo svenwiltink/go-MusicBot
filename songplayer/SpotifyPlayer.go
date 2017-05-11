@@ -5,16 +5,7 @@ import (
 	"fmt"
 	"github.com/vansante/go-spotify-control"
 	"github.com/zmb3/spotify"
-	"strings"
 	"time"
-)
-
-type Type int
-
-const (
-	TYPE_TRACK Type = 1 + iota
-	TYPE_ALBUM
-	TYPE_PLAYLIST
 )
 
 type SpotifyPlayer struct {
@@ -40,13 +31,17 @@ func (p *SpotifyPlayer) Name() (name string) {
 }
 
 func (p *SpotifyPlayer) CanPlay(url string) (canPlay bool) {
-	_, id, _, err := p.getTypeAndIDFromURL(url)
+	_, id, _, err := GetSpotifyTypeAndIDFromURL(url)
 	canPlay = err == nil && id != ""
 	return
 }
 
 func (p *SpotifyPlayer) GetSongs(url string) (songs []Playable, err error) {
-	tp, id, _, err := p.getTypeAndIDFromURL(url)
+	tp, id, _, err := GetSpotifyTypeAndIDFromURL(url)
+	if err != nil {
+		err = fmt.Errorf("[Spotifylayer] Could not parse URL: %v", err)
+		return
+	}
 	var tracks []spotify.SimpleTrack
 	switch tp {
 	case TYPE_TRACK:
@@ -139,68 +134,5 @@ func (p *SpotifyPlayer) restartAndRetry(spErr error, retryFunc func()) (err erro
 	}
 	p.control = control
 	retryFunc()
-	return
-}
-
-func (p *SpotifyPlayer) getTypeAndIDFromURL(url string) (tp Type, id, userID string, err error) {
-	lowerURL := strings.ToLower(url)
-	if strings.Contains(lowerURL, "spotify.com") {
-		var idPos int
-		switch {
-		case strings.Contains(lowerURL, "/track/"):
-			//Handle: https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC
-			tp = TYPE_TRACK
-			idPos = strings.LastIndex(lowerURL, "/track/") + len("/track/")
-		case strings.Contains(lowerURL, "/album/"):
-			// Handle: https://open.spotify.com/album/4vSfHrq6XxVyMcJ6PguFR2
-			tp = TYPE_ALBUM
-			idPos = strings.LastIndex(lowerURL, "/album/") + len("/album/")
-		case strings.Contains(lowerURL, "/playlist/"):
-			// Handle: https://open.spotify.com/user/tana.cross/playlist/2xLFotd9GVVQ6Jde7B3i3B
-			tp = TYPE_PLAYLIST
-			idPos = strings.LastIndex(lowerURL, "/playlist/")
-			uidPos := strings.LastIndex(lowerURL, "/user/") + len("/user/")
-			if uidPos >= idPos {
-				err = errors.New("Invalid spotify URL format")
-				return
-			}
-			userID = url[uidPos:idPos]
-
-			idPos += len("/playlist/")
-		default:
-			err = fmt.Errorf("Unknown spotify URL format: %s", url)
-			return
-		}
-		id = url[idPos:]
-		return
-	}
-
-	var idPos int
-	switch {
-	case strings.Contains(lowerURL, ":track:"):
-		// Handle: spotify:track:2cBGl1Ehr1D9xbqNmraqb4
-		tp = TYPE_TRACK
-		idPos = strings.LastIndex(lowerURL, ":track:") + len(":track:")
-	case strings.Contains(lowerURL, ":album:"):
-		// Handle: spotify:album:35LnYSwPbgGPQSXNTjpOO8
-		tp = TYPE_ALBUM
-		idPos = strings.LastIndex(lowerURL, ":album:") + len(":album:")
-	case strings.Contains(lowerURL, ":playlist:"):
-		// Handle: spotify:user:111208973:playlist:4XGuyS11n99eMqe1OvN8jq
-		tp = TYPE_PLAYLIST
-		idPos = strings.LastIndex(lowerURL, ":playlist:")
-		uidPos := strings.LastIndex(lowerURL, ":user:") + len(":user:")
-		if uidPos >= idPos {
-			err = errors.New("Invalid spotify URL format")
-			return
-		}
-		userID = url[uidPos:idPos]
-
-		idPos += len(":playlist:")
-	default:
-		err = fmt.Errorf("Unknown spotify URL format: %s", url)
-		return
-	}
-	id = url[idPos:]
 	return
 }
