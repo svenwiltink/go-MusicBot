@@ -126,7 +126,7 @@ var SeekCommand = Command{
 			event.Connection.Privmsg(target, boldText("Usage: !music seek <secondsInSong> Or: !music seek <percentage>%"))
 			return
 		}
-		seekStr := parameters[1]
+		seekStr := parameters[0]
 		var seekSeconds int64
 		if strings.HasSuffix(seekStr, "%") {
 			percentage, err := strconv.ParseInt(seekStr[:len(seekStr)-1], 10, 32)
