@@ -183,6 +183,19 @@ func (p *Player) playWait() {
 	}
 }
 
+func (p *Player) Seek(positionSeconds int) (err error) {
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
+	if positionSeconds < 0 || positionSeconds > int(p.currentSong.GetDuration().Seconds()) {
+		err = fmt.Errorf("Position is out of bounds!")
+		return
+	}
+
+	err = p.currentPlayer.Seek(positionSeconds)
+	return
+}
+
 func (p *Player) Next() (song songplayer.Playable, err error) {
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
