@@ -186,6 +186,16 @@ func (p *SpotifyConnectPlayer) Play(url string) (err error) {
 	return
 }
 
+func (p *SpotifyConnectPlayer) Seek(positionSeconds int) (err error) {
+	if p.client == nil {
+		err = ErrNotAuthorised
+		return
+	}
+
+	err = p.client.Seek(positionSeconds * 1000)
+	return
+}
+
 func (p *SpotifyConnectPlayer) Pause(pauseState bool) (err error) {
 	if p.client == nil {
 		err = ErrNotAuthorised
@@ -206,12 +216,6 @@ func (p *SpotifyConnectPlayer) Stop() (err error) {
 		return
 	}
 
-	state, err := p.client.PlayerState()
-	if err != nil {
-		return
-	}
-	if state.Playing {
-		err = p.client.Pause()
-	}
+	err = p.client.Pause()
 	return
 }
