@@ -11,6 +11,7 @@ import:
   - youtube/v3
 - package: github.com/vansante/go-spotify-control
 - package: github.com/zmb3/spotify
+  version: master
 - package: golang.org/x/oauth2
 - package: github.com/vansante/go-event-emitter
 - package: github.com/gorilla/websocket
