@@ -136,7 +136,7 @@ var SeekCommand = Command{
 			}
 			song, _ := bot.player.GetCurrentSong()
 			duration := song.GetDuration().Nanoseconds() / 100 * percentage
-			seekSeconds = duration / int64(time.Nanosecond)
+			seekSeconds = duration / int64(time.Second)
 		} else {
 			var err error
 			seekSeconds, err = strconv.ParseInt(seekStr, 10, 32)
