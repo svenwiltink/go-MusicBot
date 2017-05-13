@@ -170,6 +170,22 @@ func (p *YoutubePlayer) Play(url string) (err error) {
 	return
 }
 
+func (p *YoutubePlayer) Seek(positionSeconds int) (err error) {
+	p.mpvMutex.Lock()
+	defer p.mpvMutex.Unlock()
+
+	err = p.checkRunning()
+	if err != nil {
+		return
+	}
+
+	err = p.mpvConn.Set("time-pos", positionSeconds)
+	if err != nil {
+		err = fmt.Errorf("[YoutubePlayer] Error sending time-pos property: %v", err)
+	}
+	return
+}
+
 func (p *YoutubePlayer) Pause(pauseState bool) (err error) {
 	p.mpvMutex.Lock()
 	defer p.mpvMutex.Unlock()
