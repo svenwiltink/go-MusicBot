@@ -220,7 +220,7 @@ var ListCommand = Command{
 		target, _, _ := bot.getTarget(event)
 		items := bot.player.GetQueuedSongs()
 		if len(items) == 0 {
-			event.Connection.Privmsg(target, italicText("The player is empty"))
+			event.Connection.Privmsg(target, italicText("The playlist is empty"))
 		}
 
 		for i, item := range items {
