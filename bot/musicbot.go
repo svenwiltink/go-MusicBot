@@ -6,10 +6,7 @@ import (
 	"gitlab.transip.us/swiltink/go-MusicBot/config"
 	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
-	"os"
-	"os/signal"
 	"strings"
-	"syscall"
 )
 
 type MusicBot struct {
@@ -118,12 +115,11 @@ func (m *MusicBot) Start() (err error) {
 	})
 
 	m.player.AddListener("play_start", m.onPlay)
+	return
+}
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
-	<-sigs
-	m.player.Stop()
+func (m *MusicBot) Stop() (err error) {
+	err = m.player.Stop()
 	return
 }
 
@@ -152,6 +148,10 @@ func (m *MusicBot) announceAddedSongs(event *irc.Event, songs []songplayer.Playa
 		}
 	}
 	m.announceMessagef(false, event, "%s added song(s): %s", boldText(event.Nick), strings.Join(songTitles, " | "))
+}
+
+func (m *MusicBot) Announce(message string) {
+	m.ircConn.Privmsg(m.conf.Channel, message)
 }
 
 func (m *MusicBot) announceMessage(nonMainOnly bool, event *irc.Event, message string) {

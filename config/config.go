@@ -49,8 +49,11 @@ const DEFAULT_MPV_BIN_PATH = "mpv"
 const DEFAULT_MPV_INPUT_PATH = ".mpv-input"
 
 type SpotifyPlayer struct {
-	Enabled bool
-	Host    string
+	Enabled      bool
+	Host         string
+	UseConnect   bool
+	ClientID     string
+	ClientSecret string
 }
 
 func ReadConfig(path string) (conf *MusicBot, err error) {
