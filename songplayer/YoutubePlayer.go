@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var youtubeURLRegex, _ = regexp.Compile(`^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$`)
+var youtubeURLRegex, _ = regexp.Compile(`^(https?://)?(www\.)?(youtube\.com|youtu\.?be)/.+$`)
 
 type YoutubePlayer struct {
 	mpvBinPath   string
@@ -162,11 +162,26 @@ func (p *YoutubePlayer) Play(url string) (err error) {
 	if err != nil {
 		return
 	}
+
 	_, err = p.mpvConn.Call("loadfile", url, "replace")
 	if err != nil {
 		err = fmt.Errorf("[YoutubePlayer] Error sending loadfile command: %v", err)
 		return
 	}
+
+	// Listen for events to find out when the file was actually downloaded from YouTube.
+	events := make(chan *mpvipc.Event)
+	stop := make(chan struct{})
+	p.mpvConn.ListenForEvents(events, stop)
+	for {
+		event := <-events
+		if event.Name == "file-loaded" {
+			break
+		}
+	}
+	// Stop listening to events again
+	stop <- struct{}{}
+
 	return
 }
 

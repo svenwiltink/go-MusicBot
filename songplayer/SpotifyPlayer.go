@@ -104,7 +104,7 @@ func (p *SpotifyPlayer) Play(url string) (err error) {
 }
 
 func (p *SpotifyPlayer) Seek(positionSeconds int) (err error) {
-	err = ErrSeekNotSupported
+	err = errors.New("seek is not supported")
 	return
 }
 
