@@ -3,6 +3,7 @@ package songplayer
 import (
 	"fmt"
 	"github.com/DexterLB/mpvipc"
+	"github.com/vansante/go-event-emitter"
 	"gitlab.transip.us/swiltink/go-MusicBot/meta"
 	"os"
 	"os/exec"
@@ -23,6 +24,7 @@ type YoutubePlayer struct {
 	mpvConn      *mpvipc.Connection
 	ytService    *meta.YouTube
 	mpvMutex     sync.Mutex
+	mpvEvents    *eventemitter.Emitter
 }
 
 func NewYoutubePlayer(mpvBinPath, mpvInputPath string) (player *YoutubePlayer, err error) {
@@ -31,6 +33,7 @@ func NewYoutubePlayer(mpvBinPath, mpvInputPath string) (player *YoutubePlayer, e
 		mpvInputPath: mpvInputPath,
 		mpvIsRunning: false,
 		ytService:    meta.NewYoutubeService(),
+		mpvEvents:    eventemitter.NewEmitter(),
 	}
 
 	err = player.init()
@@ -67,6 +70,15 @@ func (p *YoutubePlayer) init() (err error) {
 		err = fmt.Errorf("[YoutubePlayer] Error opening IPC connection on %s: %v ", p.mpvInputPath, err)
 		return
 	}
+
+	go func() {
+		events, stopListening := p.mpvConn.NewEventListener()
+		for event := range events {
+			p.mpvEvents.EmitEvent(event.Name, event)
+		}
+		stopListening <- struct{}{}
+	}()
+
 	return
 }
 
@@ -163,24 +175,18 @@ func (p *YoutubePlayer) Play(url string) (err error) {
 		return
 	}
 
+	waitForLoad := make(chan int)
+	p.mpvEvents.ListenOnce("file-loaded", func(arguments ...interface{}) {
+		waitForLoad <- 1
+	})
+
+	// Start an event listener to wait for the file to load.
 	_, err = p.mpvConn.Call("loadfile", url, "replace")
 	if err != nil {
 		err = fmt.Errorf("[YoutubePlayer] Error sending loadfile command: %v", err)
 		return
 	}
-
-	// Listen for events to find out when the file was actually downloaded from YouTube.
-	events := make(chan *mpvipc.Event)
-	stop := make(chan struct{})
-	p.mpvConn.ListenForEvents(events, stop)
-	for {
-		event := <-events
-		if event.Name == "file-loaded" {
-			break
-		}
-	}
-	// Stop listening to events again
-	stop <- struct{}{}
+	<- waitForLoad
 
 	return
 }
