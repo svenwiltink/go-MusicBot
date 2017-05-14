@@ -1,11 +1,8 @@
 package songplayer
 
 import (
-	"errors"
 	"time"
 )
-
-var ErrSeekNotSupported = errors.New("seeking is not supported")
 
 type SongPlayer interface {
 	Name() (name string)
