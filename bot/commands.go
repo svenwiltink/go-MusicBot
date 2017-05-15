@@ -7,8 +7,8 @@ import (
 	"gitlab.transip.us/swiltink/go-MusicBot/util"
 	"os/exec"
 	"sort"
-	"strings"
 	"strconv"
+	"strings"
 	"time"
 )
 
