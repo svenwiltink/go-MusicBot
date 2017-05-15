@@ -15,6 +15,8 @@ import (
 
 var youtubeURLRegex, _ = regexp.Compile(`^(https?://)?(www\.)?(youtube\.com|youtu\.?be)/.+$`)
 
+const RETRY_ATTEMPTS = 5
+
 type YoutubePlayer struct {
 	mpvBinPath   string
 	mpvInputPath string
@@ -60,15 +62,24 @@ func (p *YoutubePlayer) init() (err error) {
 		return
 	}
 
-	// Give MPV a second or so to start and create the input socket
-	time.Sleep(time.Second)
+	attempts := 0
+	for {
+		// Give MPV a second or so to start and create the input socket
+		time.Sleep(500 * time.Millisecond)
 
-	fmt.Printf("[YoutubePlayer] Opening mpv ipc connection on %s\n", p.mpvInputPath)
-	p.mpvConn = mpvipc.NewConnection(p.mpvInputPath)
-	err = p.mpvConn.Open()
-	if err != nil {
-		err = fmt.Errorf("[YoutubePlayer] Error opening IPC connection on %s: %v ", p.mpvInputPath, err)
-		return
+		fmt.Printf("[YoutubePlayer] Opening mpv ipc connection on %s\n", p.mpvInputPath)
+		p.mpvConn = mpvipc.NewConnection(p.mpvInputPath)
+		err = p.mpvConn.Open()
+		if err != nil {
+			err = fmt.Errorf("[YoutubePlayer] Error opening IPC connection on %s: %v ", p.mpvInputPath, err)
+			if attempts >= RETRY_ATTEMPTS {
+				return
+			}
+		} else {
+			err = nil
+			return
+		}
+		attempts++
 	}
 
 	go func() {
