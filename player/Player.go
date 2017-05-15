@@ -194,7 +194,7 @@ func (p *Player) Seek(positionSeconds int) (err error) {
 
 	totalSeconds := int(p.currentSong.GetDuration().Seconds())
 	if positionSeconds < 0 || positionSeconds > totalSeconds {
-		err = fmt.Errorf("Position %d is out of bounds [0 - %d]!", positionSeconds, totalSeconds)
+		err = fmt.Errorf("Position %d is out of bounds [0 - %d]", positionSeconds, totalSeconds)
 		return
 	}
 

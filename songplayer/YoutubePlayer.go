@@ -197,7 +197,7 @@ func (p *YoutubePlayer) Play(url string) (err error) {
 		err = fmt.Errorf("[YoutubePlayer] Error sending loadfile command: %v", err)
 		return
 	}
-	<- waitForLoad
+	<-waitForLoad
 
 	return
 }
