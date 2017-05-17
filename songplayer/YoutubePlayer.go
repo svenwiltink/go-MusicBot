@@ -15,7 +15,10 @@ import (
 
 var youtubeURLRegex, _ = regexp.Compile(`^(https?://)?(www\.)?(youtube\.com|youtu\.?be)/.+$`)
 
-const RETRY_ATTEMPTS = 5
+const (
+	MPV_INIT_RETRY_ATTEMPTS = 5
+	MAX_MPV_LOAD_WAIT       = time.Duration(time.Second * 20)
+)
 
 type YoutubePlayer struct {
 	mpvBinPath   string
@@ -71,8 +74,8 @@ func (p *YoutubePlayer) init() (err error) {
 		p.mpvConn = mpvipc.NewConnection(p.mpvInputPath)
 		err = p.mpvConn.Open()
 		if err != nil {
-			err = fmt.Errorf("[YoutubePlayer] Error opening IPC connection on %s: %v ", p.mpvInputPath, err)
-			if attempts >= RETRY_ATTEMPTS {
+			if attempts >= MPV_INIT_RETRY_ATTEMPTS {
+				err = fmt.Errorf("[YoutubePlayer] Error opening IPC connection on %s: %v ", p.mpvInputPath, err)
 				return
 			}
 		} else {
@@ -81,6 +84,9 @@ func (p *YoutubePlayer) init() (err error) {
 		}
 		attempts++
 	}
+
+	// Turn on all events.
+	p.mpvConn.Call("enable_event", "all")
 
 	go func() {
 		events, stopListening := p.mpvConn.NewEventListener()
@@ -197,8 +203,22 @@ func (p *YoutubePlayer) Play(url string) (err error) {
 		err = fmt.Errorf("[YoutubePlayer] Error sending loadfile command: %v", err)
 		return
 	}
-	<-waitForLoad
 
+	var timeExceeded, done bool
+	go func() {
+		time.Sleep(MAX_MPV_LOAD_WAIT)
+		if !done {
+			timeExceeded = true
+			waitForLoad <- 1
+		}
+	}()
+
+	<-waitForLoad
+	if timeExceeded {
+		err = fmt.Errorf("[YoutubePlayer] Error loading file, mpv did not respond in time")
+		return
+	}
+	done = true
 	return
 }
 
