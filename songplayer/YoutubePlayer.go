@@ -80,7 +80,7 @@ func (p *YoutubePlayer) init() (err error) {
 			}
 		} else {
 			err = nil
-			return
+			break
 		}
 		attempts++
 	}
