@@ -215,6 +215,7 @@ func (p *YoutubePlayer) Play(url string) (err error) {
 
 	<-waitForLoad
 	if timeExceeded {
+		p.mpvConn.Call("stop")
 		err = fmt.Errorf("[YoutubePlayer] Error loading file, mpv did not respond in time")
 		return
 	}
