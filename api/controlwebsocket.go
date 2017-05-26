@@ -45,26 +45,29 @@ func (cws *ControlWebsocket) Start() {
 }
 
 func (cws *ControlWebsocket) onEvent(event string, args ...interface{}) {
+	apiArgs := make([]interface{}, len(args))
+	// Loop through the arguments and if its a known type, translate it to the appropiate API type.
 	for i := range args {
-		songs, ok := args[i].([]songplayer.Playable)
+		apiArgs[i] = args[i]
+		songs, ok := apiArgs[i].([]songplayer.Playable)
 		if ok {
-			args[i] = getAPISongs(songs)
+			apiArgs[i] = getAPISongs(songs)
 			continue
 		}
-		song, ok := args[i].(songplayer.Playable)
+		song, ok := apiArgs[i].(songplayer.Playable)
 		if ok {
-			args[i] = getAPISong(song, song.GetDuration())
+			apiArgs[i] = getAPISong(song, song.GetDuration())
 			continue
 		}
-		dur, ok := args[i].(time.Duration)
+		dur, ok := apiArgs[i].(time.Duration)
 		if ok {
-			args[i] = int(dur.Seconds())
+			apiArgs[i] = int(dur.Seconds())
 			continue
 		}
 	}
 	evt := Event{
 		Event:     event,
-		Arguments: args,
+		Arguments: apiArgs,
 	}
 	cws.write(evt)
 }
