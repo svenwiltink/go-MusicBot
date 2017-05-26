@@ -211,7 +211,8 @@ func (p *YoutubePlayer) Play(url string) (err error) {
 
 	timeExceed := <-waitForLoad
 	if timeExceeded {
-		err = p.mpvConn.Call("stop")
+		fmt.Printf("[YoutubePlayer] Load file timeout\n")
+		_, err = p.mpvConn.Call("stop")
 		if err != nil {
 			fmt.Printf("[YoutubePlayer] Error calling stop after timeout: %v\n", err)
 		}
