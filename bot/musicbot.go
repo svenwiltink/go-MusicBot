@@ -187,6 +187,7 @@ func (m *MusicBot) onPlay(args ...interface{}) {
 
 	itm, ok := args[0].(songplayer.Playable)
 	if !ok {
+		fmt.Printf("onPlay: Error casting song: %v", args[0])
 		return
 	}
 
