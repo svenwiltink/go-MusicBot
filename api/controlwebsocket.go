@@ -38,7 +38,7 @@ func NewControlWebsocket(ws *websocket.Conn, readOnly bool, player player.MusicP
 }
 
 func (cws *ControlWebsocket) Start() {
-	cws.player.AddCapturer(cws.onEvent)
+	cws.capturer = cws.player.AddCapturer(cws.onEvent)
 
 	go cws.socketWriter()
 	cws.socketReader()
