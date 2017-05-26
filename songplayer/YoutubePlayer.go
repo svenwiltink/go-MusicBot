@@ -192,9 +192,9 @@ func (p *YoutubePlayer) Play(url string) (err error) {
 		return
 	}
 
-	waitForLoad := make(chan int)
+	waitForLoad := make(chan bool)
 	p.mpvEvents.ListenOnce("file-loaded", func(arguments ...interface{}) {
-		waitForLoad <- 1
+		waitForLoad <- true
 	})
 
 	// Start an event listener to wait for the file to load.
@@ -204,22 +204,20 @@ func (p *YoutubePlayer) Play(url string) (err error) {
 		return
 	}
 
-	var timeExceeded, done bool
 	go func() {
 		time.Sleep(MAX_MPV_LOAD_WAIT)
-		if !done {
-			timeExceeded = true
-			waitForLoad <- 1
-		}
+		waitForLoad <- false
 	}()
 
-	<-waitForLoad
+	timeExceed := <-waitForLoad
 	if timeExceeded {
-		p.mpvConn.Call("stop")
+		err = p.mpvConn.Call("stop")
+		if err != nil {
+			fmt.Printf("[YoutubePlayer] Error calling stop after timeout: %v\n", err)
+		}
 		err = fmt.Errorf("[YoutubePlayer] Error loading file, mpv did not respond in time")
 		return
 	}
-	done = true
 	return
 }
 
