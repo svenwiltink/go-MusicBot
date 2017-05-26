@@ -98,7 +98,7 @@ func (m *MusicBot) Start() (err error) {
 		realname := event.User
 
 		if strings.HasPrefix(message, "!music") {
-			isWhiteListed, _ := m.isUserWhitelisted(realname);
+			isWhiteListed, _ := m.isUserWhitelisted(realname)
 
 			if m.conf.Master == realname || isWhiteListed {
 				arguments := strings.Split(message, " ")[1:]
