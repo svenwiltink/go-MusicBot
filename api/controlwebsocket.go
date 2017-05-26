@@ -45,7 +45,7 @@ func (cws *ControlWebsocket) Start() {
 }
 
 func (cws *ControlWebsocket) onEvent(event string, args ...interface{}) {
-	var apiArgs []interface{}
+	apiArgs := make([]interface{}, len(args))
 	// Loop through the arguments and if its a known type, translate it to the appropiate API type.
 	for i := range args {
 		apiArgs[i] = args[i]
