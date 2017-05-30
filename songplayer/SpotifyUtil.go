@@ -3,9 +3,9 @@ package songplayer
 import (
 	"errors"
 	"fmt"
+	"github.com/zmb3/spotify"
 	"math/rand"
 	"strings"
-	"github.com/zmb3/spotify"
 )
 
 type Type int
@@ -29,7 +29,7 @@ func GetSpotifyTrackName(track spotify.SimpleTrack) (name string) {
 }
 
 func GetSpotifyTrackImage(album spotify.SimpleAlbum) (imageURL string) {
-	if len (album.Images) > 0 {
+	if len(album.Images) > 0 {
 		imageURL = album.Images[0].URL
 	}
 	return
