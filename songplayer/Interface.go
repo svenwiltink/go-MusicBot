@@ -19,4 +19,5 @@ type Playable interface {
 	GetTitle() string
 	GetDuration() time.Duration
 	GetURL() string
+	GetImageURL() string
 }
