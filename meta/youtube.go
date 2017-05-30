@@ -13,7 +13,7 @@ const APIKey = "AIzaSyAPEZOx4UgbBy6cEh_zZEfwYJ_3_bIWqfg"
 
 const YTURL = "https://www.youtube.com/watch?v=%s"
 
-// https://stackoverflow.com/a/2068371
+// YOUTUBE_IMAGE_URL_FORMAT - https://stackoverflow.com/a/2068371
 const YOUTUBE_IMAGE_URL_FORMAT = "https://img.youtube.com/vi/%s/0.jpg"
 
 type YouTube struct {
