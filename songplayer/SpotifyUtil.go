@@ -61,41 +61,47 @@ func GetSpotifySearchResults(spClient *spotify.Client, searchType SearchType, se
 		Limit: &limit,
 	})
 
-	for _, track := range spResults.Tracks.Tracks {
-		results = append(results, NewSongResult(SEARCH_TYPE_TRACK, GetSpotifyTrackName(&track.SimpleTrack), track.TimeDuration(), string(track.URI), GetSpotifyAlbumImage(&track.Album)))
+	if spResults.Tracks != nil {
+		for _, track := range spResults.Tracks.Tracks {
+			results = append(results, NewSongResult(SEARCH_TYPE_TRACK, GetSpotifyTrackName(&track.SimpleTrack), track.TimeDuration(), string(track.URI), GetSpotifyAlbumImage(&track.Album)))
+		}
 	}
 
-	for _, searchAlbum := range spResults.Albums.Albums {
-		var album *spotify.FullAlbum
-		album, err = spClient.GetAlbum(searchAlbum.ID)
-		if err != nil {
-			err = fmt.Errorf("[SpotifyConnectPlayer] Could not get album for URL: %v", err)
-			return
+	if spResults.Albums != nil {
+		for _, searchAlbum := range spResults.Albums.Albums {
+			var album *spotify.FullAlbum
+			album, err = spClient.GetAlbum(searchAlbum.ID)
+			if err != nil {
+				err = fmt.Errorf("[SpotifyConnectPlayer] Could not get album for URL: %v", err)
+				return
+			}
+			var duration time.Duration
+			for _, track := range album.Tracks.Tracks {
+				duration += track.TimeDuration()
+			}
+			results = append(results, NewSongResult(SEARCH_TYPE_ALBUM, GetSpotifyAlbumName(album), duration, string(album.URI), GetSpotifyAlbumImage(&album.SimpleAlbum)))
 		}
-		var duration time.Duration
-		for _, track := range album.Tracks.Tracks {
-			duration += track.TimeDuration()
-		}
-		results = append(results, NewSongResult(SEARCH_TYPE_ALBUM, GetSpotifyAlbumName(album), duration, string(album.URI), GetSpotifyAlbumImage(&album.SimpleAlbum)))
 	}
 
-	for _, searchPlaylist := range spResults.Playlists.Playlists {
-		var duration time.Duration
-		var listTracks *spotify.PlaylistTrackPage
-		listTracks, err = spClient.GetPlaylistTracks(searchPlaylist.Owner.ID, searchPlaylist.ID)
-		if err != nil {
-			err = fmt.Errorf("[SpotifyConnectPlayer] Could not get playlist tracks for URL: %v", err)
-			return
-		}
-		for _, track := range listTracks.Tracks {
-			duration += track.Track.TimeDuration()
-		}
+	if spResults.Playlists != nil {
+		for _, searchPlaylist := range spResults.Playlists.Playlists {
+			var duration time.Duration
+			var listTracks *spotify.PlaylistTrackPage
+			listTracks, err = spClient.GetPlaylistTracks(searchPlaylist.Owner.ID, searchPlaylist.ID)
+			if err != nil {
+				err = fmt.Errorf("[SpotifyConnectPlayer] Could not get playlist tracks for URL: %v", err)
+				return
+			}
+			for _, track := range listTracks.Tracks {
+				duration += track.Track.TimeDuration()
+			}
 
-		imageURL := ""
-		if len(searchPlaylist.Images) > 0 {
-			imageURL = searchPlaylist.Images[0].URL
+			imageURL := ""
+			if len(searchPlaylist.Images) > 0 {
+				imageURL = searchPlaylist.Images[0].URL
+			}
+			results = append(results, NewSongResult(SEARCH_TYPE_ALBUM, searchPlaylist.Name, duration, string(searchPlaylist.URI), imageURL))
 		}
-		results = append(results, NewSongResult(SEARCH_TYPE_ALBUM, searchPlaylist.Name, duration, string(searchPlaylist.URI), imageURL))
 	}
 	return
 }
