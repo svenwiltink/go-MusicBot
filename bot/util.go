@@ -85,15 +85,17 @@ func formatSong(song songplayer.Playable) (s string) {
 func progressString(total, remaining time.Duration) (progress string) {
 	percent := int(float64(total-remaining) / float64(total) * 100)
 
-	for i := 1; i < percent; i++ {
-		progress += "_"
+	progress = "+"
+	for i := 0; i < percent; i++ {
+		progress += "-"
 	}
 	progress += "#"
 	if percent < 100 {
-		for i := percent + 1; i <= 100; i++ {
-			progress += "_"
+		for i := percent + 1; i < 100; i++ {
+			progress += "-"
 		}
 	}
+	progress += "+"
 	return
 }
 
