@@ -319,7 +319,7 @@ var SearchAddCommand = Command{
 		}
 		for plyr, res := range results {
 			for _, item := range res {
-				bot.announceMessagef(false, event, "%s added song: %s (%s)", boldText(event.Nick), formatSong(item), italicText(plyr))
+				bot.announceMessagef(false, event, "%s added song(s): %s (%s)", boldText(event.Nick), formatSong(item), italicText(plyr))
 				_, err := bot.player.AddSongs(item.GetURL())
 				if err != nil {
 					event.Connection.Privmsg(target, inverseText(err.Error()))
