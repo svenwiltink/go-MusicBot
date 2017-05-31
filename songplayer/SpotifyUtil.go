@@ -3,6 +3,7 @@ package songplayer
 import (
 	"errors"
 	"fmt"
+	"github.com/zmb3/spotify"
 	"math/rand"
 	"strings"
 )
@@ -14,6 +15,25 @@ const (
 	TYPE_ALBUM
 	TYPE_PLAYLIST
 )
+
+func GetSpotifyTrackName(track spotify.SimpleTrack) (name string) {
+	name = track.Name
+	var artistNames []string
+	for _, artist := range track.Artists {
+		artistNames = append(artistNames, artist.Name)
+	}
+	if len(artistNames) > 0 {
+		name = fmt.Sprintf("%s - %s", track.Name, strings.Join(artistNames, ", "))
+	}
+	return
+}
+
+func GetSpotifyTrackImage(album spotify.SimpleAlbum) (imageURL string) {
+	if len(album.Images) > 0 {
+		imageURL = album.Images[0].URL
+	}
+	return
+}
 
 func GetSpotifyTypeAndIDFromURL(url string) (tp Type, id, userID string, err error) {
 	lowerURL := strings.ToLower(url)

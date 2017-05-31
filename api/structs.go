@@ -13,6 +13,7 @@ type Song struct {
 	SecondsRemaining int
 	FormattedTime    string
 	URL              string
+	ImageURL         string
 }
 
 type Status struct {
@@ -48,6 +49,7 @@ func getAPISong(song songplayer.Playable, remaining time.Duration) (apiSong *Son
 			Seconds:          int(duration.Seconds()),
 			SecondsRemaining: int(remaining.Seconds()),
 			FormattedTime:    util.FormatSongLength(duration),
+			ImageURL:         song.GetImageURL(),
 		}
 	}
 	return

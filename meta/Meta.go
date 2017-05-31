@@ -9,8 +9,9 @@ type Meta struct {
 	Title      string
 	Artist     string
 	Album      string
-	Source     string
+	URL        string
 	Duration   time.Duration
+	ImageURL   string
 }
 
 func (m *Meta) GetTitle() string {
@@ -22,5 +23,5 @@ func (m *Meta) GetDuration() time.Duration {
 }
 
 func (m *Meta) GetURL() string {
-	return m.Source
+	return m.URL
 }

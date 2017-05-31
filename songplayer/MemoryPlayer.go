@@ -21,7 +21,7 @@ func (p *MemoryPlayer) CanPlay(url string) (canPlay bool) {
 }
 
 func (p *MemoryPlayer) GetItems(url string) (items []Song, err error) {
-	items = append(items, *NewSong(url, time.Minute, url))
+	items = append(items, *NewSong(url, time.Minute, url, ""))
 	return
 }
 
