@@ -39,40 +39,36 @@ func (p *SpotifyPlayer) CanPlay(url string) (canPlay bool) {
 func (p *SpotifyPlayer) GetSongs(url string) (songs []Playable, err error) {
 	tp, id, _, err := GetSpotifyTypeAndIDFromURL(url)
 	if err != nil {
-		err = fmt.Errorf("[Spotifylayer] Could not parse URL: %v", err)
+		err = fmt.Errorf("[SpotifyPlayer] Could not parse URL: %v", err)
 		return
 	}
-	var tracks []spotify.SimpleTrack
 	switch tp {
 	case TYPE_TRACK:
 		var track *spotify.FullTrack
 		track, err = spotify.DefaultClient.GetTrack(spotify.ID(id))
 		if err != nil {
-			err = fmt.Errorf("[SpotifyPlayer] Could not get track meta for URL: %v", err)
+			err = fmt.Errorf("[SpotifyPlayer] Could not get track data for URL: %v", err)
 			return
 		}
-		tracks = append(tracks, track.SimpleTrack)
+
+		songs = append(songs,
+			NewSong(GetSpotifyTrackName(track.SimpleTrack), track.TimeDuration(), string(track.URI), GetSpotifyTrackImage(track.Album)),
+		)
 	case TYPE_ALBUM:
 		var album *spotify.FullAlbum
 		album, err = spotify.DefaultClient.GetAlbum(spotify.ID(id))
 		if err != nil {
-			err = fmt.Errorf("[SpotifyPlayer] Could not get album meta for URL: %v", err)
+			err = fmt.Errorf("[SpotifyPlayer] Could not get album for URL: %v", err)
 			return
 		}
 		for _, track := range album.Tracks.Tracks {
-			tracks = append(tracks, track)
+			songs = append(songs,
+				NewSong(GetSpotifyTrackName(track), track.TimeDuration(), string(track.URI), GetSpotifyTrackImage(album.SimpleAlbum)),
+			)
 		}
 	case TYPE_PLAYLIST:
 		err = errors.New("Playlists are not supported yet, they require oauth :(")
 		return
-	}
-
-	for _, track := range tracks {
-		name := track.Name
-		if len(track.Artists) > 0 {
-			name = fmt.Sprintf("%s - %s", track.Name, track.Artists[0].Name)
-		}
-		songs = append(songs, NewSong(name, track.TimeDuration(), string(track.URI)))
 	}
 	return
 }
@@ -86,11 +82,7 @@ func (p *SpotifyPlayer) SearchSongs(searchStr string, limit int) (songs []Playab
 		return
 	}
 	for _, track := range results.Tracks.Tracks {
-		name := track.Name
-		if len(track.Artists) > 0 {
-			name = fmt.Sprintf("%s - %s", track.Name, track.Artists[0].Name)
-		}
-		songs = append(songs, NewSong(name, track.TimeDuration(), string(track.URI)))
+		songs = append(songs, NewSong(GetSpotifyTrackName(track.SimpleTrack), track.TimeDuration(), string(track.URI), GetSpotifyTrackImage(track.Album)))
 	}
 	return
 }
