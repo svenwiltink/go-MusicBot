@@ -7,6 +7,7 @@ import (
 	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
 	"gitlab.transip.us/swiltink/go-MusicBot/util"
 	"strings"
+	"time"
 )
 
 const (
@@ -78,6 +79,21 @@ func colourText(foreground, backgroundColor Color, s string) (cs string) {
 
 func formatSong(song songplayer.Playable) (s string) {
 	s = fmt.Sprintf("%s %s%s%s", song.GetTitle(), getColourCode(COLOUR_TEAL, COLOUR_NONE), util.FormatSongLength(song.GetDuration()), getColourCode(COLOUR_DEFAULT, COLOUR_NONE))
+	return
+}
+
+func progressString(total, remaining time.Duration) (progress string) {
+	percent := int(float64(total-remaining) / float64(total) * 100)
+
+	for i := 1; i < percent; i++ {
+		progress += "_"
+	}
+	progress += "#"
+	if percent < 100 {
+		for i := percent + 1; i <= 100; i++ {
+			progress += "_"
+		}
+	}
 	return
 }
 
