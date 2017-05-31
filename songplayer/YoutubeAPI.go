@@ -155,6 +155,7 @@ func (yt *YouTubeAPI) Search(searchType SearchType, searchStr string, limit int)
 		return
 	}
 
+	fmt.Printf("Results: %v", response)
 	for _, item := range response.Items {
 		switch item.Id.Kind {
 		case "youtube#video":

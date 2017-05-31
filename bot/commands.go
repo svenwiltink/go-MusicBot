@@ -291,9 +291,16 @@ var SearchCommand = Command{
 			event.Connection.Privmsg(target, italicText("Nothing found!"))
 			return
 		}
+		baseNameWidth := 120
 		for plyr, res := range results {
 			for i, item := range res {
-				event.Connection.Privmsgf(target, "[%s #%d] %s - %s", plyr, i+1, formatSong(item), item.GetURL())
+				resultName := formatSong(item)
+				paddingLength := baseNameWidth - len(resultName)
+				if paddingLength > 0 {
+					resultName += strings.Repeat(" ", paddingLength)
+				}
+
+				event.Connection.Privmsgf(target, "[%s #%d] %s | %s", plyr, i+1, boldText(resultName), item.GetURL())
 			}
 		}
 	},
