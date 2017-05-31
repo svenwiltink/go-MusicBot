@@ -151,6 +151,8 @@ var SeekCommand = Command{
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
 		}
+		song, remaining := bot.player.GetCurrentSong()
+		bot.announceMessagef(false, event, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
 	},
 }
 
@@ -163,6 +165,7 @@ var PauseCommand = Command{
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
 		}
+		song, remaining := bot.player.GetCurrentSong()
 		state := bot.player.GetStatus()
 		switch state {
 		case player.PAUSED:
@@ -170,6 +173,7 @@ var PauseCommand = Command{
 		case player.PLAYING:
 			bot.announceMessage(false, event, boldText(event.Nick)+" unpaused the player")
 		}
+		bot.announceMessagef(false, event, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
 	},
 }
 
@@ -192,6 +196,7 @@ var CurrentCommand = Command{
 		song, remaining := bot.player.GetCurrentSong()
 		if song != nil {
 			event.Connection.Privmsgf(target, "Current song: %s%s%s "+italicText("(%s remaining)"), BOLD_CHARACTER, formatSong(song), BOLD_CHARACTER, util.FormatSongLength(remaining))
+			event.Connection.Privmsgf(target, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
 		} else {
 			event.Connection.Privmsg(target, italicText("Nothing currently playing"))
 		}
