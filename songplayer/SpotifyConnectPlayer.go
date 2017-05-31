@@ -118,7 +118,7 @@ func (p *SpotifyConnectPlayer) GetSongs(url string) (songs []Playable, err error
 		}
 
 		songs = append(songs,
-			NewSong(GetSpotifyTrackName(track.SimpleTrack), track.TimeDuration(), string(track.URI), GetSpotifyTrackImage(track.Album)),
+			NewSong(GetSpotifyTrackName(&track.SimpleTrack), track.TimeDuration(), string(track.URI), GetSpotifyAlbumImage(&track.Album)),
 		)
 	case TYPE_ALBUM:
 		var album *spotify.FullAlbum
@@ -129,7 +129,7 @@ func (p *SpotifyConnectPlayer) GetSongs(url string) (songs []Playable, err error
 		}
 		for _, track := range album.Tracks.Tracks {
 			songs = append(songs,
-				NewSong(GetSpotifyTrackName(track), track.TimeDuration(), string(track.URI), GetSpotifyTrackImage(album.SimpleAlbum)),
+				NewSong(GetSpotifyTrackName(&track), track.TimeDuration(), string(track.URI), GetSpotifyAlbumImage(&album.SimpleAlbum)),
 			)
 		}
 	case TYPE_PLAYLIST:
@@ -144,29 +144,20 @@ func (p *SpotifyConnectPlayer) GetSongs(url string) (songs []Playable, err error
 				continue
 			}
 			songs = append(songs,
-				NewSong(GetSpotifyTrackName(track.Track.SimpleTrack), track.Track.TimeDuration(), string(track.Track.URI), GetSpotifyTrackImage(track.Track.Album)),
+				NewSong(GetSpotifyTrackName(&track.Track.SimpleTrack), track.Track.TimeDuration(), string(track.Track.URI), GetSpotifyAlbumImage(&track.Track.Album)),
 			)
 		}
 	}
 	return
 }
 
-func (p *SpotifyConnectPlayer) Search(searchType SearchType, searchStr string, limit int) (songs []PlayableSearchResult, err error) {
+func (p *SpotifyConnectPlayer) Search(searchType SearchType, searchStr string, limit int) (results []PlayableSearchResult, err error) {
 	if p.client == nil {
 		err = ErrNotAuthorised
 		return
 	}
 
-	results, err := p.client.SearchOpt(searchStr, spotify.SearchTypeTrack, &spotify.Options{
-		Limit: &limit,
-	})
-	if err != nil {
-		err = fmt.Errorf("[SpotifyConnectPlayer] Could not search for songs: %v", err)
-		return
-	}
-	for _, track := range results.Tracks.Tracks {
-		songs = append(songs, NewSongResult(SEARCH_TYPE_TRACK, GetSpotifyTrackName(track.SimpleTrack), track.TimeDuration(), string(track.URI), GetSpotifyTrackImage(track.Album)))
-	}
+	results, err = GetSpotifySearchResults(p.client, searchType, searchStr, limit)
 	return
 }
 
