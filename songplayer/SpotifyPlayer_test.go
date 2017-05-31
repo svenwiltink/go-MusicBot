@@ -36,21 +36,21 @@ func TestSpotifyURLParsing(t *testing.T) {
 
 func TestSpotifySearching(t *testing.T) {
 	p := &SpotifyPlayer{}
-	items, err := p.SearchSongs("green day boulevard", 3)
+	items, err := p.Search(SEARCH_TYPE_TRACK, "green day boulevard", 3)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
 	}
 	t.Log("Findings: ", items)
 
-	items, err = p.SearchSongs("adele chasing pavement", 3)
+	items, err = p.Search(SEARCH_TYPE_TRACK, "adele chasing pavement", 3)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
 	}
 	t.Log("Findings: ", items)
 
-	items, err = p.SearchSongs("hallelujah", 3)
+	items, err = p.Search(SEARCH_TYPE_TRACK, "hallelujah", 3)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
