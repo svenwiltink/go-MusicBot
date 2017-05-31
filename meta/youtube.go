@@ -13,9 +13,6 @@ const APIKey = "AIzaSyAPEZOx4UgbBy6cEh_zZEfwYJ_3_bIWqfg"
 
 const YTURL = "https://www.youtube.com/watch?v=%s"
 
-// YOUTUBE_IMAGE_URL_FORMAT - https://stackoverflow.com/a/2068371
-const YOUTUBE_IMAGE_URL_FORMAT = "https://img.youtube.com/vi/%s/0.jpg"
-
 type YouTube struct {
 	service *youtube.Service
 }
@@ -87,7 +84,7 @@ func (yt *YouTube) GetMetaForIdentifier(identifier string) (meta *Meta, err erro
 				Title:      item.Snippet.Title,
 				Duration:   d.ToDuration(),
 				URL:        fmt.Sprintf(YTURL, identifier),
-				ImageURL:   fmt.Sprintf(YOUTUBE_IMAGE_URL_FORMAT, identifier),
+				ImageURL:   item.Snippet.Thumbnails.Medium.Url,
 			}
 			return
 		}
