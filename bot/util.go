@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"errors"
 	"fmt"
 	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
@@ -80,28 +81,53 @@ func formatSong(song songplayer.Playable) (s string) {
 	return
 }
 
-func searchSongs(player player.MusicPlayer, parameters []string) (results map[string][]songplayer.Playable, err error) {
-	results = make(map[string][]songplayer.Playable)
+func searchSongs(player player.MusicPlayer, parameters []string) (results map[string][]songplayer.PlayableSearchResult, err error) {
+	results = make(map[string][]songplayer.PlayableSearchResult)
 
-	searchFunc := func(songPlayer songplayer.SongPlayer, searchStr string) {
+	searchType := songplayer.SEARCH_TYPE_TRACK
+	ok, searchType := songplayer.GetSearchType(parameters[0])
+	if ok {
+		parameters = parameters[1:] // cut off the searchType parameter
+		if len(parameters) < 1 {
+			err = errors.New("Missing search parameter")
+			return
+		}
+	}
+
+	plyr := player.GetSongPlayer(parameters[0])
+	if plyr != nil {
+		parameters = parameters[1:] // cut off the player parameter
+		if len(parameters) < 1 {
+			err = errors.New("Missing search parameter")
+			return
+		}
+	}
+
+	searchFunc := func(songPlayer songplayer.SongPlayer, searchStr string) (err error) {
 		var items []songplayer.PlayableSearchResult
-		items, err = songPlayer.Search(searchStr, 3)
+		items, err = songPlayer.Search(searchType, searchStr, 3)
 		if err != nil {
 			return
 		}
 		for _, item := range items {
 			results[songPlayer.Name()] = append(results[songPlayer.Name()], item)
 		}
+		return
 	}
 
-	plyr := player.GetSongPlayer(parameters[0])
 	if plyr != nil {
-		searchFunc(plyr, strings.Join(parameters[1:], " "))
+		searchErr := searchFunc(plyr, strings.Join(parameters, " "))
+		if searchErr != nil {
+			fmt.Sprintf("[%s] Error searching [%d | %v] %v", plyr.Name(), searchType, parameters, searchErr)
+		}
 		return
 	}
 
 	for _, songPlayer := range player.GetSongPlayers() {
-		searchFunc(songPlayer, strings.Join(parameters, " "))
+		searchErr := searchFunc(songPlayer, strings.Join(parameters, " "))
+		if searchErr != nil {
+			fmt.Sprintf("[%s] Error searching [%d | %v] %v", songPlayer.Name(), searchType, parameters, searchErr)
+		}
 	}
 	return
 }
