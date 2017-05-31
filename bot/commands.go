@@ -7,7 +7,9 @@ import (
 	"gitlab.transip.us/swiltink/go-MusicBot/util"
 	"os/exec"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type Command struct {
@@ -38,58 +40,52 @@ var WhitelistCommand = Command{
 		target, _, _ := bot.getTarget(event)
 		realname := event.User
 		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, "!music whitelist <show|add|remove> [user]")
+			event.Connection.Privmsg(target, "Usage: !music whitelist <show|add|remove> [user]")
 			return
 		}
 
 		subcommand := parameters[0]
 		switch subcommand {
 		case "show":
-			{
-				message := "Current whitelist: "
-				for _, name := range bot.whitelist {
-					message += " " + underlineText(name)
-				}
-				event.Connection.Privmsg(target, message)
+			message := "Current whitelist: "
+			for _, name := range bot.whitelist {
+				message += " " + underlineText(name)
 			}
+			event.Connection.Privmsg(target, message)
 		case "add":
-			{
-				if len(parameters) < 2 {
-					event.Connection.Privmsg(target, "!music whitelist add [user]")
-					return
-				}
-				user := parameters[1]
-				if realname == bot.conf.Master {
-					if isWhitelisted, _ := bot.isUserWhitelisted(user); !isWhitelisted {
-						bot.whitelist = append(bot.whitelist, user)
+			if len(parameters) < 2 {
+				event.Connection.Privmsg(target, boldText("Usage: !music whitelist add [user]"))
+				return
+			}
+			user := parameters[1]
+			if realname == bot.conf.Master {
+				if isWhitelisted, _ := bot.isUserWhitelisted(user); !isWhitelisted {
+					bot.whitelist = append(bot.whitelist, user)
 
-						err := config.WriteWhitelist(bot.conf.WhiteListPath, bot.whitelist)
-						if err != nil {
-							event.Connection.Privmsg(target, err.Error())
-							return
-						}
-						event.Connection.Privmsgf(target, "User %s added to whitelist", user)
+					err := config.WriteWhitelist(bot.conf.WhiteListPath, bot.whitelist)
+					if err != nil {
+						event.Connection.Privmsg(target, err.Error())
+						return
 					}
+					event.Connection.Privmsgf(target, boldText("User %s added to whitelist by %s"), user, event.Nick)
 				}
 			}
 		case "remove":
-			{
-				if len(parameters) < 2 {
-					event.Connection.Privmsg(target, "!music whitelist remove [user]")
-					return
-				}
-				user := parameters[1]
-				if realname == bot.conf.Master {
-					if isWhitelisted, index := bot.isUserWhitelisted(user); isWhitelisted {
-						bot.whitelist = append(bot.whitelist[:index], bot.whitelist[index+1:]...)
+			if len(parameters) < 2 {
+				event.Connection.Privmsg(target, boldText("Usage: !music whitelist remove [user]"))
+				return
+			}
+			user := parameters[1]
+			if realname == bot.conf.Master {
+				if isWhitelisted, index := bot.isUserWhitelisted(user); isWhitelisted {
+					bot.whitelist = append(bot.whitelist[:index], bot.whitelist[index+1:]...)
 
-						err := config.WriteWhitelist(bot.conf.WhiteListPath, bot.whitelist)
-						if err != nil {
-							event.Connection.Privmsg(target, err.Error())
-							return
-						}
-						event.Connection.Privmsgf(target, "User %s removed from whitelist", user)
+					err := config.WriteWhitelist(bot.conf.WhiteListPath, bot.whitelist)
+					if err != nil {
+						event.Connection.Privmsg(target, err.Error())
+						return
 					}
+					event.Connection.Privmsgf(target, boldText("User %s removed from whitelist by %s"), user, event.Nick)
 				}
 			}
 		}
@@ -119,6 +115,41 @@ var PlayCommand = Command{
 			return
 		}
 		bot.announceMessage(true, event, boldText(event.Nick)+" started the player")
+	},
+}
+
+var SeekCommand = Command{
+	Name: "seek",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		target, _, _ := bot.getTarget(event)
+		if len(parameters) < 1 {
+			event.Connection.Privmsg(target, boldText("Usage: !music seek <secondsInSong> Or: !music seek <percentage>%"))
+			return
+		}
+		seekStr := parameters[0]
+		var seekSeconds int64
+		if strings.HasSuffix(seekStr, "%") {
+			percentage, err := strconv.ParseInt(seekStr[:len(seekStr)-1], 10, 32)
+			if err != nil {
+				event.Connection.Privmsg(target, boldText("Error parsing seek percentage"))
+				return
+			}
+			song, _ := bot.player.GetCurrentSong()
+			duration := song.GetDuration().Nanoseconds() / 100 * percentage
+			seekSeconds = duration / int64(time.Second)
+		} else {
+			var err error
+			seekSeconds, err = strconv.ParseInt(seekStr, 10, 32)
+			if err != nil {
+				event.Connection.Privmsg(target, boldText("Error parsing seek seconds"))
+				return
+			}
+		}
+		err := bot.player.Seek(int(seekSeconds))
+		if err != nil {
+			event.Connection.Privmsg(target, inverseText(err.Error()))
+			return
+		}
 	},
 }
 
@@ -191,7 +222,7 @@ var OpenCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		target, _, _ := bot.getTarget(event)
 		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, boldText("!music open <music link>"))
+			event.Connection.Privmsg(target, boldText("Usage: !music open <music link>"))
 			return
 		}
 		url := parameters[0]
@@ -247,7 +278,7 @@ var SearchCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		target, _, _ := bot.getTarget(event)
 		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, "!music search [<playerName>] <search term>")
+			event.Connection.Privmsg(target, boldText("Usage: !music search [<playerName>] <search term>"))
 			return
 		}
 
@@ -273,7 +304,7 @@ var SearchAddCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		target, _, _ := bot.getTarget(event)
 		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, "!music search-add [<playerName>] <search term>")
+			event.Connection.Privmsg(target, boldText("Usage: !music search-add [<playerName>] <search term>"))
 			return
 		}
 

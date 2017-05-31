@@ -103,6 +103,11 @@ func (p *SpotifyPlayer) Play(url string) (err error) {
 	return
 }
 
+func (p *SpotifyPlayer) Seek(positionSeconds int) (err error) {
+	err = errors.New("seek is not supported")
+	return
+}
+
 func (p *SpotifyPlayer) Pause(pauseState bool) (err error) {
 	_, err = p.control.SetPauseState(pauseState)
 	p.restartAndRetry(err, func() {

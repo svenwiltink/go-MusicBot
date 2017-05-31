@@ -1,5 +1,5 @@
 hash: 4df62e494e3fe982f0db372c7ae770dd73d250dc6cbdaabf9cbbd19046c6d22a
-updated: 2017-05-11T09:37:08.320217668+02:00
+updated: 2017-05-13T22:09:40.1551207+02:00
 imports:
 - name: github.com/channelmeter/iso8601duration
   version: 8da3af7a2a61a4eb5ae9bddec06bf637fa9593da
