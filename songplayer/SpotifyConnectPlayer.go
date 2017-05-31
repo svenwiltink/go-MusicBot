@@ -6,6 +6,7 @@ import (
 	"github.com/zmb3/spotify"
 	"log"
 	"net/http"
+	"strings"
 )
 
 const DEFAULT_AUTHORISE_PORT = 5678
@@ -140,6 +141,11 @@ func (p *SpotifyConnectPlayer) GetSongs(url string) (songs []Playable, err error
 	}
 
 	for _, track := range tracks {
+		// Filter out local songs
+		if strings.HasPrefix(string(track.URI), "spotify:local:") {
+			continue
+		}
+
 		name := track.Name
 		if len(track.Artists) > 0 {
 			name = fmt.Sprintf("%s - %s", track.Name, track.Artists[0].Name)
@@ -179,10 +185,19 @@ func (p *SpotifyConnectPlayer) Play(url string) (err error) {
 	}
 
 	URI := spotify.URI(url)
-
 	err = p.client.PlayOpt(&spotify.PlayOptions{
 		URIs: []spotify.URI{URI},
 	})
+	return
+}
+
+func (p *SpotifyConnectPlayer) Seek(positionSeconds int) (err error) {
+	if p.client == nil {
+		err = ErrNotAuthorised
+		return
+	}
+
+	err = p.client.Seek(positionSeconds * 1000)
 	return
 }
 
@@ -206,12 +221,6 @@ func (p *SpotifyConnectPlayer) Stop() (err error) {
 		return
 	}
 
-	state, err := p.client.PlayerState()
-	if err != nil {
-		return
-	}
-	if state.Playing {
-		err = p.client.Pause()
-	}
+	err = p.client.Pause()
 	return
 }

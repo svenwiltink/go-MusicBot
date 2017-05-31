@@ -3,6 +3,7 @@ package songplayer
 import (
 	"fmt"
 	"github.com/DexterLB/mpvipc"
+	"github.com/vansante/go-event-emitter"
 	"gitlab.transip.us/swiltink/go-MusicBot/meta"
 	"os"
 	"os/exec"
@@ -14,7 +15,10 @@ import (
 
 var youtubeURLRegex, _ = regexp.Compile(`^(https?://)?(www\.)?(youtube\.com|youtu\.?be)/.+$`)
 
-const RETRY_ATTEMPTS = 5
+const (
+	MPV_INIT_RETRY_ATTEMPTS = 5
+	MAX_MPV_LOAD_WAIT       = time.Duration(time.Second * 20)
+)
 
 type YoutubePlayer struct {
 	mpvBinPath   string
@@ -25,6 +29,7 @@ type YoutubePlayer struct {
 	mpvConn      *mpvipc.Connection
 	ytService    *meta.YouTube
 	mpvMutex     sync.Mutex
+	mpvEvents    *eventemitter.Emitter
 }
 
 func NewYoutubePlayer(mpvBinPath, mpvInputPath string) (player *YoutubePlayer, err error) {
@@ -33,6 +38,7 @@ func NewYoutubePlayer(mpvBinPath, mpvInputPath string) (player *YoutubePlayer, e
 		mpvInputPath: mpvInputPath,
 		mpvIsRunning: false,
 		ytService:    meta.NewYoutubeService(),
+		mpvEvents:    eventemitter.NewEmitter(),
 	}
 
 	err = player.init()
@@ -68,16 +74,28 @@ func (p *YoutubePlayer) init() (err error) {
 		p.mpvConn = mpvipc.NewConnection(p.mpvInputPath)
 		err = p.mpvConn.Open()
 		if err != nil {
-			err = fmt.Errorf("[YoutubePlayer] Error opening IPC connection on %s: %v ", p.mpvInputPath, err)
-			if attempts >= RETRY_ATTEMPTS {
+			if attempts >= MPV_INIT_RETRY_ATTEMPTS {
+				err = fmt.Errorf("[YoutubePlayer] Error opening IPC connection on %s: %v ", p.mpvInputPath, err)
 				return
 			}
 		} else {
 			err = nil
-			return
+			break
 		}
 		attempts++
 	}
+
+	// Turn on all events.
+	p.mpvConn.Call("enable_event", "all")
+
+	go func() {
+		events, stopListening := p.mpvConn.NewEventListener()
+		for event := range events {
+			p.mpvEvents.EmitEvent(event.Name, event)
+		}
+		stopListening <- struct{}{}
+	}()
+
 	return
 }
 
@@ -173,10 +191,49 @@ func (p *YoutubePlayer) Play(url string) (err error) {
 	if err != nil {
 		return
 	}
+
+	waitForLoad := make(chan bool)
+	p.mpvEvents.ListenOnce("file-loaded", func(arguments ...interface{}) {
+		waitForLoad <- true
+	})
+
+	// Start an event listener to wait for the file to load.
 	_, err = p.mpvConn.Call("loadfile", url, "replace")
 	if err != nil {
 		err = fmt.Errorf("[YoutubePlayer] Error sending loadfile command: %v", err)
 		return
+	}
+
+	go func() {
+		time.Sleep(MAX_MPV_LOAD_WAIT)
+		waitForLoad <- false
+	}()
+
+	success := <-waitForLoad
+	if !success {
+		fmt.Printf("[YoutubePlayer] Load file timeout\n")
+		_, err = p.mpvConn.Call("stop")
+		if err != nil {
+			fmt.Printf("[YoutubePlayer] Error calling stop after timeout: %v\n", err)
+		}
+		err = fmt.Errorf("[YoutubePlayer] Error loading file, mpv did not respond in time")
+		return
+	}
+	return
+}
+
+func (p *YoutubePlayer) Seek(positionSeconds int) (err error) {
+	p.mpvMutex.Lock()
+	defer p.mpvMutex.Unlock()
+
+	err = p.checkRunning()
+	if err != nil {
+		return
+	}
+
+	err = p.mpvConn.Set("time-pos", positionSeconds)
+	if err != nil {
+		err = fmt.Errorf("[YoutubePlayer] Error sending time-pos property: %v", err)
 	}
 	return
 }

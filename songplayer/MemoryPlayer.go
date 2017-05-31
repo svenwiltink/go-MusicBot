@@ -30,6 +30,11 @@ func (p *MemoryPlayer) Play(url string) (err error) {
 	return
 }
 
+func (p *MemoryPlayer) Seek(positionSeconds int) (err error) {
+	// Do nothing \o/
+	return
+}
+
 func (p *MemoryPlayer) Pause(pauseState bool) (err error) {
 	// Do nothing \o/
 	return

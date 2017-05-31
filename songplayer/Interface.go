@@ -1,6 +1,8 @@
 package songplayer
 
-import "time"
+import (
+	"time"
+)
 
 type SongPlayer interface {
 	Name() (name string)
@@ -8,6 +10,7 @@ type SongPlayer interface {
 	GetSongs(url string) (songs []Playable, err error)
 	SearchSongs(searchStr string, limit int) (songs []Playable, err error)
 	Play(url string) (err error)
+	Seek(positionSeconds int) (err error)
 	Pause(pauseState bool) (err error)
 	Stop() (err error)
 }

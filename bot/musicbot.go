@@ -61,6 +61,7 @@ func (m *MusicBot) Start() (err error) {
 
 	m.registerCommand(NextCommand)
 	m.registerCommand(PlayCommand)
+	m.registerCommand(SeekCommand)
 	m.registerCommand(PauseCommand)
 	m.registerCommand(StopCommand)
 
@@ -97,7 +98,9 @@ func (m *MusicBot) Start() (err error) {
 		realname := event.User
 
 		if strings.HasPrefix(message, "!music") {
-			if isWhiteListed, _ := m.isUserWhitelisted(realname); m.conf.Master == realname || isWhiteListed {
+			isWhiteListed, _ := m.isUserWhitelisted(realname)
+
+			if m.conf.Master == realname || isWhiteListed {
 				arguments := strings.Split(message, " ")[1:]
 				if len(arguments) > 0 {
 					commandName := strings.ToLower(arguments[0])
@@ -108,9 +111,10 @@ func (m *MusicBot) Start() (err error) {
 					}
 				}
 				event.Connection.Privmsg(channel, "Unknown command. Use !music help to list all the commands available")
-			} else {
-				event.Connection.Privmsgf(channel, "I will not obey you, %s", realname)
+				return
 			}
+			// Unauthorised user
+			event.Connection.Privmsgf(channel, "I will not obey you, %s", realname)
 		}
 	})
 
@@ -183,6 +187,7 @@ func (m *MusicBot) onPlay(args ...interface{}) {
 
 	itm, ok := args[0].(songplayer.Playable)
 	if !ok {
+		fmt.Printf("onPlay: Error casting song: %v", args[0])
 		return
 	}
 
