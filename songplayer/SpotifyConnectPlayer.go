@@ -108,7 +108,6 @@ func (p *SpotifyConnectPlayer) GetSongs(url string) (songs []Playable, err error
 		err = fmt.Errorf("[SpotifyConnectPlayer] Could not parse URL: %v", err)
 		return
 	}
-	var tracks []spotify.SimpleTrack
 	switch tp {
 	case TYPE_TRACK:
 		var track *spotify.FullTrack
@@ -117,16 +116,21 @@ func (p *SpotifyConnectPlayer) GetSongs(url string) (songs []Playable, err error
 			err = fmt.Errorf("[SpotifyConnectPlayer] Could not get track data for URL: %v", err)
 			return
 		}
-		tracks = append(tracks, track.SimpleTrack)
+
+		songs = append(songs,
+			NewSong(GetSpotifyTrackName(track.SimpleTrack), track.TimeDuration(), string(track.URI), GetSpotifyTrackImage(track.Album)),
+		)
 	case TYPE_ALBUM:
-		var albumTracks *spotify.SimpleTrackPage
-		albumTracks, err = p.client.GetAlbumTracks(spotify.ID(id))
+		var album *spotify.FullAlbum
+		album, err = p.client.GetAlbum(spotify.ID(id))
 		if err != nil {
-			err = fmt.Errorf("[SpotifyConnectPlayer] Could not get album tracks for URL: %v", err)
+			err = fmt.Errorf("[SpotifyConnectPlayer] Could not get album for URL: %v", err)
 			return
 		}
-		for _, track := range albumTracks.Tracks {
-			tracks = append(tracks, track)
+		for _, track := range album.Tracks.Tracks {
+			songs = append(songs,
+				NewSong(GetSpotifyTrackName(track), track.TimeDuration(), string(track.URI), GetSpotifyTrackImage(album.SimpleAlbum)),
+			)
 		}
 	case TYPE_PLAYLIST:
 		var listTracks *spotify.PlaylistTrackPage
@@ -136,21 +140,13 @@ func (p *SpotifyConnectPlayer) GetSongs(url string) (songs []Playable, err error
 			return
 		}
 		for _, track := range listTracks.Tracks {
-			tracks = append(tracks, track.Track.SimpleTrack)
+			if strings.HasPrefix(string(track.Track.URI), "spotify:local:") {
+				continue
+			}
+			songs = append(songs,
+				NewSong(GetSpotifyTrackName(track.Track.SimpleTrack), track.Track.TimeDuration(), string(track.Track.URI), GetSpotifyTrackImage(track.Track.Album)),
+			)
 		}
-	}
-
-	for _, track := range tracks {
-		// Filter out local songs
-		if strings.HasPrefix(string(track.URI), "spotify:local:") {
-			continue
-		}
-
-		name := track.Name
-		if len(track.Artists) > 0 {
-			name = fmt.Sprintf("%s - %s", track.Name, track.Artists[0].Name)
-		}
-		songs = append(songs, NewSong(name, track.TimeDuration(), string(track.URI)))
 	}
 	return
 }
@@ -169,11 +165,7 @@ func (p *SpotifyConnectPlayer) SearchSongs(searchStr string, limit int) (songs [
 		return
 	}
 	for _, track := range results.Tracks.Tracks {
-		name := track.Name
-		if len(track.Artists) > 0 {
-			name = fmt.Sprintf("%s - %s", track.Name, track.Artists[0].Name)
-		}
-		songs = append(songs, NewSong(name, track.TimeDuration(), string(track.URI)))
+		songs = append(songs, NewSong(GetSpotifyTrackName(track.SimpleTrack), track.TimeDuration(), string(track.URI), GetSpotifyTrackImage(track.Album)))
 	}
 	return
 }

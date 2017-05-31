@@ -6,13 +6,15 @@ type Song struct {
 	Title    string
 	Duration time.Duration
 	URL      string
+	ImageURL string
 }
 
-func NewSong(title string, duration time.Duration, URL string) *Song {
+func NewSong(title string, duration time.Duration, URL, imageURL string) *Song {
 	return &Song{
 		Title:    title,
 		Duration: duration,
 		URL:      URL,
+		ImageURL: imageURL,
 	}
 }
 
@@ -26,4 +28,8 @@ func (i *Song) GetDuration() time.Duration {
 
 func (i *Song) GetURL() string {
 	return i.URL
+}
+
+func (i *Song) GetImageURL() string {
+	return i.ImageURL
 }

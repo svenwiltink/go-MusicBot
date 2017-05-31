@@ -42,13 +42,13 @@ func (yt *YouTube) Initialize() (err error) {
 
 // GetMetaForURL - Get meta data for a youtube url
 func (yt *YouTube) GetMetaForURL(source string) (meta *Meta, err error) {
-	url, err := url.Parse(source)
+	ytURL, err := url.Parse(source)
 	if err != nil {
 		err = fmt.Errorf("[YoutubeMeta] Unable to parse source: %v", err)
 		return
 	}
 
-	identifier := url.Query().Get("v")
+	identifier := ytURL.Query().Get("v")
 	if identifier == "" {
 		err = fmt.Errorf("[YoutubeMeta] Empty identifier for: %s", source)
 		return
@@ -83,7 +83,8 @@ func (yt *YouTube) GetMetaForIdentifier(identifier string) (meta *Meta, err erro
 				Identifier: identifier,
 				Title:      item.Snippet.Title,
 				Duration:   d.ToDuration(),
-				Source:     fmt.Sprintf(YTURL, identifier),
+				URL:        fmt.Sprintf(YTURL, identifier),
+				ImageURL:   item.Snippet.Thumbnails.Medium.Url,
 			}
 			return
 		}
@@ -93,13 +94,13 @@ func (yt *YouTube) GetMetaForIdentifier(identifier string) (meta *Meta, err erro
 }
 
 func (yt *YouTube) GetMetasForPlaylistURL(source string) (items []Meta, err error) {
-	url, err := url.Parse(source)
+	plURL, err := url.Parse(source)
 	if err != nil {
 		err = fmt.Errorf("[YoutubeMeta] Unable to parse source: %v", err)
 		return
 	}
 
-	identifier := url.Query().Get("list")
+	identifier := plURL.Query().Get("list")
 	if identifier == "" {
 		return
 	}
