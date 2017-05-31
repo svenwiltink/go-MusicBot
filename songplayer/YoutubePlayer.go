@@ -165,7 +165,7 @@ func (p *YoutubePlayer) GetSongs(url string) (songs []Playable, err error) {
 	return
 }
 
-func (p *YoutubePlayer) Search(searchStr string, limit int) (songs []PlayableSearchResult, err error) {
+func (p *YoutubePlayer) Search(searchType SearchType, searchStr string, limit int) (songs []PlayableSearchResult, err error) {
 	metaDatas, err := p.ytService.SearchForMetas(searchStr, limit)
 	if err != nil {
 		err = fmt.Errorf("[YoutubePlayer] Error searching meta data: %v", err)
@@ -173,7 +173,7 @@ func (p *YoutubePlayer) Search(searchStr string, limit int) (songs []PlayableSea
 	}
 
 	for _, metaData := range metaDatas {
-		songs = append(songs, NewSongResult(SEARCH_RESULT_TRACK, metaData.Title, metaData.Duration, metaData.URL, metaData.ImageURL))
+		songs = append(songs, NewSongResult(SEARCH_TYPE_TRACK, metaData.Title, metaData.Duration, metaData.URL, metaData.ImageURL))
 	}
 	return
 }

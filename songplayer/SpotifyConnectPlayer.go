@@ -151,7 +151,7 @@ func (p *SpotifyConnectPlayer) GetSongs(url string) (songs []Playable, err error
 	return
 }
 
-func (p *SpotifyConnectPlayer) Search(searchStr string, limit int) (songs []PlayableSearchResult, err error) {
+func (p *SpotifyConnectPlayer) Search(searchType SearchType, searchStr string, limit int) (songs []PlayableSearchResult, err error) {
 	if p.client == nil {
 		err = ErrNotAuthorised
 		return
@@ -165,7 +165,7 @@ func (p *SpotifyConnectPlayer) Search(searchStr string, limit int) (songs []Play
 		return
 	}
 	for _, track := range results.Tracks.Tracks {
-		songs = append(songs, NewSongResult(SEARCH_RESULT_TRACK, GetSpotifyTrackName(track.SimpleTrack), track.TimeDuration(), string(track.URI), GetSpotifyTrackImage(track.Album)))
+		songs = append(songs, NewSongResult(SEARCH_TYPE_TRACK, GetSpotifyTrackName(track.SimpleTrack), track.TimeDuration(), string(track.URI), GetSpotifyTrackImage(track.Album)))
 	}
 	return
 }
