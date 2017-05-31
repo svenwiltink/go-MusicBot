@@ -84,8 +84,8 @@ func searchSongs(player player.MusicPlayer, parameters []string) (results map[st
 	results = make(map[string][]songplayer.Playable)
 
 	searchFunc := func(songPlayer songplayer.SongPlayer, searchStr string) {
-		var items []songplayer.Playable
-		items, err = songPlayer.SearchSongs(searchStr, 3)
+		var items []songplayer.PlayableSearchResult
+		items, err = songPlayer.Search(searchStr, 3)
 		if err != nil {
 			return
 		}

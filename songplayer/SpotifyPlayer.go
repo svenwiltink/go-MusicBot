@@ -73,7 +73,7 @@ func (p *SpotifyPlayer) GetSongs(url string) (songs []Playable, err error) {
 	return
 }
 
-func (p *SpotifyPlayer) SearchSongs(searchStr string, limit int) (songs []Playable, err error) {
+func (p *SpotifyPlayer) Search(searchStr string, limit int) (songs []PlayableSearchResult, err error) {
 	results, err := spotify.DefaultClient.SearchOpt(searchStr, spotify.SearchTypeTrack, &spotify.Options{
 		Limit: &limit,
 	})
@@ -82,7 +82,7 @@ func (p *SpotifyPlayer) SearchSongs(searchStr string, limit int) (songs []Playab
 		return
 	}
 	for _, track := range results.Tracks.Tracks {
-		songs = append(songs, NewSong(GetSpotifyTrackName(track.SimpleTrack), track.TimeDuration(), string(track.URI), GetSpotifyTrackImage(track.Album)))
+		songs = append(songs, NewSongResult(SEARCH_RESULT_TRACK, GetSpotifyTrackName(track.SimpleTrack), track.TimeDuration(), string(track.URI), GetSpotifyTrackImage(track.Album)))
 	}
 	return
 }
