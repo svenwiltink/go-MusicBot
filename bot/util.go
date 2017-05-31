@@ -81,7 +81,7 @@ func formatSong(song songplayer.Playable) (s string) {
 	return
 }
 
-func searchSongs(player player.MusicPlayer, parameters []string) (results map[string][]songplayer.PlayableSearchResult, err error) {
+func searchSongs(player player.MusicPlayer, parameters []string, limit int) (results map[string][]songplayer.PlayableSearchResult, err error) {
 	results = make(map[string][]songplayer.PlayableSearchResult)
 
 	searchType := songplayer.SEARCH_TYPE_TRACK
@@ -105,7 +105,7 @@ func searchSongs(player player.MusicPlayer, parameters []string) (results map[st
 
 	searchFunc := func(songPlayer songplayer.SongPlayer, searchStr string) (err error) {
 		var items []songplayer.PlayableSearchResult
-		items, err = songPlayer.Search(searchType, searchStr, 3)
+		items, err = songPlayer.Search(searchType, searchStr, limit)
 		if err != nil {
 			return
 		}

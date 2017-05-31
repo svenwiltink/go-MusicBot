@@ -282,7 +282,7 @@ var SearchCommand = Command{
 			return
 		}
 
-		results, err := searchSongs(bot.player, parameters)
+		results, err := searchSongs(bot.player, parameters, 5)
 		if err != nil {
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
@@ -308,7 +308,7 @@ var SearchAddCommand = Command{
 			return
 		}
 
-		results, err := searchSongs(bot.player, parameters)
+		results, err := searchSongs(bot.player, parameters, 1)
 		if err != nil {
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
