@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 type Command struct {
@@ -291,11 +292,11 @@ var SearchCommand = Command{
 			event.Connection.Privmsg(target, italicText("Nothing found!"))
 			return
 		}
-		baseNameWidth := 120
+		baseNameWidth := 100
 		for plyr, res := range results {
 			for i, item := range res {
 				resultName := formatSong(item)
-				paddingLength := baseNameWidth - len(resultName)
+				paddingLength := baseNameWidth - utf8.RuneCountInString(resultName)
 				if paddingLength > 0 {
 					resultName += strings.Repeat(" ", paddingLength)
 				}
