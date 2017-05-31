@@ -144,7 +144,7 @@ func (yt *YouTubeAPI) Search(searchType SearchType, searchStr string, limit int)
 		searchTypeStr = "playlist"
 	}
 
-	call := yt.service.Search.List("id").
+	call := yt.service.Search.List("id,snippet").
 		Q(searchStr).
 		Type(searchTypeStr).
 		MaxResults(int64(limit))
@@ -155,7 +155,6 @@ func (yt *YouTubeAPI) Search(searchType SearchType, searchStr string, limit int)
 		return
 	}
 
-	fmt.Printf("Results: %v", response)
 	for _, item := range response.Items {
 		switch item.Id.Kind {
 		case "youtube#video":
@@ -178,7 +177,7 @@ func (yt *YouTubeAPI) Search(searchType SearchType, searchStr string, limit int)
 				return
 			}
 
-			listURL := fmt.Sprintf(YouTubePlaylistURL, plys[0].GetURL(), item.Id.PlaylistId)
+			listURL := plys[0].GetURL() + "&list=" + item.Id.PlaylistId
 			imageURL := ""
 			if item.Snippet.Thumbnails != nil && item.Snippet.Thumbnails.Medium != nil {
 				imageURL = item.Snippet.Thumbnails.Medium.Url
