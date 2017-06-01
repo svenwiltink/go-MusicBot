@@ -109,6 +109,11 @@ func getPlayerNames(player player.MusicPlayer) (names []string) {
 func searchSongs(player player.MusicPlayer, parameters []string, limit int) (results map[string][]songplayer.PlayableSearchResult, err error) {
 	results = make(map[string][]songplayer.PlayableSearchResult)
 
+	if len(parameters) < 1 {
+		err = errors.New("Missing search parameter")
+		return
+	}
+
 	searchType := songplayer.SEARCH_TYPE_TRACK
 	ok, searchType := songplayer.GetSearchType(parameters[0])
 	if ok {
