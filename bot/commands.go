@@ -284,7 +284,7 @@ var SearchCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		target, _, _ := bot.getTarget(event)
 		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, boldText("Usage: !music search [<track|album|playlist>] [<playerName>] <search term>"))
+			event.Connection.Privmsgf(target, boldText("Usage: !music search [<track|album|playlist>] [<%s>] <search term>"), strings.ToLower(strings.Join(getPlayerNames(bot.player), "|")))
 			return
 		}
 
@@ -297,7 +297,7 @@ var SearchCommand = Command{
 			event.Connection.Privmsg(target, italicText("Nothing found!"))
 			return
 		}
-		baseNameWidth := 100
+		baseNameWidth := 80
 		for plyr, res := range results {
 			for i, item := range res {
 				resultName := formatSong(item)
@@ -317,7 +317,7 @@ var SearchAddCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		target, _, _ := bot.getTarget(event)
 		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, boldText("Usage: !music search-add [<track|album|playlist>] [<playerName>] <search term>"))
+			event.Connection.Privmsgf(target, boldText("Usage: !music search-add [<track|album|playlist>] [<%s>] <search term>"), strings.ToLower(strings.Join(getPlayerNames(bot.player), "|")))
 			return
 		}
 
