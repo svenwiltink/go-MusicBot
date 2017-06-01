@@ -87,7 +87,7 @@ func progressString(total, remaining time.Duration) (progress string) {
 
 	progress = "+"
 	for i := 0; i < percent; i++ {
-		progress += "-"
+		progress += "#"
 	}
 	progress += "#"
 	if percent < 100 {
