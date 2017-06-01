@@ -99,6 +99,13 @@ func progressString(total, remaining time.Duration) (progress string) {
 	return
 }
 
+func getPlayerNames(player player.MusicPlayer) (names []string) {
+	for _, playr := range player.GetSongPlayers() {
+		names = append(names, playr.Name())
+	}
+	return
+}
+
 func searchSongs(player player.MusicPlayer, parameters []string, limit int) (results map[string][]songplayer.PlayableSearchResult, err error) {
 	results = make(map[string][]songplayer.PlayableSearchResult)
 
