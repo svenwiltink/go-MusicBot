@@ -233,8 +233,7 @@ func (p *SpotifyConnectPlayer) Play(url string) (err error) {
 
 	URI := spotify.URI(url)
 	err = p.client.PlayOpt(&spotify.PlayOptions{
-		URIs:            []spotify.URI{URI},
-		PlaybackContext: &URI,
+		URIs: []spotify.URI{URI},
 	})
 	return
 }
