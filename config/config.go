@@ -43,6 +43,8 @@ type YoutubePlayer struct {
 	Enabled      bool
 	MpvBinPath   string
 	MpvInputPath string
+
+	YoutubeAPIKey string
 }
 
 const DEFAULT_MPV_BIN_PATH = "mpv"
