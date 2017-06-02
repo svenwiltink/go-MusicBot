@@ -1,6 +1,7 @@
 package songplayer
 
 import (
+	"errors"
 	"fmt"
 	"github.com/DexterLB/mpvipc"
 	"github.com/vansante/go-event-emitter"
@@ -31,12 +32,23 @@ type YoutubePlayer struct {
 	mpvEvents    *eventemitter.Emitter
 }
 
-func NewYoutubePlayer(mpvBinPath, mpvInputPath string) (player *YoutubePlayer, err error) {
+func NewYoutubePlayer(youtubeAPIKey, mpvBinPath, mpvInputPath string) (player *YoutubePlayer, err error) {
+	if youtubeAPIKey == "" {
+		err = errors.New("Youtube API key is empty")
+		return
+	}
+
+	if mpvBinPath == "" {
+		mpvBinPath = "mpv"
+	}
+	if mpvInputPath == "" {
+		mpvInputPath = ".mpv-input"
+	}
 	player = &YoutubePlayer{
 		mpvBinPath:   mpvBinPath,
 		mpvInputPath: mpvInputPath,
 		mpvIsRunning: false,
-		ytAPI:        NewYoutubeAPI(),
+		ytAPI:        NewYoutubeAPI(youtubeAPIKey),
 		mpvEvents:    eventemitter.NewEmitter(),
 	}
 
