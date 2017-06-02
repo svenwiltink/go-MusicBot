@@ -10,19 +10,20 @@ import (
 	"net/url"
 )
 
-const APIKey = "AIzaSyAPEZOx4UgbBy6cEh_zZEfwYJ_3_bIWqfg"
-
 const (
 	YouTubeVideoURL    = "https://www.youtube.com/watch?v=%s"
 	YouTubePlaylistURL = "https://www.youtube.com/watch?v=%s&list=%s"
 )
 
 type YouTubeAPI struct {
+	apiKey  string
 	service *youtube.Service
 }
 
-func NewYoutubeAPI() (y *YouTubeAPI) {
-	y = &YouTubeAPI{}
+func NewYoutubeAPI(youtubeAPIKey string) (y *YouTubeAPI) {
+	y = &YouTubeAPI{
+		apiKey: youtubeAPIKey,
+	}
 
 	y.Initialize()
 	return
@@ -31,7 +32,7 @@ func NewYoutubeAPI() (y *YouTubeAPI) {
 // Initialize - Initialize the youtube service
 func (yt *YouTubeAPI) Initialize() (err error) {
 	client := &http.Client{
-		Transport: &transport.APIKey{Key: APIKey},
+		Transport: &transport.APIKey{Key: yt.apiKey},
 	}
 
 	service, err := youtube.New(client)
