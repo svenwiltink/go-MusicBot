@@ -78,6 +78,9 @@ func main() {
 
 				musicBot.Announce("[SpotifyConnect] The musicbot was successfully authorised!")
 			})
+		} else {
+			playr.AddSongPlayer(spPlayer)
+			fmt.Println("Added SpotifyConnect player")
 		}
 	} else if conf.SpotifyPlayer.Enabled && !conf.SpotifyPlayer.UseConnect {
 		spPlayer, err := songplayer.NewSpotifyPlayer(conf.SpotifyPlayer.Host)
