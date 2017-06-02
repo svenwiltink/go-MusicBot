@@ -38,6 +38,9 @@ func NewSpotifyConnectPlayer(spotifyClientID, spotifyClientSecret, authoriseRedi
 		auth:       &auth,
 	}
 
+	// Add our own after authorisation handler
+	p.AddAuthorisationListener(p.afterAuthorisation)
+
 	go func() {
 		err = http.ListenAndServe(fmt.Sprintf(":%d", authoriseHTTPPort), p)
 		if err != nil {
@@ -85,6 +88,20 @@ func (p *SpotifyConnectPlayer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 func (p *SpotifyConnectPlayer) AddAuthorisationListener(listener func()) {
 	p.authListeners = append(p.authListeners, listener)
+}
+
+func (p *SpotifyConnectPlayer) afterAuthorisation() {
+	// Turn repeat off, as it interferes with the musicplayer
+	repErr := p.client.Repeat("off")
+	if repErr != nil {
+		log.Printf("[SpotifyConnect] Error setting repeat setting: %v\n", repErr)
+	}
+
+	// Turn shuffle off
+	shufErr := p.client.Shuffle(false)
+	if shufErr != nil {
+		log.Printf("[SpotifyConnect] Error setting shuffle setting: %v\n", shufErr)
+	}
 }
 
 func (p *SpotifyConnectPlayer) Name() (name string) {
@@ -169,7 +186,8 @@ func (p *SpotifyConnectPlayer) Play(url string) (err error) {
 
 	URI := spotify.URI(url)
 	err = p.client.PlayOpt(&spotify.PlayOptions{
-		URIs: []spotify.URI{URI},
+		URIs:            []spotify.URI{URI},
+		PlaybackContext: &URI,
 	})
 	return
 }
