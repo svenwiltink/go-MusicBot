@@ -52,7 +52,7 @@ func (p *SpotifyPlayer) GetSongs(url string) (songs []Playable, err error) {
 		}
 
 		songs = append(songs,
-			NewSong(GetSpotifyTrackName(track.SimpleTrack), track.TimeDuration(), string(track.URI), GetSpotifyTrackImage(track.Album)),
+			NewSong(GetSpotifyTrackName(&track.SimpleTrack), track.TimeDuration(), string(track.URI), GetSpotifyAlbumImage(&track.Album)),
 		)
 	case TYPE_ALBUM:
 		var album *spotify.FullAlbum
@@ -63,7 +63,7 @@ func (p *SpotifyPlayer) GetSongs(url string) (songs []Playable, err error) {
 		}
 		for _, track := range album.Tracks.Tracks {
 			songs = append(songs,
-				NewSong(GetSpotifyTrackName(track), track.TimeDuration(), string(track.URI), GetSpotifyTrackImage(album.SimpleAlbum)),
+				NewSong(GetSpotifyTrackName(&track), track.TimeDuration(), string(track.URI), GetSpotifyAlbumImage(&album.SimpleAlbum)),
 			)
 		}
 	case TYPE_PLAYLIST:
@@ -73,17 +73,8 @@ func (p *SpotifyPlayer) GetSongs(url string) (songs []Playable, err error) {
 	return
 }
 
-func (p *SpotifyPlayer) SearchSongs(searchStr string, limit int) (songs []Playable, err error) {
-	results, err := spotify.DefaultClient.SearchOpt(searchStr, spotify.SearchTypeTrack, &spotify.Options{
-		Limit: &limit,
-	})
-	if err != nil {
-		err = fmt.Errorf("[SpotifyPlayer] Could not search for songs: %v", err)
-		return
-	}
-	for _, track := range results.Tracks.Tracks {
-		songs = append(songs, NewSong(GetSpotifyTrackName(track.SimpleTrack), track.TimeDuration(), string(track.URI), GetSpotifyTrackImage(track.Album)))
-	}
+func (p *SpotifyPlayer) Search(searchType SearchType, searchStr string, limit int) (results []PlayableSearchResult, err error) {
+	results, err = GetSpotifySearchResults(spotify.DefaultClient, searchType, searchStr, limit)
 	return
 }
 

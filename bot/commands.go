@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 type Command struct {
@@ -150,6 +151,8 @@ var SeekCommand = Command{
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
 		}
+		song, remaining := bot.player.GetCurrentSong()
+		bot.announceMessagef(false, event, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
 	},
 }
 
@@ -162,6 +165,7 @@ var PauseCommand = Command{
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
 		}
+		song, remaining := bot.player.GetCurrentSong()
 		state := bot.player.GetStatus()
 		switch state {
 		case player.PAUSED:
@@ -169,6 +173,7 @@ var PauseCommand = Command{
 		case player.PLAYING:
 			bot.announceMessage(false, event, boldText(event.Nick)+" unpaused the player")
 		}
+		bot.announceMessagef(false, event, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
 	},
 }
 
@@ -191,6 +196,7 @@ var CurrentCommand = Command{
 		song, remaining := bot.player.GetCurrentSong()
 		if song != nil {
 			event.Connection.Privmsgf(target, "Current song: %s%s%s "+italicText("(%s remaining)"), BOLD_CHARACTER, formatSong(song), BOLD_CHARACTER, util.FormatSongLength(remaining))
+			event.Connection.Privmsgf(target, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
 		} else {
 			event.Connection.Privmsg(target, italicText("Nothing currently playing"))
 		}
@@ -278,11 +284,11 @@ var SearchCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		target, _, _ := bot.getTarget(event)
 		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, boldText("Usage: !music search [<playerName>] <search term>"))
+			event.Connection.Privmsgf(target, boldText("Usage: !music search [<track|album|playlist>] [<%s>] <search term>"), strings.ToLower(strings.Join(getPlayerNames(bot.player), "|")))
 			return
 		}
 
-		results, err := searchSongs(bot.player, parameters)
+		results, err := searchSongs(bot.player, parameters, 5)
 		if err != nil {
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
@@ -291,9 +297,16 @@ var SearchCommand = Command{
 			event.Connection.Privmsg(target, italicText("Nothing found!"))
 			return
 		}
+		baseNameWidth := 80
 		for plyr, res := range results {
 			for i, item := range res {
-				event.Connection.Privmsgf(target, "[%s #%d] %s - %s", plyr, i+1, formatSong(item), item.GetURL())
+				resultName := formatSong(item)
+				paddingLength := baseNameWidth - utf8.RuneCountInString(resultName)
+				if paddingLength > 0 {
+					resultName += strings.Repeat(" ", paddingLength)
+				}
+
+				event.Connection.Privmsgf(target, "[%s #%d] %s | %s", plyr, i+1, boldText(resultName), item.GetURL())
 			}
 		}
 	},
@@ -304,11 +317,11 @@ var SearchAddCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		target, _, _ := bot.getTarget(event)
 		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, boldText("Usage: !music search-add [<playerName>] <search term>"))
+			event.Connection.Privmsgf(target, boldText("Usage: !music search-add [<track|album|playlist>] [<%s>] <search term>"), strings.ToLower(strings.Join(getPlayerNames(bot.player), "|")))
 			return
 		}
 
-		results, err := searchSongs(bot.player, parameters)
+		results, err := searchSongs(bot.player, parameters, 1)
 		if err != nil {
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
@@ -319,7 +332,7 @@ var SearchAddCommand = Command{
 		}
 		for plyr, res := range results {
 			for _, item := range res {
-				bot.announceMessagef(false, event, "%s added song: %s (%s)", boldText(event.Nick), formatSong(item), italicText(plyr))
+				bot.announceMessagef(false, event, "%s added song(s): %s (%s)", boldText(event.Nick), formatSong(item), italicText(plyr))
 				_, err := bot.player.AddSongs(item.GetURL())
 				if err != nil {
 					event.Connection.Privmsg(target, inverseText(err.Error()))
