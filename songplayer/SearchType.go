@@ -7,9 +7,9 @@ import (
 type SearchType uint8
 
 const (
-	SEARCH_TYPE_TRACK    SearchType = 1
-	SEARCH_TYPE_ALBUM               = 2
-	SEARCH_TYPE_PLAYLIST            = 3
+	SEARCH_TYPE_TRACK    SearchType = iota + 1
+	SEARCH_TYPE_ALBUM               = iota + 1
+	SEARCH_TYPE_PLAYLIST            = iota + 1
 )
 
 func GetSearchType(searchTypeStr string) (ok bool, searchType SearchType) {
