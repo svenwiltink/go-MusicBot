@@ -1,11 +1,13 @@
 package bot
 
 import (
+	"errors"
 	"fmt"
 	"gitlab.transip.us/swiltink/go-MusicBot/player"
 	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
 	"gitlab.transip.us/swiltink/go-MusicBot/util"
 	"strings"
+	"time"
 )
 
 const (
@@ -80,28 +82,82 @@ func formatSong(song songplayer.Playable) (s string) {
 	return
 }
 
-func searchSongs(player player.MusicPlayer, parameters []string) (results map[string][]songplayer.Playable, err error) {
-	results = make(map[string][]songplayer.Playable)
+func progressString(total, remaining time.Duration) (progress string) {
+	percent := int(float64(total-remaining) / float64(total) * 100)
 
-	searchFunc := func(songPlayer songplayer.SongPlayer, searchStr string) {
-		var items []songplayer.Playable
-		items, err = songPlayer.SearchSongs(searchStr, 3)
+	progress = "+"
+	for i := 0; i < percent; i++ {
+		progress += "#"
+	}
+	progress += "#"
+	if percent < 100 {
+		for i := percent + 1; i < 100; i++ {
+			progress += "-"
+		}
+	}
+	progress += "+"
+	return
+}
+
+func getPlayerNames(player player.MusicPlayer) (names []string) {
+	for _, playr := range player.GetSongPlayers() {
+		names = append(names, playr.Name())
+	}
+	return
+}
+
+func searchSongs(player player.MusicPlayer, parameters []string, limit int) (results map[string][]songplayer.PlayableSearchResult, err error) {
+	results = make(map[string][]songplayer.PlayableSearchResult)
+
+	if len(parameters) < 1 {
+		err = errors.New("Missing search parameter")
+		return
+	}
+
+	searchType := songplayer.SEARCH_TYPE_TRACK
+	ok, searchType := songplayer.GetSearchType(parameters[0])
+	if ok {
+		parameters = parameters[1:] // cut off the searchType parameter
+		if len(parameters) < 1 {
+			err = errors.New("Missing search parameter")
+			return
+		}
+	}
+
+	plyr := player.GetSongPlayer(parameters[0])
+	if plyr != nil {
+		parameters = parameters[1:] // cut off the player parameter
+		if len(parameters) < 1 {
+			err = errors.New("Missing search parameter")
+			return
+		}
+	}
+
+	searchFunc := func(songPlayer songplayer.SongPlayer, searchStr string) (err error) {
+		var items []songplayer.PlayableSearchResult
+		items, err = songPlayer.Search(searchType, searchStr, limit)
 		if err != nil {
 			return
 		}
 		for _, item := range items {
 			results[songPlayer.Name()] = append(results[songPlayer.Name()], item)
 		}
+		return
 	}
 
-	plyr := player.GetSongPlayer(parameters[0])
 	if plyr != nil {
-		searchFunc(plyr, strings.Join(parameters[1:], " "))
+		searchErr := searchFunc(plyr, strings.Join(parameters, " "))
+		if searchErr != nil {
+			fmt.Sprintf("[%s] Error searching [%d | %v] %v", plyr.Name(), searchType, parameters, searchErr)
+		}
 		return
 	}
 
 	for _, songPlayer := range player.GetSongPlayers() {
-		searchFunc(songPlayer, strings.Join(parameters, " "))
+		searchErr := searchFunc(songPlayer, strings.Join(parameters, " "))
+		if searchErr != nil {
+			fmt.Sprintf("[%s] Error searching [%d | %v] %v", songPlayer.Name(), searchType, parameters, searchErr)
+		}
 	}
 	return
 }

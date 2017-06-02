@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/DexterLB/mpvipc"
 	"github.com/vansante/go-event-emitter"
-	"gitlab.transip.us/swiltink/go-MusicBot/meta"
 	"os"
 	"os/exec"
 	"regexp"
@@ -27,7 +26,7 @@ type YoutubePlayer struct {
 	mpvProcess   *exec.Cmd
 	mpvIsRunning bool
 	mpvConn      *mpvipc.Connection
-	ytService    *meta.YouTube
+	ytAPI        *YouTubeAPI
 	mpvMutex     sync.Mutex
 	mpvEvents    *eventemitter.Emitter
 }
@@ -37,7 +36,7 @@ func NewYoutubePlayer(mpvBinPath, mpvInputPath string) (player *YoutubePlayer, e
 		mpvBinPath:   mpvBinPath,
 		mpvInputPath: mpvInputPath,
 		mpvIsRunning: false,
-		ytService:    meta.NewYoutubeService(),
+		ytAPI:        NewYoutubeAPI(),
 		mpvEvents:    eventemitter.NewEmitter(),
 	}
 
@@ -145,35 +144,26 @@ func (p *YoutubePlayer) CanPlay(url string) (canPlay bool) {
 func (p *YoutubePlayer) GetSongs(url string) (songs []Playable, err error) {
 	lowerURL := strings.ToLower(url)
 	if strings.Contains(lowerURL, "player") || strings.Contains(lowerURL, "list=") {
-		var metaDatas []meta.Meta
-		metaDatas, err = p.ytService.GetMetasForPlaylistURL(url)
+		songs, err = p.ytAPI.GetPlayablesForPlaylistURL(url)
+		// On error, fall back to single add
 		if err == nil {
-			for _, metaData := range metaDatas {
-				songs = append(songs, NewSong(metaData.Title, metaData.Duration, metaData.URL, metaData.ImageURL))
-			}
 			return
 		}
-		// On error, fall back to single add
 	}
 
-	metaData, err := p.ytService.GetMetaForURL(url)
+	song, err := p.ytAPI.GetPlayableForURL(url)
 	if err != nil {
 		err = fmt.Errorf("[YoutubePlayer] Error getting meta data: %v", err)
 		return
 	}
-	songs = append(songs, NewSong(metaData.Title, metaData.Duration, metaData.URL, metaData.ImageURL))
+	songs = append(songs, song)
 	return
 }
 
-func (p *YoutubePlayer) SearchSongs(searchStr string, limit int) (songs []Playable, err error) {
-	metaDatas, err := p.ytService.SearchForMetas(searchStr, limit)
+func (p *YoutubePlayer) Search(searchType SearchType, searchStr string, limit int) (results []PlayableSearchResult, err error) {
+	results, err = p.ytAPI.Search(searchType, searchStr, limit)
 	if err != nil {
-		err = fmt.Errorf("[YoutubePlayer] Error searching meta data: %v", err)
-		return
-	}
-
-	for _, metaData := range metaDatas {
-		songs = append(songs, NewSong(metaData.Title, metaData.Duration, metaData.URL, metaData.ImageURL))
+		err = fmt.Errorf("[YoutubePlayer] Error searching songs: %v", err)
 	}
 	return
 }
