@@ -41,7 +41,7 @@ func main() {
 	}
 
 	if conf.YoutubePlayer.Enabled {
-		ytPlayer, err := songplayer.NewYoutubePlayer(conf.YoutubePlayer.MpvBinPath, conf.YoutubePlayer.MpvInputPath)
+		ytPlayer, err := songplayer.NewYoutubePlayer(conf.YoutubePlayer.YoutubeAPIKey, conf.YoutubePlayer.MpvBinPath, conf.YoutubePlayer.MpvInputPath)
 		if err != nil {
 			fmt.Printf("Error creating Youtube player: %v\n", err)
 
