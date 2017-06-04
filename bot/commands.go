@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+	"github.com/SvenWiltink/volumecontrol"
 )
 
 type Command struct {
@@ -348,16 +349,22 @@ var SearchAddCommand = Command{
 var VolUpCommand = Command{
 	Name: "vol++",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		cmd := exec.Command("amixer", "-D", "pulse", "sset", "Master", "10%+")
-		cmd.Run()
+		target, _, _ := bot.getTarget(event)
+		err := volumecontrol.IncreaseVolume(10)
+		if err != nil {
+			event.Connection.Privmsg(target, inverseText(err.Error()))
+		}
 	},
 }
 
 var VolDownCommand = Command{
 	Name: "vol--",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		cmd := exec.Command("amixer", "-D", "pulse", "sset", "Master", "10%-")
-		cmd.Run()
+		target, _, _ := bot.getTarget(event)
+		err := volumecontrol.DecreaseVolume(10)
+		if err != nil {
+			event.Connection.Privmsg(target, inverseText(err.Error()))
+		}
 	},
 }
 
@@ -369,7 +376,11 @@ var VolCommand = Command{
 			event.Connection.Privmsg(target, "!music vol <volume>")
 			return
 		}
-		cmd := exec.Command("amixer", "-D", "pulse", "sset", "Master", parameters[0]+"%")
-		cmd.Run()
+
+		volume, _ := strconv.Atoi(parameters[0])
+		err := volumecontrol.SetVolume(volume)
+		if err != nil {
+			event.Connection.Privmsg(target, inverseText(err.Error()))
+		}
 	},
 }
