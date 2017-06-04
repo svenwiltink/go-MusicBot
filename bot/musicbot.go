@@ -3,9 +3,9 @@ package bot
 import (
 	"fmt"
 	irc "github.com/thoj/go-ircevent"
-	"gitlab.transip.us/swiltink/go-MusicBot/config"
-	"gitlab.transip.us/swiltink/go-MusicBot/player"
-	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
+	"github.com/SvenWiltink/go-MusicBot/config"
+	"github.com/SvenWiltink/go-MusicBot/player"
+	"github.com/SvenWiltink/go-MusicBot/songplayer"
 	"strings"
 )
 
