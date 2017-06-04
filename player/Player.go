@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/vansante/go-event-emitter"
-	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
+	"github.com/SvenWiltink/go-MusicBot/songplayer"
 	"math/rand"
 	"strings"
 	"sync"
