@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"gitlab.transip.us/swiltink/go-MusicBot/config"
-	"gitlab.transip.us/swiltink/go-MusicBot/player"
+	"github.com/SvenWiltink/go-MusicBot/config"
+	"github.com/SvenWiltink/go-MusicBot/player"
 	"log"
 	"net/http"
 )

@@ -3,7 +3,7 @@ package config
 import (
 	"bufio"
 	"fmt"
-	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
+	"github.com/SvenWiltink/go-MusicBot/songplayer"
 	"os"
 	"strings"
 	"sync"

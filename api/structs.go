@@ -1,9 +1,9 @@
 package api
 
 import (
-	"gitlab.transip.us/swiltink/go-MusicBot/player"
-	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
-	"gitlab.transip.us/swiltink/go-MusicBot/util"
+	"github.com/SvenWiltink/go-MusicBot/player"
+	"github.com/SvenWiltink/go-MusicBot/songplayer"
+	"github.com/SvenWiltink/go-MusicBot/util"
 	"time"
 )
 

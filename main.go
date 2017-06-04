@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"gitlab.transip.us/swiltink/go-MusicBot/api"
-	"gitlab.transip.us/swiltink/go-MusicBot/bot"
-	"gitlab.transip.us/swiltink/go-MusicBot/config"
-	"gitlab.transip.us/swiltink/go-MusicBot/player"
-	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
-	"gitlab.transip.us/swiltink/go-MusicBot/util"
+	"github.com/SvenWiltink/go-MusicBot/api"
+	"github.com/SvenWiltink/go-MusicBot/bot"
+	"github.com/SvenWiltink/go-MusicBot/config"
+	"github.com/SvenWiltink/go-MusicBot/player"
+	"github.com/SvenWiltink/go-MusicBot/songplayer"
+	"github.com/SvenWiltink/go-MusicBot/util"
 	"log"
 	"os"
 	"os/signal"

@@ -2,7 +2,7 @@ package player
 
 import (
 	"github.com/vansante/go-event-emitter"
-	"gitlab.transip.us/swiltink/go-MusicBot/songplayer"
+	"github.com/SvenWiltink/go-MusicBot/songplayer"
 	"time"
 )
 
