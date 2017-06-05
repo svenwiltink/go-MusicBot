@@ -3,10 +3,10 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"github.com/gorilla/websocket"
-	"github.com/vansante/go-event-emitter"
 	"github.com/SvenWiltink/go-MusicBot/player"
 	"github.com/SvenWiltink/go-MusicBot/songplayer"
+	"github.com/gorilla/websocket"
+	"github.com/vansante/go-event-emitter"
 	"io/ioutil"
 	"sync"
 	"time"
