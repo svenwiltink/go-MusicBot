@@ -51,12 +51,15 @@ const DEFAULT_MPV_BIN_PATH = "mpv"
 const DEFAULT_MPV_INPUT_PATH = ".mpv-input"
 
 type SpotifyPlayer struct {
-	Enabled      bool
-	Host         string
-	UseConnect   bool
-	ClientID     string
-	ClientSecret string
+	Enabled       bool
+	Host          string
+	UseConnect    bool
+	ClientID      string
+	ClientSecret  string
+	TokenFilePath string
 }
+
+const DEFAULT_TOKEN_FILE_PATH = ".spotify-token"
 
 func ReadConfig(path string) (conf *MusicBot, err error) {
 	file, err := os.Open(path)
@@ -81,6 +84,7 @@ func (c *MusicBot) ApplyDefaults() {
 	c.IRC.WhiteListPath = DEFAULT_WHITELIST_PATH
 	c.API.Port = DEFAULT_API_PORT
 	c.SpotifyPlayer.Enabled = true
+	c.SpotifyPlayer.TokenFilePath = DEFAULT_TOKEN_FILE_PATH
 	c.YoutubePlayer.Enabled = true
 	c.YoutubePlayer.MpvBinPath = DEFAULT_MPV_BIN_PATH
 	c.YoutubePlayer.MpvInputPath = DEFAULT_MPV_INPUT_PATH
