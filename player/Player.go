@@ -3,8 +3,8 @@ package player
 import (
 	"errors"
 	"fmt"
-	"github.com/vansante/go-event-emitter"
 	"github.com/SvenWiltink/go-MusicBot/songplayer"
+	"github.com/vansante/go-event-emitter"
 	"math/rand"
 	"strings"
 	"sync"
