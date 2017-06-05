@@ -60,6 +60,10 @@ func GetSpotifySearchResults(spClient *spotify.Client, searchType SearchType, se
 	spResults, err := spClient.SearchOpt(searchStr, spotifySearchType, &spotify.Options{
 		Limit: &limit,
 	})
+	if err != nil {
+		err = fmt.Errorf("[SpotifyClient] Could not search for songs: %v", err)
+		return
+	}
 
 	if spResults.Tracks != nil {
 		for _, track := range spResults.Tracks.Tracks {
@@ -72,7 +76,7 @@ func GetSpotifySearchResults(spClient *spotify.Client, searchType SearchType, se
 			var album *spotify.FullAlbum
 			album, err = spClient.GetAlbum(searchAlbum.ID)
 			if err != nil {
-				err = fmt.Errorf("[SpotifyConnectPlayer] Could not get album for URL: %v", err)
+				err = fmt.Errorf("[SpotifyClient] Could not get album for URL: %v", err)
 				return
 			}
 			var duration time.Duration
@@ -89,7 +93,7 @@ func GetSpotifySearchResults(spClient *spotify.Client, searchType SearchType, se
 			var listTracks *spotify.PlaylistTrackPage
 			listTracks, err = spClient.GetPlaylistTracks(searchPlaylist.Owner.ID, searchPlaylist.ID)
 			if err != nil {
-				err = fmt.Errorf("[SpotifyConnectPlayer] Could not get playlist tracks for URL: %v", err)
+				err = fmt.Errorf("[SpotifyClient] Could not get playlist tracks for URL: %v", err)
 				return
 			}
 			for _, track := range listTracks.Tracks {
