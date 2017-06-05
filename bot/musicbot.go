@@ -2,10 +2,10 @@ package bot
 
 import (
 	"fmt"
-	irc "github.com/thoj/go-ircevent"
 	"github.com/SvenWiltink/go-MusicBot/config"
 	"github.com/SvenWiltink/go-MusicBot/player"
 	"github.com/SvenWiltink/go-MusicBot/songplayer"
+	irc "github.com/thoj/go-ircevent"
 	"strings"
 )
 
