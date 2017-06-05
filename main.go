@@ -53,12 +53,12 @@ func main() {
 	}
 
 	if conf.SpotifyPlayer.Enabled && conf.SpotifyPlayer.UseConnect {
-		spPlayer, authURL, err := songplayer.NewSpotifyConnectPlayer(conf.SpotifyPlayer.ClientID, conf.SpotifyPlayer.ClientSecret, "", 0)
+		spPlayer, authURL, err := songplayer.NewSpotifyConnectPlayer(conf.SpotifyPlayer.ClientID, conf.SpotifyPlayer.ClientSecret, conf.SpotifyPlayer.TokenFilePath, "", 0)
 		if err != nil {
 			fmt.Printf("Error creating SpotifyConnect player: %v\n", err)
 
 			musicBot.Announce(fmt.Sprintf("[SpotifyConnect] Error creating player: %v", err))
-		} else {
+		} else if authURL != "" {
 			ips, err := util.GetExternalIPs()
 			ipStr := "???"
 			if err != nil {
@@ -78,6 +78,9 @@ func main() {
 
 				musicBot.Announce("[SpotifyConnect] The musicbot was successfully authorised!")
 			})
+		} else {
+			playr.AddSongPlayer(spPlayer)
+			fmt.Println("Added SpotifyConnect player")
 		}
 	} else if conf.SpotifyPlayer.Enabled && !conf.SpotifyPlayer.UseConnect {
 		spPlayer, err := songplayer.NewSpotifyPlayer(conf.SpotifyPlayer.Host)
