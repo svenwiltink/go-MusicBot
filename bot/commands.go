@@ -1,10 +1,10 @@
 package bot
 
 import (
-	"github.com/thoj/go-ircevent"
 	"github.com/SvenWiltink/go-MusicBot/config"
 	"github.com/SvenWiltink/go-MusicBot/player"
 	"github.com/SvenWiltink/go-MusicBot/util"
+	"github.com/thoj/go-ircevent"
 	"os/exec"
 	"sort"
 	"strconv"
