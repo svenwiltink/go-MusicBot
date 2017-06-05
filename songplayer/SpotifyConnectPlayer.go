@@ -1,9 +1,12 @@
 package songplayer
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/zmb3/spotify"
+	"golang.org/x/oauth2"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -16,13 +19,14 @@ var ErrNotAuthorised = errors.New("[SpotifyConnectPlayer] Client has not been au
 
 type SpotifyConnectPlayer struct {
 	sessionKey    string
+	tokenFilePath string
 	client        *spotify.Client
 	user          *spotify.PrivateUser
 	auth          *spotify.Authenticator
 	authListeners []func()
 }
 
-func NewSpotifyConnectPlayer(spotifyClientID, spotifyClientSecret, authoriseRedirectURL string, authoriseHTTPPort int) (p *SpotifyConnectPlayer, authURL string, err error) {
+func NewSpotifyConnectPlayer(spotifyClientID, spotifyClientSecret, tokenFilePath, authoriseRedirectURL string, authoriseHTTPPort int) (p *SpotifyConnectPlayer, authURL string, err error) {
 	if authoriseRedirectURL == "" {
 		authoriseRedirectURL = DEFAULT_AUTHORISE_URL
 	}
@@ -34,8 +38,9 @@ func NewSpotifyConnectPlayer(spotifyClientID, spotifyClientSecret, authoriseRedi
 	auth.SetAuthInfo(spotifyClientID, spotifyClientSecret)
 
 	p = &SpotifyConnectPlayer{
-		sessionKey: RandStringBytes(12),
-		auth:       &auth,
+		sessionKey:    RandStringBytes(12),
+		tokenFilePath: tokenFilePath,
+		auth:          &auth,
 	}
 
 	// Add our own after authorisation handler
@@ -49,9 +54,22 @@ func NewSpotifyConnectPlayer(spotifyClientID, spotifyClientSecret, authoriseRedi
 		}
 	}()
 
+	token, readErr := p.readToken()
+	if readErr == nil {
+		client := p.auth.NewClient(token)
+		var userErr error
+		p.user, userErr = client.CurrentUser()
+		if userErr == nil {
+			log.Printf("[SpotifyConnect] Reusing previous token")
+			p.client = &client
+			p.afterAuthorisation()
+			return
+		}
+		log.Printf("[SpotifyConnect] Previous token invalid, reauthenticatation needed")
+	}
+
 	authURL = auth.AuthURL(p.sessionKey)
 	log.Printf("[SpotifyConnect] Please authorise the MusicBot by visiting the following page in your browser: %s\n", authURL)
-
 	return
 }
 
@@ -81,6 +99,8 @@ func (p *SpotifyConnectPlayer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "text/html")
 	fmt.Fprintf(w, "<h1>Login completed as %s</h1>", p.user.ID)
 
+	p.writeToken(token)
+
 	for _, l := range p.authListeners {
 		l()
 	}
@@ -102,6 +122,33 @@ func (p *SpotifyConnectPlayer) afterAuthorisation() {
 	if shufErr != nil {
 		log.Printf("[SpotifyConnect] Error setting shuffle setting: %v\n", shufErr)
 	}
+}
+
+func (p *SpotifyConnectPlayer) writeToken(token *oauth2.Token) (err error) {
+	if p.tokenFilePath == "" {
+		err = errors.New("Tokenfilepath invalid")
+		return
+	}
+	buf, err := json.Marshal(token)
+	if err != nil {
+		return
+	}
+	err = ioutil.WriteFile(p.tokenFilePath, buf, 0755)
+	return
+}
+
+func (p *SpotifyConnectPlayer) readToken() (token *oauth2.Token, err error) {
+	if p.tokenFilePath == "" {
+		err = errors.New("Tokenfilepath invalid")
+		return
+	}
+	buf, err := ioutil.ReadFile(p.tokenFilePath)
+	if err != nil {
+		return
+	}
+	token = &oauth2.Token{}
+	err = json.Unmarshal(buf, token)
+	return
 }
 
 func (p *SpotifyConnectPlayer) Name() (name string) {
@@ -186,8 +233,7 @@ func (p *SpotifyConnectPlayer) Play(url string) (err error) {
 
 	URI := spotify.URI(url)
 	err = p.client.PlayOpt(&spotify.PlayOptions{
-		URIs:            []spotify.URI{URI},
-		PlaybackContext: &URI,
+		URIs: []spotify.URI{URI},
 	})
 	return
 }
