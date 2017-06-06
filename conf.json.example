@@ -13,7 +13,7 @@
      "Password": "bla"
   },
   "YoutubePlayer": {
-     YoutubeAPIKey": "<api key>",
+     "YoutubeAPIKey": "<api key>",
      "Enabled": true,
      "MpvBinPath": "mpv",
      "MpvInputPath": ".mpv-input"
