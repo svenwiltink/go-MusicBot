@@ -1,0 +1,38 @@
+language: go
+go:
+- 1.8.x
+install:
+- source ci/prepare
+jobs:
+  include:
+  - stage: formatting
+    script:
+    - make fmt
+  - script:
+    - make deps
+    - make lint
+  - stage: build
+    script:
+    - make deps
+    - glide install
+    - make build
+    on:
+      tags: false
+  - stage: release
+    install: skip
+    script:
+      - make deps
+      - glide install
+      - make build
+      - mkdir out/archives
+      - ls -1 out/binaries | xargs -L 1 -I{}  tar --transform='flags=r;s|.*\(MusicBot\).*|\1|' --transform='flags=r;s|\(.*\)|MusicBot/\1|' -cf out/archives/{}.tar out/binaries/{} conf.json.example whitelist.txt
+    deploy:
+      provider: releases
+      api_key:
+          secure: hmEPa5FCvu16GTt9kA1djudi2+gOrvpTarwc1yEruCDR76bn1dKa+KfaunyQL6L78zQPD2NTKI3J8OiEyoO68uOnsuAi+JKeX5a1UsnFvJaUWgmJ6l+NTgUPc++HUl86VeBqnzxuP7g2jUimhAA/LB5d7TCREuFW1Nm2ITqEpFhbRPOImniOZ2B0cxxorwdaMvwQ0QPCVVMTIuUnFzDPw1Xf0RNHa4s3U9JPHAh1N+NHMwXxDS8zaoplSjzyiiHxa9TBE4VdUoSkBMx0VtOK5X6ynItsPlBfG9TW7QuKBtUlW0sHhVkFZCYwU72Lnmlj6SgN2sOl2x1jAHwOT+tBHVgy6TtCwlLKP4H5EH4ptlTSkwBISZvrmEtmR2TW0Gt2y7jjmw2jeVCUS0kBFq+fNnFBzKKQJvwVztHnV3KxMRT1ubW02e6zyHd9wBAEk9VL/Gjgy7+N/o4wt8voB1Cp1qcYpneHDXOuf/MADUUmOyZXF1thtBmF5poZWJaSTXO9sdwdHZyqwfe58mJBK9adJ6Fu63O9opD4ZaG0IpMdlj6tJapUu57zRSa4BRelS8zbPtmWw3xEByF3n9KT4QV/tB8TxfAVt3OF/D/HFSsEzSjYRj7+Z7+lZUfIbRxBPBKwo54HjQj5wyR6FsuqJ7LH2OnMuPFtkWfCfJM2ZHvS8tY=
+      file_glob: true
+      file:
+        - out/archives/*
+    skip_cleanup: true
+    on:
+      tags: true
