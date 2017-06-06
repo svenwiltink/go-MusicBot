@@ -35,4 +35,4 @@ jobs:
         - out/archives/*
       on:
         tags: true
-    skip_cleanup: true
+      skip_cleanup: true
