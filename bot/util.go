@@ -148,7 +148,7 @@ func searchSongs(player player.MusicPlayer, parameters []string, limit int) (res
 	if plyr != nil {
 		searchErr := searchFunc(plyr, strings.Join(parameters, " "))
 		if searchErr != nil {
-			fmt.Sprintf("[%s] Error searching [%d | %v] %v", plyr.Name(), searchType, parameters, searchErr)
+			fmt.Printf("[%s] Error searching [%d | %v] %v", plyr.Name(), searchType, parameters, searchErr)
 		}
 		return
 	}
@@ -156,7 +156,7 @@ func searchSongs(player player.MusicPlayer, parameters []string, limit int) (res
 	for _, songPlayer := range player.GetSongPlayers() {
 		searchErr := searchFunc(songPlayer, strings.Join(parameters, " "))
 		if searchErr != nil {
-			fmt.Sprintf("[%s] Error searching [%d | %v] %v", songPlayer.Name(), searchType, parameters, searchErr)
+			fmt.Printf("[%s] Error searching [%d | %v] %v", songPlayer.Name(), searchType, parameters, searchErr)
 		}
 	}
 	return
