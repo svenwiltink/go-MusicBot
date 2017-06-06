@@ -33,6 +33,6 @@ jobs:
       file_glob: true
       file:
         - out/archives/*
+      on:
+        tags: true
     skip_cleanup: true
-    on:
-      tags: true
