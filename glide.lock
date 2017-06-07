@@ -1,5 +1,5 @@
-hash: 4df62e494e3fe982f0db372c7ae770dd73d250dc6cbdaabf9cbbd19046c6d22a
-updated: 2017-05-13T22:09:40.1551207+02:00
+hash: 46c97b3c109008251acfced9a9928ff36d664f03c89947f07ca76a38f6bf09ac
+updated: 2017-06-07T12:25:16.904751933+02:00
 imports:
 - name: github.com/channelmeter/iso8601duration
   version: 8da3af7a2a61a4eb5ae9bddec06bf637fa9593da
@@ -15,6 +15,8 @@ imports:
   version: 392c28fe23e1c45ddba891b0320b3b5df220beea
 - name: github.com/gorilla/websocket
   version: 3ab3a8b8831546bd18fd182c20687ca853b2bb13
+- name: github.com/SvenWiltink/volumecontrol
+  version: a15c62dd6041f896296744510c98ca4320a4a0a4
 - name: github.com/thoj/go-ircevent
   version: a6b1561a016c2a4aae183c3ef152c25d134c095d
 - name: github.com/vansante/go-event-emitter
@@ -22,7 +24,7 @@ imports:
 - name: github.com/vansante/go-spotify-control
   version: 698a948a0e19d1d7ef3aa0de854c059ec348fda5
 - name: github.com/zmb3/spotify
-  version: 84bf5e353eaccd52f17bbbfdfd1accfc56361bb6
+  version: fa2281db406e079b7a2c349b0f3506be1ac2e0c1
 - name: golang.org/x/net
   version: a6577fac2d73be281a500b310739095313165611
   subpackages:
@@ -35,19 +37,19 @@ imports:
 - name: google.golang.org/api
   version: 1202890e803f07684581b575fda809bf335a533f
   subpackages:
+  - googleapi/transport
+  - youtube/v3
   - gensupport
   - googleapi
   - googleapi/internal/uritemplates
-  - googleapi/transport
-  - youtube/v3
 - name: google.golang.org/appengine
   version: 56d253d1dd14aa01937e12c73a0971bcfd797ff2
   subpackages:
+  - urlfetch
   - internal
+  - internal/urlfetch
   - internal/base
   - internal/datastore
   - internal/log
   - internal/remote_api
-  - internal/urlfetch
-  - urlfetch
 testImports: []
