@@ -168,9 +168,8 @@ func (p *YoutubePlayer) GetSongs(url string) (songs []Playable, err error) {
 		// On error, fall back to single add
 		if err == nil {
 			return
-		} else {
-			logrus.Warnf("YoutubePlayer.GetSongs: Error getting playlist playables [%s] %v", url, err)
 		}
+		logrus.Warnf("YoutubePlayer.GetSongs: Error getting playlist playables [%s] %v", url, err)
 	}
 
 	song, err := p.ytAPI.GetPlayableForURL(url)
