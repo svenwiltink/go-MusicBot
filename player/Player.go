@@ -193,7 +193,7 @@ func (p *Player) Play() (song songplayer.Playable, err error) {
 
 	switch p.status {
 	case STOPPED:
-		song, err = p.setPlaylistPosition(p.playlistPosition + 1)
+		song, err = p.setPlaylistPosition(p.playlistPosition)
 		return
 	case PAUSED:
 		err = p.pause()
@@ -289,12 +289,12 @@ func (p *Player) setPlaylistPosition(newPosition int) (song songplayer.Playable,
 	song = p.playlist[newPosition]
 	musicPlayer, err := p.findPlayer(song.GetURL())
 	if err != nil {
-		logrus.Errorf("Player.next: No player available to play [%s] %v", song.GetURL(), err)
+		logrus.Errorf("Player.setPlaylistPosition: No player available to play [%s] %v", song.GetURL(), err)
 		return
 	}
 	err = musicPlayer.Play(song.GetURL())
 	if err != nil {
-		logrus.Errorf("Player.next: Error playing %s with player %s: %v", song.GetURL(), musicPlayer.Name(), err)
+		logrus.Errorf("Player.setPlaylistPosition: Error playing %s with player %s: %v", song.GetURL(), musicPlayer.Name(), err)
 		return
 	}
 	p.playlistPosition = newPosition
@@ -308,7 +308,7 @@ func (p *Player) setPlaylistPosition(newPosition int) (song songplayer.Playable,
 	p.EmitEvent("play_start", p.currentSong)
 	p.EmitEvent("queue_updated", p.playlist[p.playlistPosition:])
 
-	logrus.Infof("Player.next: %s started playing %s successfully", musicPlayer.Name(), song.GetURL())
+	logrus.Infof("Player.setPlaylistPosition: %s started playing %s successfully", musicPlayer.Name(), song.GetURL())
 	return
 }
 
