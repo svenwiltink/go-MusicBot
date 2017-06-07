@@ -70,7 +70,8 @@ func (m *MusicBot) Start() (err error) {
 
 	m.registerCommand(CurrentCommand)
 	m.registerCommand(ShuffleCommand)
-	m.registerCommand(ListCommand)
+	m.registerCommand(QueueCommand)
+	m.registerCommand(HistoryCommand)
 	m.registerCommand(FlushCommand)
 
 	m.registerCommand(AddCommand)
