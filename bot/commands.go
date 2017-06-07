@@ -427,7 +427,7 @@ var LogCommand = Command{
 			if i < 0 {
 				continue
 			}
-			event.Connection.Privmsgf(target, "#%d: %s", i+1, lines[i])
+			event.Connection.Privmsgf(target, "#%03d: %s", i+1, lines[i])
 		}
 	},
 }

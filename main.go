@@ -9,7 +9,6 @@ import (
 	"github.com/SvenWiltink/go-MusicBot/songplayer"
 	"github.com/SvenWiltink/go-MusicBot/util"
 	"github.com/sirupsen/logrus"
-	"log"
 	"os"
 	"os/signal"
 	"strings"
@@ -41,7 +40,6 @@ func main() {
 		DisableTimestamp: false,
 		FullTimestamp:    true,
 	}
-	log.SetOutput(logger.Out)
 
 	conf, err := config.ReadConfig("conf.json")
 	if err != nil {
@@ -56,8 +54,12 @@ func main() {
 		} else {
 			defer logFile.Close()
 			logrus.AddHook(&LogFileHook{
-				file:      logFile,
-				formatter: logger.Formatter,
+				file: logFile,
+				formatter: &logrus.TextFormatter{
+					DisableTimestamp: false,
+					FullTimestamp:    true,
+					DisableColors:    true,
+				},
 			})
 		}
 	}

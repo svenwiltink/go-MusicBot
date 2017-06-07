@@ -259,7 +259,7 @@ func (p *Player) next() (song songplayer.Playable, err error) {
 	}
 	err = musicPlayer.Play(song.GetURL())
 	if err != nil {
-		logrus.Errorf("Player.next: Error playing %s with player %s: %v", song.GetURL(), p.currentPlayer.Name(), err)
+		logrus.Errorf("Player.next: Error playing %s with player %s: %v", song.GetURL(), musicPlayer.Name(), err)
 		return
 	}
 	p.currentSong = song

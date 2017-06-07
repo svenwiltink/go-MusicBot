@@ -26,7 +26,7 @@ imports:
 - name: github.com/vansante/go-spotify-control
   version: 698a948a0e19d1d7ef3aa0de854c059ec348fda5
 - name: github.com/zmb3/spotify
-  version: fa2281db406e079b7a2c349b0f3506be1ac2e0c1
+  version: 84bf5e353eaccd52f17bbbfdfd1accfc56361bb6
 - name: golang.org/x/net
   version: a6577fac2d73be281a500b310739095313165611
   subpackages:
