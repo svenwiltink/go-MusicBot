@@ -4,8 +4,8 @@ import (
 	"github.com/SvenWiltink/go-MusicBot/config"
 	"github.com/SvenWiltink/go-MusicBot/player"
 	"github.com/SvenWiltink/go-MusicBot/util"
+	"github.com/SvenWiltink/volumecontrol"
 	"github.com/thoj/go-ircevent"
-	"os/exec"
 	"sort"
 	"strconv"
 	"strings"
@@ -348,16 +348,22 @@ var SearchAddCommand = Command{
 var VolUpCommand = Command{
 	Name: "vol++",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		cmd := exec.Command("amixer", "-D", "pulse", "sset", "Master", "10%+")
-		cmd.Run()
+		err := volumecontrol.IncreaseVolume(10)
+		if err != nil {
+			target, _, _ := bot.getTarget(event)
+			event.Connection.Privmsg(target, "error: "+err.Error())
+		}
 	},
 }
 
 var VolDownCommand = Command{
 	Name: "vol--",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		cmd := exec.Command("amixer", "-D", "pulse", "sset", "Master", "10%-")
-		cmd.Run()
+		err := volumecontrol.DecreaseVolume(10)
+		if err != nil {
+			target, _, _ := bot.getTarget(event)
+			event.Connection.Privmsg(target, "error: "+err.Error())
+		}
 	},
 }
 
@@ -369,7 +375,18 @@ var VolCommand = Command{
 			event.Connection.Privmsg(target, "!music vol <volume>")
 			return
 		}
-		cmd := exec.Command("amixer", "-D", "pulse", "sset", "Master", parameters[0]+"%")
-		cmd.Run()
+
+		vol, err := strconv.Atoi(parameters[0])
+
+		if err != nil {
+			event.Connection.Privmsg(target, "error: "+err.Error())
+			return
+		}
+
+		err = volumecontrol.SetVolume(vol)
+		if err != nil {
+			event.Connection.Privmsg(target, "error: "+err.Error())
+			return
+		}
 	},
 }
