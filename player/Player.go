@@ -250,7 +250,7 @@ func (p *Player) Next() (song songplayer.Playable, err error) {
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
 
-	if p.playlistPosition + 1 == len(p.playlist) {
+	if p.playlistPosition+1 == len(p.playlist) {
 		err = errors.New("no next available, queue is empty")
 	}
 
@@ -300,7 +300,7 @@ func (p *Player) Previous() (song songplayer.Playable, err error) {
 		err = errors.New("no previous available, history is empty")
 	}
 
-	return p.setPlaylistPosition(p.playlistPosition-1)
+	return p.setPlaylistPosition(p.playlistPosition - 1)
 }
 
 func (p *Player) Stop() (err error) {

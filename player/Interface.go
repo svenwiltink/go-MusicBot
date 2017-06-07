@@ -29,6 +29,7 @@ type MusicPlayer interface {
 	Play() (song songplayer.Playable, err error)
 	Seek(positionSeconds int) (err error)
 	Next() (song songplayer.Playable, err error)
+	Previous() (song songplayer.Playable, err error)
 	Stop() (err error)
 	Pause() (err error)
 }
