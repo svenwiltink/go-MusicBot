@@ -5,9 +5,13 @@ import (
 	"os"
 )
 
-const DEFAULT_QUEUE_PATH = "queue.txt"
+const (
+	DEFAULT_LOGFILE_PATH = "musicbot.log"
+	DEFAULT_QUEUE_PATH   = "queue.txt"
+)
 
 type MusicBot struct {
+	LogFile   string
 	QueuePath string
 
 	IRC           IRC

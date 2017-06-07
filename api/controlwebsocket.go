@@ -6,6 +6,7 @@ import (
 	"github.com/SvenWiltink/go-MusicBot/player"
 	"github.com/SvenWiltink/go-MusicBot/songplayer"
 	"github.com/gorilla/websocket"
+	"github.com/sirupsen/logrus"
 	"github.com/vansante/go-event-emitter"
 	"io/ioutil"
 	"sync"
@@ -116,12 +117,14 @@ func (cws *ControlWebsocket) socketReader() {
 
 			buf, err := ioutil.ReadAll(reader)
 			if err != nil {
+				logrus.Errorf("ControlWebSocket.socketReader: Error reading: %v", err)
 				cws.write("Error: " + err.Error())
 				return
 			}
 			cmd := &Command{}
 			err = json.Unmarshal(buf, cmd)
 			if err != nil {
+				logrus.Errorf("ControlWebSocket.socketReader: Error unmarshalling: %v", err)
 				cws.write("Error: " + err.Error())
 				return
 			}
