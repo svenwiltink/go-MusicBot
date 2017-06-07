@@ -157,7 +157,7 @@ func searchSongs(player player.MusicPlayer, parameters []string, limit int) (res
 	for _, songPlayer := range player.GetSongPlayers() {
 		searchErr := searchFunc(songPlayer, strings.Join(parameters, " "))
 		if searchErr != nil {
-			logrus.Errorf("MusicBot.searchSongs: Error searching [%s | %d | %v] %v", plyr.Name(), searchType, parameters, searchErr)
+			logrus.Errorf("MusicBot.searchSongs: Error searching [%s | %d | %v] %v", songPlayer.Name(), searchType, parameters, searchErr)
 		}
 	}
 	return

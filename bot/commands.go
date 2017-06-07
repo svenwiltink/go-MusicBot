@@ -398,6 +398,13 @@ var VolCommand = Command{
 var LogCommand = Command{
 	Name: "log",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		target, _, _ := bot.getTarget(event)
+
+		if bot.config.LogFile == "" {
+			event.Connection.Privmsgf(target, "%sCannot show log, no logfile configured", ITALIC_CHARACTER)
+			return
+		}
+
 		file, err := os.Open(bot.config.LogFile)
 		if err != nil {
 			logrus.Errorf("bot.LogCommand: Error opening file: [%s] %v", bot.config.LogFile, err)
@@ -416,7 +423,6 @@ var LogCommand = Command{
 			return
 		}
 
-		target, _, _ := bot.getTarget(event)
 		for i := len(lines) - 11; i < len(lines); i++ {
 			if i < 0 {
 				continue

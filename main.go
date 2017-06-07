@@ -9,6 +9,7 @@ import (
 	"github.com/SvenWiltink/go-MusicBot/songplayer"
 	"github.com/SvenWiltink/go-MusicBot/util"
 	"github.com/sirupsen/logrus"
+	"log"
 	"os"
 	"os/signal"
 	"strings"
@@ -40,7 +41,7 @@ func main() {
 		DisableTimestamp: false,
 		FullTimestamp:    true,
 	}
-	logrus.SetOutput(logger.Writer())
+	log.SetOutput(logger.Out)
 
 	conf, err := config.ReadConfig("conf.json")
 	if err != nil {
@@ -48,15 +49,17 @@ func main() {
 		return
 	}
 
-	logFile, err := os.OpenFile(conf.LogFile, os.O_WRONLY|os.O_CREATE, 0755)
-	if err != nil {
-		logrus.Errorf("main: Error opening logfile [%s] %v", conf.LogFile, err)
-	} else {
-		defer logFile.Close()
-		logrus.AddHook(&LogFileHook{
-			file:      logFile,
-			formatter: logger.Formatter,
-		})
+	if conf.LogFile != "" {
+		logFile, err := os.OpenFile(conf.LogFile, os.O_WRONLY|os.O_CREATE, 0755)
+		if err != nil {
+			logrus.Errorf("main: Error opening logfile [%s] %v", conf.LogFile, err)
+		} else {
+			defer logFile.Close()
+			logrus.AddHook(&LogFileHook{
+				file:      logFile,
+				formatter: logger.Formatter,
+			})
+		}
 	}
 
 	queueStorage := config.NewQueueStorage(conf.QueuePath)
@@ -147,7 +150,7 @@ func main() {
 
 		}
 		logrus.Infof("main: Loaded %d songs from queue file", len(playr.GetQueuedSongs()))
-		musicBot.Announce(fmt.Sprintf("%sLoaded %d songs from queue file", bot.UNDERLINE_CHARACTER, len(playr.GetQueuedSongs())))
+		musicBot.Announce(fmt.Sprintf("%sLoaded %d songs from queue file", bot.ITALIC_CHARACTER, len(playr.GetQueuedSongs())))
 	}
 
 	playr.AddListener("queue_updated", queueStorage.OnListUpdate)

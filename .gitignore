@@ -5,3 +5,4 @@
 /conf.json
 /vendor
 out
+*.exe
