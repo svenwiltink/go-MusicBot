@@ -61,10 +61,11 @@ func (m *MusicBot) Start() (err error) {
 	m.registerCommand(HelpCommand)
 	m.registerCommand(WhitelistCommand)
 
-	m.registerCommand(NextCommand)
 	m.registerCommand(PlayCommand)
-	m.registerCommand(SeekCommand)
 	m.registerCommand(PauseCommand)
+	m.registerCommand(NextCommand)
+	m.registerCommand(PreviousCommand)
+	m.registerCommand(SeekCommand)
 	m.registerCommand(StopCommand)
 
 	m.registerCommand(CurrentCommand)

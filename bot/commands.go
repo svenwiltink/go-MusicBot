@@ -107,7 +107,20 @@ var NextCommand = Command{
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
 		}
-		bot.announceMessage(true, event, boldText(event.Nick)+" skipped the song")
+		bot.announceMessage(true, event, boldText(event.Nick)+" pressed next")
+	},
+}
+
+var PreviousCommand = Command{
+	Name: "previous",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		target, _, _ := bot.getTarget(event)
+		_, err := bot.player.Previous()
+		if err != nil {
+			event.Connection.Privmsg(target, inverseText(err.Error()))
+			return
+		}
+		bot.announceMessage(true, event, boldText(event.Nick)+" pressed previous")
 	},
 }
 
