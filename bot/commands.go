@@ -107,7 +107,7 @@ var NextCommand = Command{
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
 		}
-		bot.announceMessage(true, event, boldText(event.Nick)+" pressed next")
+		bot.announceMessage(true, event, boldText(event.Nick)+" skipped to the next song")
 	},
 }
 
@@ -120,7 +120,7 @@ var PreviousCommand = Command{
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
 		}
-		bot.announceMessage(true, event, boldText(event.Nick)+" pressed previous")
+		bot.announceMessage(true, event, boldText(event.Nick)+" skipped to the previous song")
 	},
 }
 

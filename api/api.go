@@ -109,6 +109,10 @@ func (api *API) initializeRoutes() {
 			Method:  http.MethodGet,
 			handler: api.authenticator(api.NextHandler, false),
 		}, {
+			Pattern: "/previous",
+			Method:  http.MethodGet,
+			handler: api.authenticator(api.PreviousHandler, false),
+		}, {
 			Pattern: "/add",
 			Method:  http.MethodGet,
 			handler: api.authenticator(api.AddHandler, false),
@@ -211,6 +215,22 @@ func (api *API) NextHandler(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(getAPISong(song, song.GetDuration()))
 	if err != nil {
 		logrus.Errorf("API.NextHandler: Json encode error: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (api *API) PreviousHandler(w http.ResponseWriter, r *http.Request) {
+	song, err := api.player.Next()
+	if err != nil {
+		logrus.Errorf("API.PreviousHandler: Error previous-ing: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(getAPISong(song, song.GetDuration()))
+	if err != nil {
+		logrus.Errorf("API.PreviousHandler: Json encode error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
