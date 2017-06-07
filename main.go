@@ -15,15 +15,48 @@ import (
 	"syscall"
 )
 
+type LogFileHook struct {
+	file      *os.File
+	formatter logrus.Formatter
+}
+
+func (h *LogFileHook) Levels() []logrus.Level {
+	return logrus.AllLevels
+}
+
+func (h *LogFileHook) Fire(e *logrus.Entry) (err error) {
+	buf, err := h.formatter.Format(e)
+	if err != nil {
+		return
+	}
+	_, err = h.file.Write(buf)
+	return
+}
+
 func main() {
 	// Set logrus to be the standard logger
 	logger := logrus.New()
+	logger.Formatter = &logrus.TextFormatter{
+		DisableTimestamp: false,
+		FullTimestamp:    true,
+	}
 	logrus.SetOutput(logger.Writer())
 
 	conf, err := config.ReadConfig("conf.json")
 	if err != nil {
 		logrus.Fatalf("main: Error reading musicbot config: %v", err)
 		return
+	}
+
+	logFile, err := os.OpenFile(conf.LogFile, os.O_WRONLY|os.O_CREATE, 0755)
+	if err != nil {
+		logrus.Errorf("main: Error opening logfile [%s] %v", conf.LogFile, err)
+	} else {
+		defer logFile.Close()
+		logrus.AddHook(&LogFileHook{
+			file:      logFile,
+			formatter: logger.Formatter,
+		})
 	}
 
 	queueStorage := config.NewQueueStorage(conf.QueuePath)
