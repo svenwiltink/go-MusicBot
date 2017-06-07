@@ -1,7 +1,7 @@
 NAME ?= MusicBot
 PACKAGE_NAME ?= $(NAME)
 
-BUILD_PLATFORMS ?= -os '!netbsd' -os '!openbsd' -os '!windows'
+BUILD_PLATFORMS ?= -os '!netbsd' -os '!openbsd' -os '!freebsd' -os '!windows'
 
 OUR_PACKAGES=$(shell go list ./... | grep -v '/vendor/')
 
