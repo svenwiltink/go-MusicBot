@@ -87,6 +87,7 @@ func (m *MusicBot) Start() (err error) {
 	m.ircConn = irc.IRC(m.config.IRC.Nick, m.config.IRC.Realname)
 	m.ircConn.Password = m.config.IRC.Password
 	m.ircConn.UseTLS = m.config.IRC.Ssl
+	m.ircConn.QuitMessage = "Enjoy your day without music!"
 
 	err = m.ircConn.Connect(m.config.IRC.Server)
 	if err != nil {
@@ -124,10 +125,14 @@ func (m *MusicBot) Start() (err error) {
 	})
 
 	m.player.AddListener("play_start", m.onPlay)
+
+	m.ircConn.Privmsgf(m.config.IRC.Channel, "%s connected", GetMusicBotStringFormatted())
 	return
 }
 
 func (m *MusicBot) Stop() (err error) {
+	m.ircConn.Action(m.config.IRC.Channel, "quits. Please come back later for more music!")
+
 	err = m.player.Stop()
 	return
 }

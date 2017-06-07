@@ -141,6 +141,10 @@ var SeekCommand = Command{
 				return
 			}
 			song, _ := bot.player.GetCurrentSong()
+			if song == nil {
+				event.Connection.Privmsg(target, boldText("Nothing playing!"))
+				return
+			}
 			duration := song.GetDuration().Nanoseconds() / 100 * percentage
 			seekSeconds = duration / int64(time.Second)
 		} else {
@@ -157,7 +161,9 @@ var SeekCommand = Command{
 			return
 		}
 		song, remaining := bot.player.GetCurrentSong()
-		bot.announceMessagef(false, event, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
+		if song != nil {
+			bot.announceMessagef(false, event, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
+		}
 	},
 }
 
@@ -178,7 +184,9 @@ var PauseCommand = Command{
 		case player.PLAYING:
 			bot.announceMessage(false, event, boldText(event.Nick)+" unpaused the player")
 		}
-		bot.announceMessagef(false, event, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
+		if song != nil {
+			bot.announceMessagef(false, event, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
+		}
 	},
 }
 

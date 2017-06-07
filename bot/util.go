@@ -162,3 +162,22 @@ func searchSongs(player player.MusicPlayer, parameters []string, limit int) (res
 	}
 	return
 }
+
+func GetMusicBotStringFormatted() (s string) {
+	s = fmt.Sprintf("%s%s%sM%su%ss%si%sc%sB%so%st%s%s%s",
+		BOLD_CHARACTER,
+		UNDERLINE_CHARACTER,
+		getColourCode(COLOUR_GREEN, COLOUR_NONE),
+		getColourCode(COLOUR_RED, COLOUR_NONE),
+		getColourCode(COLOUR_PURPLE, COLOUR_NONE),
+		getColourCode(COLOUR_ORANGE, COLOUR_NONE),
+		getColourCode(COLOUR_LIGHT_GREEN, COLOUR_NONE),
+		getColourCode(COLOUR_CYAN, COLOUR_NONE),
+		getColourCode(COLOUR_LIGHT_BLUE, COLOUR_NONE),
+		getColourCode(COLOUR_PINK, COLOUR_NONE),
+		getColourCode(COLOUR_DEFAULT, COLOUR_NONE),
+		BOLD_CHARACTER,
+		UNDERLINE_CHARACTER,
+	)
+	return
+}
