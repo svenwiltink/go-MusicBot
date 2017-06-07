@@ -1,11 +1,14 @@
 package bot
 
 import (
+	"bufio"
 	"github.com/SvenWiltink/go-MusicBot/config"
 	"github.com/SvenWiltink/go-MusicBot/player"
 	"github.com/SvenWiltink/go-MusicBot/util"
 	"github.com/SvenWiltink/volumecontrol"
+	"github.com/sirupsen/logrus"
 	"github.com/thoj/go-ircevent"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -59,15 +62,16 @@ var WhitelistCommand = Command{
 				return
 			}
 			user := parameters[1]
-			if realname == bot.conf.Master {
+			if realname == bot.config.IRC.Master {
 				if isWhitelisted, _ := bot.isUserWhitelisted(user); !isWhitelisted {
 					bot.whitelist = append(bot.whitelist, user)
 
-					err := config.WriteWhitelist(bot.conf.WhiteListPath, bot.whitelist)
+					err := config.WriteWhitelist(bot.config.IRC.WhiteListPath, bot.whitelist)
 					if err != nil {
 						event.Connection.Privmsg(target, err.Error())
 						return
 					}
+					logrus.Infof("Whitelist: User %s added to whitelist by %s", user, event.Nick)
 					event.Connection.Privmsgf(target, boldText("User %s added to whitelist by %s"), user, event.Nick)
 				}
 			}
@@ -77,15 +81,16 @@ var WhitelistCommand = Command{
 				return
 			}
 			user := parameters[1]
-			if realname == bot.conf.Master {
+			if realname == bot.config.IRC.Master {
 				if isWhitelisted, index := bot.isUserWhitelisted(user); isWhitelisted {
 					bot.whitelist = append(bot.whitelist[:index], bot.whitelist[index+1:]...)
 
-					err := config.WriteWhitelist(bot.conf.WhiteListPath, bot.whitelist)
+					err := config.WriteWhitelist(bot.config.IRC.WhiteListPath, bot.whitelist)
 					if err != nil {
 						event.Connection.Privmsg(target, err.Error())
 						return
 					}
+					logrus.Infof("Whitelist: User %s removed from whitelist by %s", user, event.Nick)
 					event.Connection.Privmsgf(target, boldText("User %s removed from whitelist by %s"), user, event.Nick)
 				}
 			}
@@ -377,7 +382,6 @@ var VolCommand = Command{
 		}
 
 		vol, err := strconv.Atoi(parameters[0])
-
 		if err != nil {
 			event.Connection.Privmsg(target, "error: "+err.Error())
 			return
@@ -387,6 +391,37 @@ var VolCommand = Command{
 		if err != nil {
 			event.Connection.Privmsg(target, "error: "+err.Error())
 			return
+		}
+	},
+}
+
+var LogCommand = Command{
+	Name: "log",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		file, err := os.Open(bot.config.LogFile)
+		if err != nil {
+			logrus.Errorf("bot.LogCommand: Error opening file: [%s] %v", bot.config.LogFile, err)
+			return
+		}
+		defer file.Close()
+
+		var lines []string
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			lines = append(lines, scanner.Text())
+		}
+		err = scanner.Err()
+		if err != nil {
+			logrus.Errorf("bot.LogCommand: Error scanning file: [%s] %v", bot.config.LogFile, err)
+			return
+		}
+
+		target, _, _ := bot.getTarget(event)
+		for i := len(lines) - 11; i < len(lines); i++ {
+			if i < 0 {
+				continue
+			}
+			event.Connection.Privmsgf(target, "#%d: %s", i+1, lines[i])
 		}
 	},
 }

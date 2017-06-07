@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SvenWiltink/go-MusicBot/songplayer"
+	"github.com/sirupsen/logrus"
 	"github.com/vansante/go-event-emitter"
 	"math/rand"
 	"strings"
@@ -28,6 +29,8 @@ type Player struct {
 	controlMutex sync.Mutex
 }
 
+var ErrNothingPlaying = errors.New("nothing currently playing")
+
 func NewPlayer() (player *Player) {
 	player = &Player{
 		Emitter: eventemitter.NewEmitter(),
@@ -51,6 +54,7 @@ func (p *Player) GetSongPlayers() (players []songplayer.SongPlayer) {
 }
 
 func (p *Player) AddSongPlayer(player songplayer.SongPlayer) {
+	logrus.Infof("Player.AddSongPlayer: Songplayer %s added", player.Name())
 	p.players = append(p.players, player)
 }
 
@@ -88,7 +92,13 @@ func (p *Player) AddSongs(url string) (addedSongs []songplayer.Playable, err err
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
 
-	return p.insertSongs(url, len(p.queue))
+	addedSongs, err = p.insertSongs(url, len(p.queue))
+	if err != nil {
+		logrus.Warnf("Player.AddSongs: Error adding songs [%s] %v", url, err)
+		return
+	}
+	logrus.Infof("Player.AddSongs: Added %d songs from url [%s]", len(addedSongs), url)
+	return
 }
 
 func (p *Player) InsertSongs(url string, position int) (addedSongs []songplayer.Playable, err error) {
@@ -100,18 +110,25 @@ func (p *Player) InsertSongs(url string, position int) (addedSongs []songplayer.
 		return
 	}
 
-	return p.insertSongs(url, position)
+	addedSongs, err = p.insertSongs(url, position)
+	if err != nil {
+		logrus.Warnf("Player.InsertSongs: Error inserting songs [%s] %v", url, err)
+		return
+	}
+	logrus.Infof("Player.InsertSongs: Inserted %d songs from url [%s]", len(addedSongs), url)
+	return
 }
 
 func (p *Player) insertSongs(url string, position int) (addedSongs []songplayer.Playable, err error) {
 	musicPlayer, err := p.findPlayer(url)
 	if err != nil {
+		logrus.Infof("Player.insertSongs: No songplayer found to play %s", url)
 		return
 	}
 
 	addedSongs, err = musicPlayer.GetSongs(url)
 	if err != nil {
-		err = fmt.Errorf("[%s] Error getting items from url: %v", musicPlayer.Name(), err)
+		logrus.Warnf("Player.insertSongs: Error getting songs from url [%s] %v", musicPlayer.Name(), err)
 		return
 	}
 
@@ -135,6 +152,8 @@ func (p *Player) ShuffleQueue() {
 		p.queue[i], p.queue[j] = p.queue[j], p.queue[i]
 	}
 	p.EmitEvent("queue_updated", p.queue)
+
+	logrus.Infof("Player.ShuffleQueue: Queue successfully shuffled")
 }
 
 func (p *Player) EmptyQueue() {
@@ -143,6 +162,8 @@ func (p *Player) EmptyQueue() {
 
 	p.queue = make([]songplayer.Playable, 0)
 	p.EmitEvent("queue_updated", p.queue)
+
+	logrus.Infof("Player.ShuffleQueue: Queue successfully emptied")
 }
 
 func (p *Player) GetStatus() (status Status) {
@@ -188,7 +209,7 @@ func (p *Player) Seek(positionSeconds int) (err error) {
 	defer p.controlMutex.Unlock()
 
 	if p.status == STOPPED || p.currentPlayer == nil {
-		err = errors.New("Nothing currently playing")
+		err = ErrNothingPlaying
 		return
 	}
 
@@ -200,6 +221,7 @@ func (p *Player) Seek(positionSeconds int) (err error) {
 
 	err = p.currentPlayer.Seek(positionSeconds)
 	if err != nil {
+		logrus.Warnf("Player.Seek: Error seeking to %d with player %s: %v", positionSeconds, p.currentPlayer.Name(), err)
 		return
 	}
 
@@ -209,6 +231,8 @@ func (p *Player) Seek(positionSeconds int) (err error) {
 	p.playTimer.Reset(remainingDuration)
 	p.endTime = time.Now().Add(remainingDuration)
 	p.EmitEvent("song_seek", p.currentSong, remainingDuration)
+
+	logrus.Infof("Player.Seek: Play resumed for remaining duration of %v", remainingDuration)
 	return
 }
 
@@ -235,7 +259,7 @@ func (p *Player) next() (song songplayer.Playable, err error) {
 	}
 	err = musicPlayer.Play(song.GetURL())
 	if err != nil {
-		err = fmt.Errorf("[%s] Error playing: %v", musicPlayer.Name(), err)
+		logrus.Errorf("Player.next: Error playing %s with player %s: %v", song.GetURL(), p.currentPlayer.Name(), err)
 		return
 	}
 	p.currentSong = song
@@ -246,6 +270,8 @@ func (p *Player) next() (song songplayer.Playable, err error) {
 	go p.playWait()
 	p.EmitEvent("play_start", p.currentSong)
 	p.EmitEvent("queue_updated", p.queue)
+
+	logrus.Infof("Player.next: %s started playing %s successfully", musicPlayer.Name(), song.GetURL())
 	return
 }
 
@@ -258,12 +284,13 @@ func (p *Player) Stop() (err error) {
 
 func (p *Player) stop() (err error) {
 	if p.status == STOPPED || p.currentPlayer == nil {
-		err = errors.New("Nothing currently playing")
+		err = ErrNothingPlaying
 		return
 	}
-	err = p.currentPlayer.Stop()
+	currentPlayer := p.currentPlayer
+	err = currentPlayer.Stop()
 	if err != nil {
-		err = fmt.Errorf("[%s] Error stopping: %v", p.currentPlayer.Name(), err)
+		logrus.Errorf("Player.stop: Error stopping player %s: %v", currentPlayer.Name(), err)
 		return
 	}
 	p.status = STOPPED
@@ -274,6 +301,8 @@ func (p *Player) stop() (err error) {
 		p.playTimer.Stop()
 	}
 	p.EmitEvent("stop")
+
+	logrus.Infof("Player.stop: %s stopped playing", p.currentPlayer.Name())
 	return
 }
 
@@ -286,13 +315,13 @@ func (p *Player) Pause() (err error) {
 
 func (p *Player) pause() (err error) {
 	if p.status == STOPPED || p.currentPlayer == nil {
-		err = errors.New("Nothing currently playing")
+		err = ErrNothingPlaying
 		return
 	}
 
 	err = p.currentPlayer.Pause(p.status != PAUSED)
 	if err != nil {
-		err = fmt.Errorf("[%s] Error (un)pausing [%v]: %v", p.currentPlayer.Name(), p.status != PAUSED, err)
+		logrus.Errorf("Player.pause: Error (un)pausing player %s [%v]: %v", p.currentPlayer.Name(), p.status != PAUSED, err)
 		return
 	}
 	if p.status == PAUSED {
@@ -302,6 +331,8 @@ func (p *Player) pause() (err error) {
 		go p.playWait()
 
 		p.EmitEvent("unpause", p.currentSong, p.remainingDuration)
+
+		logrus.Infof("Player.pause: %s resumed playing %s", p.currentPlayer.Name(), p.currentSong.GetURL())
 	} else {
 		p.status = PAUSED
 		p.remainingDuration = p.endTime.Sub(time.Now())
@@ -310,6 +341,8 @@ func (p *Player) pause() (err error) {
 			p.playTimer.Stop()
 		}
 		p.EmitEvent("pause", p.currentSong, p.remainingDuration)
+
+		logrus.Infof("Player.pause: %s paused playing %s", p.currentPlayer.Name(), p.currentSong.GetURL())
 	}
 	return
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/SvenWiltink/go-MusicBot/player"
 	"github.com/SvenWiltink/go-MusicBot/songplayer"
 	"github.com/SvenWiltink/go-MusicBot/util"
-	"log"
+	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"strings"
@@ -18,7 +18,8 @@ import (
 func main() {
 	conf, err := config.ReadConfig("conf.json")
 	if err != nil {
-		log.Fatalf("Error reading config: %v", err)
+		logrus.Fatalf("main: Error reading musicbot config: %v", err)
+		return
 	}
 
 	queueStorage := config.NewQueueStorage(conf.QueuePath)
@@ -26,43 +27,46 @@ func main() {
 
 	// Initialize the API
 	apiObject := api.NewAPI(&conf.API, playr)
+	logrus.Infof("main: Starting HTTP API")
 	go apiObject.Start()
 
 	// Initialize the IRC bot
-	musicBot, err := bot.NewMusicBot(&conf.IRC, playr)
+	musicBot, err := bot.NewMusicBot(conf, playr)
 	if err != nil {
-		fmt.Printf("Error creating IRC bot: %v\n", err)
+		logrus.Fatalf("main: Error creating IRC MusicBot: %v", err)
 		return
 	}
+	logrus.Infof("main: Starting IRC MusicBot")
 	err = musicBot.Start()
 	if err != nil {
-		fmt.Printf("Error starting IRC bot: %v\n", err)
+		logrus.Fatalf("main: Error starting IRC MusicBot: %v", err)
 		return
 	}
 
 	if conf.YoutubePlayer.Enabled {
+		logrus.Infof("main: Creating YoutubePlayer")
+
 		ytPlayer, err := songplayer.NewYoutubePlayer(conf.YoutubePlayer.YoutubeAPIKey, conf.YoutubePlayer.MpvBinPath, conf.YoutubePlayer.MpvInputPath)
 		if err != nil {
-			fmt.Printf("Error creating Youtube player: %v\n", err)
-
+			logrus.Errorf("main: Error creating YoutubePlayer: %v", err)
 			musicBot.Announce(fmt.Sprintf("[YoutubePlayer] Error creating player: %v", err))
 		} else {
 			playr.AddSongPlayer(ytPlayer)
-			fmt.Println("Added Youtube player")
 		}
 	}
 
 	if conf.SpotifyPlayer.Enabled && conf.SpotifyPlayer.UseConnect {
+		logrus.Infof("main: Creating SpotifyConnectPlayer")
+
 		spPlayer, authURL, err := songplayer.NewSpotifyConnectPlayer(conf.SpotifyPlayer.ClientID, conf.SpotifyPlayer.ClientSecret, conf.SpotifyPlayer.TokenFilePath, "", 0)
 		if err != nil {
-			fmt.Printf("Error creating SpotifyConnect player: %v\n", err)
-
-			musicBot.Announce(fmt.Sprintf("[SpotifyConnect] Error creating player: %v", err))
+			logrus.Errorf("main: Error creating SpotifyConnectPlayer: %v", err)
+			musicBot.Announce(fmt.Sprintf("[SpotifyConnectPlayer] Error creating player: %v", err))
 		} else if authURL != "" {
 			ips, err := util.GetExternalIPs()
 			ipStr := "???"
 			if err != nil {
-				fmt.Printf("Error getting external IPs: %v\n", err)
+				logrus.Warnf("main: Error getting external IPs: %v", err)
 			} else {
 				ipStr = ""
 				for _, ip := range ips {
@@ -70,40 +74,45 @@ func main() {
 				}
 				ipStr = strings.TrimSpace(ipStr)
 			}
-			musicBot.Announce(fmt.Sprintf("[SpotifyConnect] Authorisation: Add the external IP (%s) of the bot to your hosts file under 'musicbot' and visit: %s", ipStr, authURL))
-
+			musicBot.Announce(fmt.Sprintf("[SpotifyConnectPlayer] Authorisation: Add the external IP (%s) of the bot to your hosts file under 'musicbot' and visit:", ipStr))
+			musicBot.Announce(authURL)
 			spPlayer.AddAuthorisationListener(func() {
 				playr.AddSongPlayer(spPlayer)
-				fmt.Println("Added SpotifyConnect player")
-
 				musicBot.Announce("[SpotifyConnect] The musicbot was successfully authorised!")
 			})
 		} else {
 			playr.AddSongPlayer(spPlayer)
-			fmt.Println("Added SpotifyConnect player")
 		}
-	} else if conf.SpotifyPlayer.Enabled && !conf.SpotifyPlayer.UseConnect {
+	}
+
+	if conf.SpotifyPlayer.Enabled && !conf.SpotifyPlayer.UseConnect {
+		logrus.Infof("main: Creating SpotifyPlayer")
+
 		spPlayer, err := songplayer.NewSpotifyPlayer(conf.SpotifyPlayer.Host)
 		if err != nil {
-			fmt.Printf("Error creating Spotify player: %v\n", err)
-
-			musicBot.Announce(fmt.Sprintf("[Spotify] Error creating player: %v", err))
+			logrus.Errorf("main: Error creating SpotifyPlayer: %v", err)
+			musicBot.Announce(fmt.Sprintf("[SpotifyPlayer] Error creating player: %v", err))
 		} else {
 			playr.AddSongPlayer(spPlayer)
-			fmt.Println("Added Spotify player")
 		}
 	}
 
 	urls, err := queueStorage.ReadQueue()
 	if err != nil {
-		fmt.Printf("Error reading queue file: %v\n", err)
-
+		logrus.Warnf("main: Error reading queue file: %v", err)
 		musicBot.Announce(fmt.Sprintf("[Queue] Error loading queue: %v", err))
 	} else {
 		for _, url := range urls {
-			playr.AddSongs(url)
+			_, err = playr.AddSongs(url)
+			if err != nil {
+				logrus.Errorf("main: Error adding song from queue [%s] %v", url, err)
+			}
+
 		}
+		logrus.Infof("main: Loaded %d songs from queue file", len(playr.GetQueuedSongs()))
+		musicBot.Announce(fmt.Sprintf("%sLoaded %d songs from queue file", bot.UNDERLINE_CHARACTER, len(playr.GetQueuedSongs())))
 	}
+
 	playr.AddListener("queue_updated", queueStorage.OnListUpdate)
 
 	// Wait for a terminate signal
@@ -111,5 +120,7 @@ func main() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	<-sigs
+
+	logrus.Infof("main: Shutting down")
 	musicBot.Stop()
 }
