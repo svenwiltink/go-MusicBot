@@ -174,7 +174,7 @@ func (p *Player) EmptyQueue() {
 	newList := make([]songplayer.Playable, 0)
 	// Copy over the play history
 	for i := 0; i <= p.playlistPosition; i++ {
-		newList[i] = p.playlist[i]
+		newList = append(newList, p.playlist[i])
 	}
 	p.playlist = newList
 
