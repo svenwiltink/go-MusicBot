@@ -150,7 +150,7 @@ func (p *Player) insertSongs(url string, position int) (addedSongs []songplayer.
 	}
 
 	p.EmitEvent("songs_added", addedSongs, position)
-	p.EmitEvent("queue_updated", p.playlist[p.playlistPosition:])
+	p.EmitEvent("queue_updated", p.GetQueuedSongs())
 	return
 }
 
@@ -162,7 +162,7 @@ func (p *Player) ShuffleQueue() {
 		j := rand.Intn(i + 1)
 		p.playlist[i], p.playlist[j] = p.playlist[j], p.playlist[i]
 	}
-	p.EmitEvent("queue_updated", p.playlist[p.playlistPosition:])
+	p.EmitEvent("queue_updated", p.GetQueuedSongs())
 
 	logrus.Infof("Player.ShuffleQueue: Queue successfully shuffled")
 }
@@ -178,7 +178,7 @@ func (p *Player) EmptyQueue() {
 	}
 	p.playlist = newList
 
-	p.EmitEvent("queue_updated", p.playlist[p.playlistPosition:])
+	p.EmitEvent("queue_updated", p.GetQueuedSongs())
 
 	logrus.Infof("Player.ShuffleQueue: Queue successfully emptied")
 }
@@ -305,7 +305,7 @@ func (p *Player) setPlaylistPosition(newPosition int) (song songplayer.Playable,
 	// Start waiting for the song to be done
 	go p.playWait()
 	p.EmitEvent("play_start", p.currentSong)
-	p.EmitEvent("queue_updated", p.playlist[p.playlistPosition:])
+	p.EmitEvent("queue_updated", p.GetQueuedSongs())
 
 	logrus.Infof("Player.setPlaylistPosition: %s started playing %s successfully", musicPlayer.Name(), song.GetURL())
 	return
