@@ -90,6 +90,7 @@ func (m *MusicBot) Start() (err error) {
 
 	err = m.ircConn.Connect(m.config.IRC.Server)
 	if err != nil {
+		logrus.Errorf("MusicBot.Start: Error connecting to IRC server [%s] %v", m.config.IRC.Server, err)
 		return
 	}
 

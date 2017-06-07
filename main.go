@@ -16,6 +16,10 @@ import (
 )
 
 func main() {
+	// Set logrus to be the standard logger
+	logger := logrus.New()
+	logrus.SetOutput(logger.Writer())
+
 	conf, err := config.ReadConfig("conf.json")
 	if err != nil {
 		logrus.Fatalf("main: Error reading musicbot config: %v", err)

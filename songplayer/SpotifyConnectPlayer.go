@@ -121,16 +121,10 @@ func (p *SpotifyConnectPlayer) afterAuthorisation() {
 	p.logger.Info("SpotifyConnectPlayer.afterAuthorisation: Successfully authorised")
 
 	// Turn repeat off, as it interferes with the musicplayer
-	repErr := p.client.Repeat("off")
-	if repErr != nil {
-		p.logger.Warnf("SpotifyConnectPlayer.afterAuthorisation: Error setting repeat setting: %v", repErr)
-	}
+	p.client.Repeat("off")
 
 	// Turn shuffle off
-	shufErr := p.client.Shuffle(false)
-	if shufErr != nil {
-		p.logger.Warnf("SpotifyConnectPlayer.afterAuthorisation: Error setting shuffle setting: %v", shufErr)
-	}
+	p.client.Shuffle(false)
 }
 
 func (p *SpotifyConnectPlayer) writeToken(token *oauth2.Token) (err error) {
