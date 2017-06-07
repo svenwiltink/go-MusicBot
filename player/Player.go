@@ -302,7 +302,7 @@ func (p *Player) stop() (err error) {
 	}
 	p.EmitEvent("stop")
 
-	logrus.Infof("Player.stop: %s stopped playing", p.currentPlayer.Name())
+	logrus.Infof("Player.stop: %s stopped playing", currentPlayer.Name())
 	return
 }
 
