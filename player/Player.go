@@ -61,10 +61,7 @@ func (p *Player) AddSongPlayer(player songplayer.SongPlayer) {
 }
 
 func (p *Player) GetPastSongs() (songs []songplayer.Playable) {
-	if p.playlistPosition == 0 {
-		return []songplayer.Playable{}
-	}
-	return p.playlist[:p.playlistPosition-1]
+	return p.playlist[:p.playlistPosition]
 }
 
 func (p *Player) GetQueuedSongs() (songs []songplayer.Playable) {
