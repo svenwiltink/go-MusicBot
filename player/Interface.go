@@ -19,6 +19,7 @@ type MusicPlayer interface {
 
 	GetSongPlayer(name string) (player songplayer.SongPlayer)
 	GetSongPlayers() (players []songplayer.SongPlayer)
+	GetPastSongs() (songs []songplayer.Playable)
 	GetQueuedSongs() (songs []songplayer.Playable)
 	GetCurrentSong() (song songplayer.Playable, remaining time.Duration)
 	AddSongs(url string) (addedSongs []songplayer.Playable, err error)
@@ -29,6 +30,7 @@ type MusicPlayer interface {
 	Play() (song songplayer.Playable, err error)
 	Seek(positionSeconds int) (err error)
 	Next() (song songplayer.Playable, err error)
+	Previous() (song songplayer.Playable, err error)
 	Stop() (err error)
 	Pause() (err error)
 }
