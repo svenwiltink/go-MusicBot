@@ -265,7 +265,7 @@ var OpenCommand = Command{
 			return
 		}
 		bot.announceAddedSongs(event, songs)
-		bot.player.Next()
+		bot.player.Play()
 	},
 }
 

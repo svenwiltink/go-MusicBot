@@ -192,11 +192,10 @@ func (p *Player) Play() (song songplayer.Playable, err error) {
 	defer p.controlMutex.Unlock()
 
 	switch p.status {
-	case STOPPED:
-		song, err = p.setPlaylistPosition(p.playlistPosition)
-		return
 	case PAUSED:
 		err = p.pause()
+	default:
+		song, err = p.setPlaylistPosition(p.playlistPosition)
 	}
 	song = p.currentSong
 	return
