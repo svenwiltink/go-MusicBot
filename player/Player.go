@@ -60,8 +60,18 @@ func (p *Player) AddSongPlayer(player songplayer.SongPlayer) {
 	p.players = append(p.players, player)
 }
 
+func (p *Player) GetPastSongs() (songs []songplayer.Playable) {
+	if p.playlistPosition == 0 {
+		return []songplayer.Playable{}
+	}
+	return p.playlist[:p.playlistPosition-1]
+}
+
 func (p *Player) GetQueuedSongs() (songs []songplayer.Playable) {
-	return p.playlist[p.playlistPosition:]
+	if p.playlistPosition == len(p.playlist)-1 {
+		return []songplayer.Playable{}
+	}
+	return p.playlist[p.playlistPosition+1:]
 }
 
 func (p *Player) GetCurrentSong() (song songplayer.Playable, remaining time.Duration) {
@@ -252,9 +262,22 @@ func (p *Player) Next() (song songplayer.Playable, err error) {
 
 	if p.playlistPosition+1 == len(p.playlist) {
 		err = errors.New("no next available, queue is empty")
+		return
 	}
 
 	return p.setPlaylistPosition(p.playlistPosition + 1)
+}
+
+func (p *Player) Previous() (song songplayer.Playable, err error) {
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
+	if p.playlistPosition == 0 {
+		err = errors.New("no previous available, history is empty")
+		return
+	}
+
+	return p.setPlaylistPosition(p.playlistPosition - 1)
 }
 
 func (p *Player) setPlaylistPosition(newPosition int) (song songplayer.Playable, err error) {
@@ -290,17 +313,6 @@ func (p *Player) setPlaylistPosition(newPosition int) (song songplayer.Playable,
 
 	logrus.Infof("Player.next: %s started playing %s successfully", musicPlayer.Name(), song.GetURL())
 	return
-}
-
-func (p *Player) Previous() (song songplayer.Playable, err error) {
-	p.controlMutex.Lock()
-	defer p.controlMutex.Unlock()
-
-	if p.playlistPosition == 0 {
-		err = errors.New("no previous available, history is empty")
-	}
-
-	return p.setPlaylistPosition(p.playlistPosition - 1)
 }
 
 func (p *Player) Stop() (err error) {

@@ -277,13 +277,13 @@ var ShuffleCommand = Command{
 	},
 }
 
-var ListCommand = Command{
-	Name: "list",
+var QueueCommand = Command{
+	Name: "queue",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		target, _, _ := bot.getTarget(event)
 		items := bot.player.GetQueuedSongs()
 		if len(items) == 0 {
-			event.Connection.Privmsg(target, italicText("The playlist is empty"))
+			event.Connection.Privmsg(target, italicText("The queue is empty"))
 		}
 
 		for i, item := range items {
@@ -293,6 +293,24 @@ var ListCommand = Command{
 				event.Connection.Privmsgf(target, italicText("And %d more.."), len(items)-10)
 				return
 			}
+		}
+	},
+}
+
+var HistoryCommand = Command{
+	Name: "history",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		target, _, _ := bot.getTarget(event)
+		items := bot.player.GetPastSongs()
+		if len(items) == 0 {
+			event.Connection.Privmsg(target, italicText("The history is empty"))
+		}
+
+		for i, item := range items {
+			if i < len(items)-11 {
+				continue
+			}
+			event.Connection.Privmsgf(target, "%d. %s", i+1, formatSong(item))
 		}
 	},
 }
