@@ -221,7 +221,7 @@ func (api *API) NextHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) PreviousHandler(w http.ResponseWriter, r *http.Request) {
-	song, err := api.player.Next()
+	song, err := api.player.Previous()
 	if err != nil {
 		logrus.Errorf("API.PreviousHandler: Error previous-ing: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
