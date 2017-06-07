@@ -255,6 +255,7 @@ func (p *Player) next() (song songplayer.Playable, err error) {
 	song, p.queue = p.queue[0], p.queue[1:]
 	musicPlayer, err := p.findPlayer(song.GetURL())
 	if err != nil {
+		logrus.Errorf("Player.next: No player available to play [%s] %v", song.GetURL(), err)
 		return
 	}
 	err = musicPlayer.Play(song.GetURL())
