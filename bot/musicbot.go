@@ -5,6 +5,7 @@ import (
 	"github.com/SvenWiltink/go-MusicBot/config"
 	"github.com/SvenWiltink/go-MusicBot/player"
 	"github.com/SvenWiltink/go-MusicBot/songplayer"
+	"github.com/sirupsen/logrus"
 	irc "github.com/thoj/go-ircevent"
 	"strings"
 )
@@ -14,11 +15,11 @@ type MusicBot struct {
 	commands  map[string]Command
 	whitelist []string
 	player    player.MusicPlayer
-	conf      *config.IRC
+	config    *config.MusicBot
 }
 
-func NewMusicBot(conf *config.IRC, player player.MusicPlayer) (mb *MusicBot, err error) {
-	whitelist, err := config.ReadWhitelist(conf.WhiteListPath)
+func NewMusicBot(conf *config.MusicBot, player player.MusicPlayer) (mb *MusicBot, err error) {
+	whitelist, err := config.ReadWhitelist(conf.IRC.WhiteListPath)
 	if err != nil {
 		return
 	}
@@ -26,7 +27,7 @@ func NewMusicBot(conf *config.IRC, player player.MusicPlayer) (mb *MusicBot, err
 	mb = &MusicBot{
 		commands:  make(map[string]Command),
 		whitelist: whitelist,
-		conf:      conf,
+		config:    conf,
 		player:    player,
 	}
 	return
@@ -40,7 +41,8 @@ func (m *MusicBot) getCommand(name string) (command Command, exists bool) {
 func (m *MusicBot) registerCommand(command Command) bool {
 	if _, exists := m.getCommand(command.Name); !exists {
 		m.commands[strings.ToLower(command.Name)] = command
-		fmt.Println("registered the " + command.Name + " command")
+
+		logrus.Debugf("MusicBot.registerCommand: Registered the %s command", command.Name)
 		return true
 	}
 	return false
@@ -80,17 +82,21 @@ func (m *MusicBot) Start() (err error) {
 	m.registerCommand(VolDownCommand)
 	m.registerCommand(VolCommand)
 
-	m.ircConn = irc.IRC(m.conf.Nick, m.conf.Realname)
-	m.ircConn.Password = m.conf.Password
-	m.ircConn.UseTLS = m.conf.Ssl
+	m.registerCommand(LogCommand)
 
-	err = m.ircConn.Connect(m.conf.Server)
+	m.ircConn = irc.IRC(m.config.IRC.Nick, m.config.IRC.Realname)
+	m.ircConn.Password = m.config.IRC.Password
+	m.ircConn.UseTLS = m.config.IRC.Ssl
+	m.ircConn.QuitMessage = "Enjoy your day without music!"
+
+	err = m.ircConn.Connect(m.config.IRC.Server)
 	if err != nil {
+		logrus.Errorf("MusicBot.Start: Error connecting to IRC server [%s] %v", m.config.IRC.Server, err)
 		return
 	}
 
 	m.ircConn.AddCallback("001", func(event *irc.Event) {
-		event.Connection.Join(m.conf.Channel)
+		event.Connection.Join(m.config.IRC.Channel)
 	})
 	m.ircConn.AddCallback("PRIVMSG", func(event *irc.Event) {
 		channel := event.Arguments[0]
@@ -100,7 +106,7 @@ func (m *MusicBot) Start() (err error) {
 		if strings.HasPrefix(message, "!music") {
 			isWhiteListed, _ := m.isUserWhitelisted(realname)
 
-			if m.conf.Master == realname || isWhiteListed {
+			if m.config.IRC.Master == realname || isWhiteListed {
 				arguments := strings.Split(message, " ")[1:]
 				if len(arguments) > 0 {
 					commandName := strings.ToLower(arguments[0])
@@ -119,10 +125,14 @@ func (m *MusicBot) Start() (err error) {
 	})
 
 	m.player.AddListener("play_start", m.onPlay)
+
+	m.ircConn.Privmsgf(m.config.IRC.Channel, "%s connected", GetMusicBotStringFormatted())
 	return
 }
 
 func (m *MusicBot) Stop() (err error) {
+	m.ircConn.Action(m.config.IRC.Channel, "quits. Please come back later for more music!")
+
 	err = m.player.Stop()
 	return
 }
@@ -136,7 +146,7 @@ func (m *MusicBot) getTarget(event *irc.Event) (target string, isPrivate, isMain
 		target = event.Nick
 		isPrivate = true
 	}
-	isMain = target == m.conf.Channel
+	isMain = target == m.config.IRC.Channel
 	return
 }
 
@@ -155,7 +165,7 @@ func (m *MusicBot) announceAddedSongs(event *irc.Event, songs []songplayer.Playa
 }
 
 func (m *MusicBot) Announce(message string) {
-	m.ircConn.Privmsg(m.conf.Channel, message)
+	m.ircConn.Privmsg(m.config.IRC.Channel, message)
 }
 
 func (m *MusicBot) announceMessage(nonMainOnly bool, event *irc.Event, message string) {
@@ -165,7 +175,7 @@ func (m *MusicBot) announceMessage(nonMainOnly bool, event *irc.Event, message s
 	}
 	if isPrivate || (!isMain && !nonMainOnly) {
 		// Announce it to the main channel as well
-		event.Connection.Privmsg(m.conf.Channel, message)
+		event.Connection.Privmsg(m.config.IRC.Channel, message)
 	}
 }
 
@@ -176,7 +186,7 @@ func (m *MusicBot) announceMessagef(nonMainOnly bool, event *irc.Event, format s
 	}
 	if isPrivate || (!isMain && !nonMainOnly) {
 		// Announce it to the main channel as well
-		event.Connection.Privmsgf(m.conf.Channel, format, a...)
+		event.Connection.Privmsgf(m.config.IRC.Channel, format, a...)
 	}
 }
 
@@ -187,9 +197,9 @@ func (m *MusicBot) onPlay(args ...interface{}) {
 
 	itm, ok := args[0].(songplayer.Playable)
 	if !ok {
-		fmt.Printf("onPlay: Error casting song: %v", args[0])
+		logrus.Warnf("MusicBot.onPlay: Error casting song: %v", args[0])
 		return
 	}
 
-	m.ircConn.Actionf(m.conf.Channel, "starts playing: %s", boldText(formatSong(itm)))
+	m.ircConn.Actionf(m.config.IRC.Channel, "starts playing: %s", boldText(formatSong(itm)))
 }
