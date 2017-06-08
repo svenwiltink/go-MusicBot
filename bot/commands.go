@@ -1,11 +1,14 @@
 package bot
 
 import (
+	"bufio"
 	"github.com/SvenWiltink/go-MusicBot/config"
 	"github.com/SvenWiltink/go-MusicBot/player"
 	"github.com/SvenWiltink/go-MusicBot/util"
 	"github.com/SvenWiltink/volumecontrol"
+	"github.com/sirupsen/logrus"
 	"github.com/thoj/go-ircevent"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -59,15 +62,16 @@ var WhitelistCommand = Command{
 				return
 			}
 			user := parameters[1]
-			if realname == bot.conf.Master {
+			if realname == bot.config.IRC.Master {
 				if isWhitelisted, _ := bot.isUserWhitelisted(user); !isWhitelisted {
 					bot.whitelist = append(bot.whitelist, user)
 
-					err := config.WriteWhitelist(bot.conf.WhiteListPath, bot.whitelist)
+					err := config.WriteWhitelist(bot.config.IRC.WhiteListPath, bot.whitelist)
 					if err != nil {
 						event.Connection.Privmsg(target, err.Error())
 						return
 					}
+					logrus.Infof("Whitelist: User %s added to whitelist by %s", user, event.Nick)
 					event.Connection.Privmsgf(target, boldText("User %s added to whitelist by %s"), user, event.Nick)
 				}
 			}
@@ -77,15 +81,16 @@ var WhitelistCommand = Command{
 				return
 			}
 			user := parameters[1]
-			if realname == bot.conf.Master {
+			if realname == bot.config.IRC.Master {
 				if isWhitelisted, index := bot.isUserWhitelisted(user); isWhitelisted {
 					bot.whitelist = append(bot.whitelist[:index], bot.whitelist[index+1:]...)
 
-					err := config.WriteWhitelist(bot.conf.WhiteListPath, bot.whitelist)
+					err := config.WriteWhitelist(bot.config.IRC.WhiteListPath, bot.whitelist)
 					if err != nil {
 						event.Connection.Privmsg(target, err.Error())
 						return
 					}
+					logrus.Infof("Whitelist: User %s removed from whitelist by %s", user, event.Nick)
 					event.Connection.Privmsgf(target, boldText("User %s removed from whitelist by %s"), user, event.Nick)
 				}
 			}
@@ -102,7 +107,20 @@ var NextCommand = Command{
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
 		}
-		bot.announceMessage(true, event, boldText(event.Nick)+" skipped the song")
+		bot.announceMessage(true, event, boldText(event.Nick)+" skipped to the next song")
+	},
+}
+
+var PreviousCommand = Command{
+	Name: "previous",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		target, _, _ := bot.getTarget(event)
+		_, err := bot.player.Previous()
+		if err != nil {
+			event.Connection.Privmsg(target, inverseText(err.Error()))
+			return
+		}
+		bot.announceMessage(true, event, boldText(event.Nick)+" skipped to the previous song")
 	},
 }
 
@@ -136,6 +154,10 @@ var SeekCommand = Command{
 				return
 			}
 			song, _ := bot.player.GetCurrentSong()
+			if song == nil {
+				event.Connection.Privmsg(target, boldText("Nothing playing!"))
+				return
+			}
 			duration := song.GetDuration().Nanoseconds() / 100 * percentage
 			seekSeconds = duration / int64(time.Second)
 		} else {
@@ -152,7 +174,9 @@ var SeekCommand = Command{
 			return
 		}
 		song, remaining := bot.player.GetCurrentSong()
-		bot.announceMessagef(false, event, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
+		if song != nil {
+			bot.announceMessagef(false, event, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
+		}
 	},
 }
 
@@ -173,7 +197,9 @@ var PauseCommand = Command{
 		case player.PLAYING:
 			bot.announceMessage(false, event, boldText(event.Nick)+" unpaused the player")
 		}
-		bot.announceMessagef(false, event, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
+		if song != nil {
+			bot.announceMessagef(false, event, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
+		}
 	},
 }
 
@@ -239,7 +265,7 @@ var OpenCommand = Command{
 			return
 		}
 		bot.announceAddedSongs(event, songs)
-		bot.player.Next()
+		bot.player.Play()
 	},
 }
 
@@ -251,13 +277,13 @@ var ShuffleCommand = Command{
 	},
 }
 
-var ListCommand = Command{
-	Name: "list",
+var QueueCommand = Command{
+	Name: "queue",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		target, _, _ := bot.getTarget(event)
 		items := bot.player.GetQueuedSongs()
 		if len(items) == 0 {
-			event.Connection.Privmsg(target, italicText("The playlist is empty"))
+			event.Connection.Privmsg(target, italicText("The queue is empty"))
 		}
 
 		for i, item := range items {
@@ -267,6 +293,24 @@ var ListCommand = Command{
 				event.Connection.Privmsgf(target, italicText("And %d more.."), len(items)-10)
 				return
 			}
+		}
+	},
+}
+
+var HistoryCommand = Command{
+	Name: "history",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		target, _, _ := bot.getTarget(event)
+		items := bot.player.GetPastSongs()
+		if len(items) == 0 {
+			event.Connection.Privmsg(target, italicText("The history is empty"))
+		}
+
+		for i, item := range items {
+			if i < len(items)-11 {
+				continue
+			}
+			event.Connection.Privmsgf(target, "%d. %s", i+1, formatSong(item))
 		}
 	},
 }
@@ -377,7 +421,6 @@ var VolCommand = Command{
 		}
 
 		vol, err := strconv.Atoi(parameters[0])
-
 		if err != nil {
 			event.Connection.Privmsg(target, "error: "+err.Error())
 			return
@@ -387,6 +430,43 @@ var VolCommand = Command{
 		if err != nil {
 			event.Connection.Privmsg(target, "error: "+err.Error())
 			return
+		}
+	},
+}
+
+var LogCommand = Command{
+	Name: "log",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		target, _, _ := bot.getTarget(event)
+
+		if bot.config.LogFile == "" {
+			event.Connection.Privmsgf(target, "%sCannot show log, no logfile configured", ITALIC_CHARACTER)
+			return
+		}
+
+		file, err := os.Open(bot.config.LogFile)
+		if err != nil {
+			logrus.Errorf("bot.LogCommand: Error opening file: [%s] %v", bot.config.LogFile, err)
+			return
+		}
+		defer file.Close()
+
+		var lines []string
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			lines = append(lines, scanner.Text())
+		}
+		err = scanner.Err()
+		if err != nil {
+			logrus.Errorf("bot.LogCommand: Error scanning file: [%s] %v", bot.config.LogFile, err)
+			return
+		}
+
+		for i := len(lines) - 11; i < len(lines); i++ {
+			if i < 0 {
+				continue
+			}
+			event.Connection.Privmsgf(target, "#%03d: %s", i+1, lines[i])
 		}
 	},
 }

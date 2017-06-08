@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/zmb3/spotify"
 	"golang.org/x/oauth2"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -15,7 +15,7 @@ import (
 const DEFAULT_AUTHORISE_PORT = 5678
 const DEFAULT_AUTHORISE_URL = "http://musicbot:5678/authorise/"
 
-var ErrNotAuthorised = errors.New("[SpotifyConnectPlayer] Client has not been authorised yet")
+var ErrNotAuthorised = errors.New("Client has not been authorised yet")
 
 type SpotifyConnectPlayer struct {
 	sessionKey    string
@@ -23,6 +23,7 @@ type SpotifyConnectPlayer struct {
 	client        *spotify.Client
 	user          *spotify.PrivateUser
 	auth          *spotify.Authenticator
+	logger        *logrus.Entry
 	authListeners []func()
 }
 
@@ -41,15 +42,20 @@ func NewSpotifyConnectPlayer(spotifyClientID, spotifyClientSecret, tokenFilePath
 		sessionKey:    RandStringBytes(12),
 		tokenFilePath: tokenFilePath,
 		auth:          &auth,
+		logger:        logrus.WithField("songplayer", "SpotifyConnect"),
 	}
+	authURL, err = p.init(authoriseHTTPPort)
+	return
+}
 
+func (p *SpotifyConnectPlayer) init(authoriseHTTPPort int) (authURL string, err error) {
 	// Add our own after authorisation handler
 	p.AddAuthorisationListener(p.afterAuthorisation)
 
 	go func() {
 		err = http.ListenAndServe(fmt.Sprintf(":%d", authoriseHTTPPort), p)
 		if err != nil {
-			log.Printf("[SpotifyConnect] Error, could not start HTTP server on port %d: %v\n", authoriseHTTPPort, err)
+			p.logger.Errorf("SpotifyConnectPlayer.init: Could not start HTTP server on port %d: %v", authoriseHTTPPort, err)
 			return
 		}
 	}()
@@ -60,16 +66,16 @@ func NewSpotifyConnectPlayer(spotifyClientID, spotifyClientSecret, tokenFilePath
 		var userErr error
 		p.user, userErr = client.CurrentUser()
 		if userErr == nil {
-			log.Printf("[SpotifyConnect] Reusing previous token")
+			p.logger.Info("SpotifyConnectPlayer.init: Reusing previous spotify token")
 			p.client = &client
 			p.afterAuthorisation()
 			return
 		}
-		log.Printf("[SpotifyConnect] Previous token invalid, reauthenticatation needed")
+		p.logger.Info("SpotifyConnectPlayer.init: Previous token invalid, new authentication needed")
 	}
 
-	authURL = auth.AuthURL(p.sessionKey)
-	log.Printf("[SpotifyConnect] Please authorise the MusicBot by visiting the following page in your browser: %s\n", authURL)
+	authURL = p.auth.AuthURL(p.sessionKey)
+	p.logger.Infof("SpotifyConnectPlayer.init: Please authorise the MusicBot by visiting the following page in your browser: %s", authURL)
 	return
 }
 
@@ -83,11 +89,11 @@ func (p *SpotifyConnectPlayer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	token, err := p.auth.Token(p.sessionKey, r)
 	if err != nil {
 		http.Error(w, "Could not get token", http.StatusForbidden)
-		log.Printf("[SpotifyConnect] Error pulling token from callback: %v\n", err)
+		p.logger.Warnf("SpotifyConnectPlayer.ServeHTTP: Error pulling token from callback: %v", err)
 		return
 	}
 	if st := r.FormValue("state"); st != p.sessionKey {
-		log.Printf("[SpotifyConnect] Error, state mismatch: %v != %v\n", st, p.sessionKey)
+		p.logger.Warnf("SpotifyConnectPlayer.ServeHTTP: State mismatch: %v != %v", st, p.sessionKey)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -100,7 +106,6 @@ func (p *SpotifyConnectPlayer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	fmt.Fprintf(w, "<h1>Login completed as %s</h1>", p.user.ID)
 
 	p.writeToken(token)
-
 	for _, l := range p.authListeners {
 		l()
 	}
@@ -111,43 +116,58 @@ func (p *SpotifyConnectPlayer) AddAuthorisationListener(listener func()) {
 }
 
 func (p *SpotifyConnectPlayer) afterAuthorisation() {
+	p.logger = p.logger.WithField("spotifyUser", p.user.ID)
+
+	p.logger.Info("SpotifyConnectPlayer.afterAuthorisation: Successfully authorised")
+
 	// Turn repeat off, as it interferes with the musicplayer
 	repErr := p.client.Repeat("off")
 	if repErr != nil {
-		log.Printf("[SpotifyConnect] Error setting repeat setting: %v\n", repErr)
+		p.logger.Warnf("SpotifyConnectPlayer.afterAuthorisation: Error setting repeat setting: %v", repErr)
 	}
 
 	// Turn shuffle off
 	shufErr := p.client.Shuffle(false)
+	p.client.Shuffle(false)
 	if shufErr != nil {
-		log.Printf("[SpotifyConnect] Error setting shuffle setting: %v\n", shufErr)
+		p.logger.Warnf("SpotifyConnectPlayer.afterAuthorisation: Error setting shuffle setting: %v", shufErr)
 	}
 }
 
 func (p *SpotifyConnectPlayer) writeToken(token *oauth2.Token) (err error) {
 	if p.tokenFilePath == "" {
-		err = errors.New("Tokenfilepath invalid")
+		err = errors.New("token filepath invalid")
 		return
 	}
 	buf, err := json.Marshal(token)
 	if err != nil {
+		p.logger.Warnf("SpotifyConnectPlayer.writeToken: Error marshalling spotify token: %v", err)
 		return
 	}
 	err = ioutil.WriteFile(p.tokenFilePath, buf, 0755)
+	if err != nil {
+		p.logger.Warnf("SpotifyConnectPlayer.writeToken: Error writing spotify token: %v", err)
+		return
+	}
 	return
 }
 
 func (p *SpotifyConnectPlayer) readToken() (token *oauth2.Token, err error) {
 	if p.tokenFilePath == "" {
-		err = errors.New("Tokenfilepath invalid")
+		err = errors.New("token filepath invalid")
 		return
 	}
 	buf, err := ioutil.ReadFile(p.tokenFilePath)
 	if err != nil {
+		p.logger.Warnf("SpotifyConnectPlayer.readToken: Error reading spotify token: %v", err)
 		return
 	}
 	token = &oauth2.Token{}
 	err = json.Unmarshal(buf, token)
+	if err != nil {
+		p.logger.Warnf("SpotifyConnectPlayer.readToken: Error unmarshalling spotify token: %v", err)
+		return
+	}
 	return
 }
 
@@ -169,7 +189,7 @@ func (p *SpotifyConnectPlayer) GetSongs(url string) (songs []Playable, err error
 
 	tp, id, userID, err := GetSpotifyTypeAndIDFromURL(url)
 	if err != nil {
-		err = fmt.Errorf("[SpotifyConnectPlayer] Could not parse URL: %v", err)
+		p.logger.Errorf("SpotifyConnectPlayer.GetSongs: Could not parse URL [%s] %v", url, err)
 		return
 	}
 	switch tp {
@@ -177,7 +197,7 @@ func (p *SpotifyConnectPlayer) GetSongs(url string) (songs []Playable, err error
 		var track *spotify.FullTrack
 		track, err = p.client.GetTrack(spotify.ID(id))
 		if err != nil {
-			err = fmt.Errorf("[SpotifyConnectPlayer] Could not get track data for URL: %v", err)
+			p.logger.Errorf("SpotifyConnectPlayer.GetSongs: Could not get track data for URL [%s] %v", url, err)
 			return
 		}
 
@@ -188,7 +208,7 @@ func (p *SpotifyConnectPlayer) GetSongs(url string) (songs []Playable, err error
 		var album *spotify.FullAlbum
 		album, err = p.client.GetAlbum(spotify.ID(id))
 		if err != nil {
-			err = fmt.Errorf("[SpotifyConnectPlayer] Could not get album for URL: %v", err)
+			p.logger.Errorf("SpotifyConnectPlayer.GetSongs: Could not get album data for URL [%s] %v", url, err)
 			return
 		}
 		for _, track := range album.Tracks.Tracks {
@@ -200,11 +220,12 @@ func (p *SpotifyConnectPlayer) GetSongs(url string) (songs []Playable, err error
 		var listTracks *spotify.PlaylistTrackPage
 		listTracks, err = p.client.GetPlaylistTracks(userID, spotify.ID(id))
 		if err != nil {
-			err = fmt.Errorf("[SpotifyConnectPlayer] Could not get playlist tracks for URL: %v", err)
+			p.logger.Errorf("SpotifyConnectPlayer.GetSongs: Could not get playlist data for URL [%s] %v", url, err)
 			return
 		}
 		for _, track := range listTracks.Tracks {
 			if strings.HasPrefix(string(track.Track.URI), "spotify:local:") {
+				p.logger.Infof("SpotifyConnectPlayer.GetSongs: Skipping local song %s", track.Track.URI)
 				continue
 			}
 			songs = append(songs,
@@ -222,6 +243,10 @@ func (p *SpotifyConnectPlayer) Search(searchType SearchType, searchStr string, l
 	}
 
 	results, err = GetSpotifySearchResults(p.client, searchType, searchStr, limit)
+	if err != nil {
+		p.logger.Errorf("SpotifyConnectPlayer.Search: Error searching [%d | %s | %d] %v", searchType, searchStr, limit)
+		return
+	}
 	return
 }
 
@@ -235,6 +260,10 @@ func (p *SpotifyConnectPlayer) Play(url string) (err error) {
 	err = p.client.PlayOpt(&spotify.PlayOptions{
 		URIs: []spotify.URI{URI},
 	})
+	if err != nil {
+		p.logger.Errorf("SpotifyConnectPlayer.Play: Error playing [%s] %v", url, err)
+		return
+	}
 	return
 }
 
@@ -245,6 +274,10 @@ func (p *SpotifyConnectPlayer) Seek(positionSeconds int) (err error) {
 	}
 
 	err = p.client.Seek(positionSeconds * 1000)
+	if err != nil {
+		p.logger.Errorf("SpotifyConnectPlayer.Seek: Error seeking [%d] %v", positionSeconds, err)
+		return
+	}
 	return
 }
 
@@ -256,9 +289,17 @@ func (p *SpotifyConnectPlayer) Pause(pauseState bool) (err error) {
 
 	if pauseState {
 		err = p.client.Pause()
+		if err != nil {
+			p.logger.Errorf("SpotifyConnectPlayer.Pause: Error pausing: %v", err)
+			return
+		}
 		return
 	}
 	err = p.client.Play()
+	if err != nil {
+		p.logger.Errorf("SpotifyConnectPlayer.Pause: Error unpausing: %v", err)
+		return
+	}
 	return
 }
 
@@ -269,5 +310,9 @@ func (p *SpotifyConnectPlayer) Stop() (err error) {
 	}
 
 	err = p.client.Pause()
+	if err != nil {
+		p.logger.Errorf("SpotifyConnectPlayer.Stop: Error stopping: %v", err)
+		return
+	}
 	return
 }

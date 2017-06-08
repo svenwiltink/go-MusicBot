@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/SvenWiltink/go-MusicBot/songplayer"
+	"github.com/sirupsen/logrus"
 	"os"
 	"strings"
 	"sync"
@@ -35,7 +36,8 @@ func (qs *QueueStorage) OnListUpdate(args ...interface{}) {
 
 	err := qs.saveQueue(urls)
 	if err != nil {
-		fmt.Printf("[QueueStorage] Error saving queue: %v", err)
+		logrus.Warnf("QueueStorage.OnListUpdate: Error saving queue: %v", err)
+		return
 	}
 }
 
@@ -45,6 +47,7 @@ func (qs *QueueStorage) saveQueue(urls []string) (err error) {
 
 	file, err := os.Create(qs.path)
 	if err != nil {
+		logrus.Warnf("QueueStorage.saveQueue: Error opening file [%s] %v", qs.path, err)
 		return
 	}
 	defer file.Close()
@@ -66,6 +69,7 @@ func (qs *QueueStorage) ReadQueue() (urls []string, err error) {
 
 	file, err := os.Open(qs.path)
 	if err != nil {
+		logrus.Warnf("QueueStorage.ReadQueue: Error reading file [%s] %v", qs.path, err)
 		return
 	}
 	defer file.Close()
@@ -75,5 +79,9 @@ func (qs *QueueStorage) ReadQueue() (urls []string, err error) {
 		urls = append(urls, strings.TrimSpace(scanner.Text()))
 	}
 	err = scanner.Err()
+	if err != nil {
+		logrus.Warnf("QueueStorage.ReadQueue: Error scanning file: %v", err)
+		return
+	}
 	return
 }

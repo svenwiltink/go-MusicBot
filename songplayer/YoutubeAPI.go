@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/channelmeter/iso8601duration"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
 	"net/http"
@@ -20,24 +21,24 @@ type YouTubeAPI struct {
 	service *youtube.Service
 }
 
-func NewYoutubeAPI(youtubeAPIKey string) (y *YouTubeAPI) {
-	y = &YouTubeAPI{
+func NewYoutubeAPI(youtubeAPIKey string) (yt *YouTubeAPI) {
+	yt = &YouTubeAPI{
 		apiKey: youtubeAPIKey,
 	}
 
-	y.Initialize()
+	yt.init()
 	return
 }
 
-// Initialize - Initialize the youtube service
-func (yt *YouTubeAPI) Initialize() (err error) {
+// init - Initialize the youtube service
+func (yt *YouTubeAPI) init() (err error) {
 	client := &http.Client{
 		Transport: &transport.APIKey{Key: yt.apiKey},
 	}
 
 	service, err := youtube.New(client)
 	if err != nil {
-		err = fmt.Errorf("[YoutubeMeta] Error creating meta client: %v", err)
+		logrus.Errorf("YoutubeAPI.init: Error creating client: %v", err)
 		return
 	}
 
@@ -49,19 +50,20 @@ func (yt *YouTubeAPI) Initialize() (err error) {
 func (yt *YouTubeAPI) GetPlayableForURL(source string) (playable Playable, err error) {
 	ytURL, err := url.Parse(source)
 	if err != nil {
-		err = fmt.Errorf("[YoutubeMeta] Unable to parse source: %v", err)
+		logrus.Errorf("YoutubeAPI.GetPlayableForURL: Unable to parse URL [%s] %v", source, err)
 		return
 	}
 
 	identifier := ytURL.Query().Get("v")
 	if identifier == "" {
-		err = fmt.Errorf("[YoutubeMeta] Empty identifier for: %s", source)
+		logrus.Errorf("YoutubeAPI.GetPlayableForURL: Empty identifier for: %s", source)
+		err = fmt.Errorf("empty identifier for: %s", source)
 		return
 	}
 
 	playable, err = yt.GetPlayableForIdentifier(identifier)
 	if err != nil {
-		err = fmt.Errorf("[YoutubeMeta] Unable to get meta for source: %v", err)
+		logrus.Errorf("YoutubeAPI.GetPlayableForURL: Unable to get playable [%s] %v", identifier, err)
 		return
 	}
 	return
@@ -71,7 +73,7 @@ func (yt *YouTubeAPI) GetPlayableForIdentifier(identifier string) (playable Play
 	call := yt.service.Videos.List("snippet,contentDetails").Id(identifier)
 	response, err := call.Do()
 	if err != nil {
-		err = fmt.Errorf("[YoutubeMeta] Request failed: %v", err)
+		logrus.Errorf("YoutubeAPI.GetPlayableForIdentifier: List request failed [%s] %v", identifier, err)
 		return
 	}
 
@@ -79,11 +81,11 @@ func (yt *YouTubeAPI) GetPlayableForIdentifier(identifier string) (playable Play
 		if item.Id == identifier && item.Kind == "youtube#video" {
 			d, convErr := duration.FromString(item.ContentDetails.Duration)
 			if convErr != nil {
-				err = fmt.Errorf("[YoutubeMeta] Unable to convert duration: %v", convErr)
+				logrus.Errorf("YoutubeAPI.GetPlayableForIdentifier: Unable to convert duration [%s] %v", item.ContentDetails.Duration, convErr)
 				return
 			}
 			if item.Snippet == nil {
-				err = errors.New("[YoutubeMeta] Snippet not found")
+				err = errors.New("snippet not found")
 				return
 			}
 
@@ -96,19 +98,21 @@ func (yt *YouTubeAPI) GetPlayableForIdentifier(identifier string) (playable Play
 			return
 		}
 	}
-	err = fmt.Errorf("[YoutubeMeta] Meta not found for: %s", identifier)
+	err = fmt.Errorf("playable not found for: %s", identifier)
 	return
 }
 
 func (yt *YouTubeAPI) GetPlayablesForPlaylistURL(source string) (items []Playable, err error) {
 	plURL, err := url.Parse(source)
 	if err != nil {
-		err = fmt.Errorf("[YoutubeMeta] Unable to parse source: %v", err)
+		logrus.Errorf("YoutubeAPI.GetPlayablesForPlaylistURL: Unable to parse URL [%s] %v", source, err)
 		return
 	}
 
 	identifier := plURL.Query().Get("list")
 	if identifier == "" {
+		logrus.Errorf("YoutubeAPI.GetPlayablesForPlaylistURL: Empty list identifier for: %s", source)
+		err = fmt.Errorf("empty list identifier for: %s", source)
 		return
 	}
 
@@ -120,7 +124,7 @@ func (yt *YouTubeAPI) GetPlayablesForPlaylistIdentifier(identifier string, limit
 	call := yt.service.PlaylistItems.List("snippet,contentDetails").MaxResults(int64(limit)).PlaylistId(identifier)
 	response, err := call.Do()
 	if err != nil {
-		err = fmt.Errorf("[YoutubeMeta] Request failed: %v", err)
+		logrus.Errorf("YoutubeAPI.GetPlayablesForPlaylistIdentifier: Error listing [%s | %d] %v", identifier, limit, err)
 		return
 	}
 
@@ -152,7 +156,7 @@ func (yt *YouTubeAPI) Search(searchType SearchType, searchStr string, limit int)
 
 	response, err := call.Do()
 	if err != nil {
-		err = fmt.Errorf("[YoutubeMeta] Search request failed: %v", err)
+		logrus.Errorf("YoutubeAPI.Search: Error searching [%d | %s | %d] %v", searchType, searchStr, limit, err)
 		return
 	}
 
@@ -162,7 +166,7 @@ func (yt *YouTubeAPI) Search(searchType SearchType, searchStr string, limit int)
 			var ply Playable
 			ply, err = yt.GetPlayableForIdentifier(item.Id.VideoId)
 			if err != nil {
-				err = fmt.Errorf("[YoutubeMeta] Search request video lookup failed [%s]: %v", item.Id.VideoId, err)
+				logrus.Errorf("YoutubeAPI.Search: Error getting playable [%s] %v", item.Id.VideoId, err)
 				return
 			}
 			items = append(items, NewSongResult(SEARCH_TYPE_TRACK, ply.GetTitle(), ply.GetDuration(), ply.GetURL(), ply.GetImageURL()))
@@ -170,11 +174,11 @@ func (yt *YouTubeAPI) Search(searchType SearchType, searchStr string, limit int)
 			var plys []Playable
 			plys, err = yt.GetPlayablesForPlaylistIdentifier(item.Id.PlaylistId, 1)
 			if err != nil || len(plys) < 1 {
-				err = fmt.Errorf("[YoutubeMeta] Search request playlist lookup failed [%s]: %v", item.Id.PlaylistId, err)
+				logrus.Errorf("YoutubeAPI.Search: Search request playlist lookup failed [%s]: %v", item.Id.PlaylistId, err)
 				return
 			}
 			if item.Snippet == nil {
-				err = errors.New("[YoutubeMeta] Snippet not found")
+				err = errors.New("snippet not found")
 				return
 			}
 

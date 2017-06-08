@@ -6,6 +6,7 @@ import (
 	"github.com/SvenWiltink/go-MusicBot/player"
 	"github.com/SvenWiltink/go-MusicBot/songplayer"
 	"github.com/SvenWiltink/go-MusicBot/util"
+	"github.com/sirupsen/logrus"
 	"strings"
 	"time"
 )
@@ -85,17 +86,17 @@ func formatSong(song songplayer.Playable) (s string) {
 func progressString(total, remaining time.Duration) (progress string) {
 	percent := int(float64(total-remaining) / float64(total) * 100)
 
-	progress = "+"
+	progress = getColourCode(COLOUR_BLUE, COLOUR_BLUE)
 	for i := 0; i < percent; i++ {
 		progress += "#"
 	}
-	progress += "#"
+	progress += "#" + getColourCode(COLOUR_LIGHT_GREY, COLOUR_LIGHT_GREY)
 	if percent < 100 {
 		for i := percent + 1; i < 100; i++ {
 			progress += "-"
 		}
 	}
-	progress += "+"
+	progress += getColourCode(COLOUR_DEFAULT, COLOUR_NONE)
 	return
 }
 
@@ -148,7 +149,7 @@ func searchSongs(player player.MusicPlayer, parameters []string, limit int) (res
 	if plyr != nil {
 		searchErr := searchFunc(plyr, strings.Join(parameters, " "))
 		if searchErr != nil {
-			fmt.Printf("[%s] Error searching [%d | %v] %v", plyr.Name(), searchType, parameters, searchErr)
+			logrus.Errorf("MusicBot.searchSongs: Error searching [%s | %d | %v] %v", plyr.Name(), searchType, parameters, searchErr)
 		}
 		return
 	}
@@ -156,8 +157,27 @@ func searchSongs(player player.MusicPlayer, parameters []string, limit int) (res
 	for _, songPlayer := range player.GetSongPlayers() {
 		searchErr := searchFunc(songPlayer, strings.Join(parameters, " "))
 		if searchErr != nil {
-			fmt.Printf("[%s] Error searching [%d | %v] %v", songPlayer.Name(), searchType, parameters, searchErr)
+			logrus.Errorf("MusicBot.searchSongs: Error searching [%s | %d | %v] %v", songPlayer.Name(), searchType, parameters, searchErr)
 		}
 	}
+	return
+}
+
+func GetMusicBotStringFormatted() (s string) {
+	s = fmt.Sprintf("%s%s%sM%su%ss%si%sc%sB%so%st%s%s%s",
+		BOLD_CHARACTER,
+		UNDERLINE_CHARACTER,
+		getColourCode(COLOUR_GREEN, COLOUR_NONE),
+		getColourCode(COLOUR_RED, COLOUR_NONE),
+		getColourCode(COLOUR_PURPLE, COLOUR_NONE),
+		getColourCode(COLOUR_ORANGE, COLOUR_NONE),
+		getColourCode(COLOUR_LIGHT_GREEN, COLOUR_NONE),
+		getColourCode(COLOUR_CYAN, COLOUR_NONE),
+		getColourCode(COLOUR_LIGHT_BLUE, COLOUR_NONE),
+		getColourCode(COLOUR_PINK, COLOUR_NONE),
+		getColourCode(COLOUR_DEFAULT, COLOUR_NONE),
+		BOLD_CHARACTER,
+		UNDERLINE_CHARACTER,
+	)
 	return
 }

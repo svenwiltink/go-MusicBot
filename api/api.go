@@ -8,7 +8,7 @@ import (
 	"github.com/SvenWiltink/go-MusicBot/player"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"log"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -43,7 +43,7 @@ func NewAPI(conf *config.API, player player.MusicPlayer) *API {
 	}
 }
 
-func (api *API) Start() {
+func (api *API) Start() (err error) {
 	api.initializeRoutes()
 
 	// Register all routes
@@ -51,8 +51,9 @@ func (api *API) Start() {
 		api.registerRoute(r)
 	}
 
-	err := http.ListenAndServe(fmt.Sprintf("%s:%d", api.config.Host, api.config.Port), api.router)
-	log.Fatal(err)
+	err = http.ListenAndServe(fmt.Sprintf("%s:%d", api.config.Host, api.config.Port), api.router)
+	logrus.Errorf("API.Start: Error serving API http server on %s:%d: %v", api.config.Host, api.config.Port, err)
+	return
 }
 
 func (api *API) authenticator(inner http.HandlerFunc, optional bool) http.HandlerFunc {
@@ -108,6 +109,10 @@ func (api *API) initializeRoutes() {
 			Method:  http.MethodGet,
 			handler: api.authenticator(api.NextHandler, false),
 		}, {
+			Pattern: "/previous",
+			Method:  http.MethodGet,
+			handler: api.authenticator(api.PreviousHandler, false),
+		}, {
 			Pattern: "/add",
 			Method:  http.MethodGet,
 			handler: api.authenticator(api.AddHandler, false),
@@ -140,7 +145,7 @@ func (api *API) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err := json.NewEncoder(w).Encode(s)
 	if err != nil {
-		fmt.Printf("API status encode error: %v\n", err)
+		logrus.Errorf("API.StatusHandler: Json encode error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -150,7 +155,7 @@ func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
 	songs := api.player.GetQueuedSongs()
 	err := json.NewEncoder(w).Encode(getAPISongs(songs))
 	if err != nil {
-		fmt.Printf("API list encode error: %v\n", err)
+		logrus.Errorf("API.ListHandler: Json encode error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -160,7 +165,7 @@ func (api *API) CurrentHandler(w http.ResponseWriter, r *http.Request) {
 	song, remaining := api.player.GetCurrentSong()
 	err := json.NewEncoder(w).Encode(getAPISong(song, remaining))
 	if err != nil {
-		fmt.Printf("API current encode error: %v\n", err)
+		logrus.Errorf("API.CurrentHandler: Json encode error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -169,13 +174,13 @@ func (api *API) CurrentHandler(w http.ResponseWriter, r *http.Request) {
 func (api *API) PlayHandler(w http.ResponseWriter, r *http.Request) {
 	song, err := api.player.Play()
 	if err != nil {
-		fmt.Printf("API play error: %v\n", err)
+		logrus.Errorf("API.PlayHandler: Error playing: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	err = json.NewEncoder(w).Encode(getAPISong(song, song.GetDuration()))
 	if err != nil {
-		fmt.Printf("API next encode error: %v\n", err)
+		logrus.Errorf("API.PlayHandler: Json encode error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -184,7 +189,7 @@ func (api *API) PlayHandler(w http.ResponseWriter, r *http.Request) {
 func (api *API) PauseHandler(w http.ResponseWriter, r *http.Request) {
 	err := api.player.Pause()
 	if err != nil {
-		fmt.Printf("API pause error: %v\n", err)
+		logrus.Errorf("API.PauseHandler: Error pausing: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -193,7 +198,7 @@ func (api *API) PauseHandler(w http.ResponseWriter, r *http.Request) {
 func (api *API) StopHandler(w http.ResponseWriter, r *http.Request) {
 	err := api.player.Stop()
 	if err != nil {
-		fmt.Printf("API stop error: %v\n", err)
+		logrus.Errorf("API.StopHandler: Error stopping: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -202,44 +207,62 @@ func (api *API) StopHandler(w http.ResponseWriter, r *http.Request) {
 func (api *API) NextHandler(w http.ResponseWriter, r *http.Request) {
 	song, err := api.player.Next()
 	if err != nil {
-		fmt.Printf("API next error: %v\n", err)
+		logrus.Errorf("API.NextHandler: Error next-ing: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	err = json.NewEncoder(w).Encode(getAPISong(song, song.GetDuration()))
 	if err != nil {
-		fmt.Printf("API next encode error: %v\n", err)
+		logrus.Errorf("API.NextHandler: Json encode error: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (api *API) PreviousHandler(w http.ResponseWriter, r *http.Request) {
+	song, err := api.player.Previous()
+	if err != nil {
+		logrus.Errorf("API.PreviousHandler: Error previous-ing: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(getAPISong(song, song.GetDuration()))
+	if err != nil {
+		logrus.Errorf("API.PreviousHandler: Json encode error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
 
 func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
-	songs, err := api.player.AddSongs(r.URL.Query().Get("url"))
+	url := r.URL.Query().Get("url")
+	songs, err := api.player.AddSongs(url)
 	if err != nil {
-		fmt.Printf("API add error: %v\n", err)
+		logrus.Errorf("API.AddHandler: Error adding [%s] %v", url, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	err = json.NewEncoder(w).Encode(getAPISongs(songs))
 	if err != nil {
-		fmt.Printf("API add encode error: %v\n", err)
+		logrus.Errorf("API.AddHandler: Json encode error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
 
 func (api *API) OpenHandler(w http.ResponseWriter, r *http.Request) {
-	songs, err := api.player.InsertSongs("url", 0)
+	url := r.URL.Query().Get("url")
+	songs, err := api.player.InsertSongs(url, 0)
 	if err != nil {
-		fmt.Printf("API add error: %v\n", err)
+		logrus.Errorf("API.OpenHandler: Error inserting [%s] %v", url, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	err = json.NewEncoder(w).Encode(getAPISongs(songs))
 	if err != nil {
-		fmt.Printf("API add encode error: %v\n", err)
+		logrus.Errorf("API.OpenHandler: Json encode error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -250,10 +273,11 @@ func (api *API) SocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	ws, err := api.wsUpgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Sprintf("API socket error: %v", err)
+		logrus.Errorf("API.SocketHandler: Error upgrading to socket: %v", err)
 		return
 	}
 
+	logrus.Infof("API.SocketHandler: Opening new socket [ReadOnly: %v]", readOnly)
 	cws := NewControlWebsocket(ws, readOnly, api.player)
 	cws.Start()
 }
