@@ -213,7 +213,7 @@ func (p *Player) playWait() {
 	p.EmitEvent("play_done", p.currentSong)
 	p.currentSong = nil
 
-	if len(p.playlist)-1 < p.playlistPosition && p.status == PLAYING {
+	if p.playlistPosition < len(p.playlist)-1 && p.status == PLAYING {
 		p.setPlaylistPosition(p.playlistPosition + 1)
 	} else {
 		p.stop()
