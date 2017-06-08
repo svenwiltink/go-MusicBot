@@ -120,7 +120,7 @@ func main() {
 			musicBot.Announce(authURL)
 			spPlayer.AddAuthorisationListener(func() {
 				playr.AddSongPlayer(spPlayer)
-				musicBot.Announce("[SpotifyConnect] The musicbot was successfully authorised!")
+				musicBot.Announce("[SpotifyConnectPlayer] The musicbot was successfully authorised!")
 			})
 		} else {
 			playr.AddSongPlayer(spPlayer)
