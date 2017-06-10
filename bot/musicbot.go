@@ -7,6 +7,7 @@ import (
 	"github.com/SvenWiltink/go-MusicBot/songplayer"
 	"github.com/sirupsen/logrus"
 	irc "github.com/thoj/go-ircevent"
+	"gitlab.transip.us/swiltink/go-MusicBot/bot"
 	"strings"
 )
 
@@ -34,6 +35,14 @@ func NewMusicBot(conf *config.MusicBot) (mb *MusicBot, err error) {
 
 func (m *MusicBot) SetPlayer(plr player.MusicPlayer) {
 	m.player = plr
+
+	m.player.AddListener("queue_loaded", func(args ...interface{}) {
+		m.Announcef("%sLoaded %d songs from queue file", bot.ITALIC_CHARACTER, len(m.player.GetQueuedSongs()))
+	})
+	m.player.AddListener("queue_error_loading", func(args ...interface{}) {
+		m.Announcef("%sError loading queue from file: %v", args[1].(error), bot.INVERSE_CHARACTER)
+	})
+	m.player.AddListener("play_start", m.onPlay)
 }
 
 func (m *MusicBot) getCommand(name string) (command Command, exists bool) {
@@ -134,8 +143,6 @@ func (m *MusicBot) Start() (err error) {
 		}
 	})
 
-	m.player.AddListener("play_start", m.onPlay)
-
 	m.ircConn.Privmsgf(m.config.IRC.Channel, "%s connected", GetMusicBotStringFormatted())
 	return
 }
@@ -176,6 +183,10 @@ func (m *MusicBot) announceAddedSongs(event *irc.Event, songs []songplayer.Playa
 
 func (m *MusicBot) Announce(message string) {
 	m.ircConn.Privmsg(m.config.IRC.Channel, message)
+}
+
+func (m *MusicBot) Announcef(format string, a ...interface{}) {
+	m.ircConn.Privmsgf(m.config.IRC.Channel, format, a...)
 }
 
 func (m *MusicBot) announceMessage(nonMainOnly bool, event *irc.Event, message string) {
