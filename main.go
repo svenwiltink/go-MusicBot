@@ -76,7 +76,8 @@ func main() {
 		return
 	}
 
-	playr := player.NewPlayer(conf.QueuePath)
+	logrus.Infof("main: Creating new MusicPlayer with queuePath %s and statsPath %s", conf.QueuePath, conf.StatsPath)
+	playr := player.NewPlayer(conf.QueuePath, conf.StatsPath)
 	musicBot.SetPlayer(playr)
 
 	// Initialize the API

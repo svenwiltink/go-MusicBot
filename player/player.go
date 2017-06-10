@@ -16,6 +16,9 @@ type Player struct {
 	*eventemitter.Emitter
 
 	queueStorage *QueueStorage
+	statsStorage *StatsStorage
+
+	stats *Stats
 
 	currentSong      songplayer.Playable
 	playlistPosition int
@@ -34,9 +37,10 @@ type Player struct {
 
 var ErrNothingPlaying = errors.New("nothing currently playing")
 
-func NewPlayer(queueFilePath string) (player *Player) {
+func NewPlayer(queueFilePath, statsFilePath string) (player *Player) {
 	player = &Player{
 		Emitter:          eventemitter.NewEmitter(),
+		statsStorage:     NewStatsStorage(statsFilePath),
 		queueStorage:     NewQueueStorage(queueFilePath),
 		status:           STOPPED,
 		playlistPosition: 0,
@@ -65,6 +69,7 @@ func (p *Player) Init() {
 
 	// Setup listener to keep the queue file updated
 	p.AddListener("queue_updated", p.queueStorage.OnListUpdate)
+	p.AddListener("stats_updated", p.statsStorage.OnStatsUpdate)
 }
 
 func (p *Player) GetSongPlayer(name string) (songPlayer songplayer.SongPlayer) {
@@ -95,6 +100,10 @@ func (p *Player) GetQueuedSongs() (songs []songplayer.Playable) {
 		return []songplayer.Playable{}
 	}
 	return p.playlist[p.playlistPosition+1:]
+}
+
+func (p *Player) GetStats() (stats *Stats) {
+	return p.stats
 }
 
 func (p *Player) GetCurrentSong() (song songplayer.Playable, remaining time.Duration) {

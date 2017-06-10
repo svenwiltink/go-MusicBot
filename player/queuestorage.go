@@ -36,7 +36,7 @@ func (qs *QueueStorage) OnListUpdate(args ...interface{}) {
 
 	err := qs.saveQueue(urls)
 	if err != nil {
-		logrus.Warnf("QueueStorage.OnListUpdate: Error saving queue: %v", err)
+		logrus.Errorf("QueueStorage.OnListUpdate: Error saving queue: %v", err)
 		return
 	}
 }

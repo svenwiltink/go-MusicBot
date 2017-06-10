@@ -1,6 +1,7 @@
 {
   "LogFile": "musicbot.log",
   "QueuePath": "musicbot-queue.txt",
+  "StatsPath": "musicbot-stats.json",
   "IRC": {
      "Server": "server:port",
      "Ssl": true,
