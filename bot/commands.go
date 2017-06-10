@@ -2,6 +2,7 @@ package bot
 
 import (
 	"bufio"
+	"fmt"
 	"github.com/SvenWiltink/go-MusicBot/config"
 	"github.com/SvenWiltink/go-MusicBot/player"
 	"github.com/SvenWiltink/go-MusicBot/util"
@@ -386,6 +387,31 @@ var SearchAddCommand = Command{
 				return
 			}
 		}
+	},
+}
+
+var StatsCommand = Command{
+	Name: "stats",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		target, _, _ := bot.getTarget(event)
+		bot.ircConn.Privmsgf(target, "%s Statistics!", GetMusicBotStringFormatted())
+
+		stats := bot.player.GetStatistics()
+
+		var timeByPlayer []string
+		for player, time := range stats.TimeByPlayer {
+			timeByPlayer = append(timeByPlayer, fmt.Sprintf("%s: %s%v%s", player, BOLD_CHARACTER, time, BOLD_CHARACTER))
+		}
+		bot.ircConn.Privmsgf(target, "Total play time: %s%v%s (%s)", BOLD_CHARACTER, stats.TotalTimePlayed, BOLD_CHARACTER, strings.Join(timeByPlayer, " | "))
+
+		var playedByPlayer []string
+		for player, count := range stats.SongsPlayedByPlayer {
+			playedByPlayer = append(playedByPlayer, fmt.Sprintf("%s: %s%d%s", player, BOLD_CHARACTER, count, BOLD_CHARACTER))
+		}
+		bot.ircConn.Privmsgf(target, "Total songs played: %s%d%s (%s)", BOLD_CHARACTER, stats.TotalSongsPlayed, BOLD_CHARACTER, strings.Join(playedByPlayer, " | "))
+		bot.ircConn.Privmsgf(target, "Total songs queued: %s%d", BOLD_CHARACTER, stats.TotalSongsQueued)
+		bot.ircConn.Privmsgf(target, "Total songs skipped: %s%d", BOLD_CHARACTER, stats.TotalTimesNext+stats.TotalTimesPrevious)
+		bot.ircConn.Privmsgf(target, "Total times paused: %s%d", BOLD_CHARACTER, stats.TotalTimesPaused)
 	},
 }
 

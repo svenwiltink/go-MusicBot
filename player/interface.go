@@ -33,5 +33,5 @@ type MusicPlayer interface {
 	Previous() (song songplayer.Playable, err error)
 	Stop() (err error)
 	Pause() (err error)
-	GetStats() (stats *Stats)
+	GetStatistics() (stats *Statistics)
 }

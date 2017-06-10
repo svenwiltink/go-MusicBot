@@ -91,6 +91,8 @@ func (m *MusicBot) Start() (err error) {
 	m.registerCommand(SearchCommand)
 	m.registerCommand(SearchAddCommand)
 
+	m.registerCommand(StatsCommand)
+
 	m.registerCommand(VolUpCommand)
 	m.registerCommand(VolDownCommand)
 	m.registerCommand(VolCommand)

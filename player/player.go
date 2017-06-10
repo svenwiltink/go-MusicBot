@@ -18,7 +18,7 @@ type Player struct {
 	queueStorage *QueueStorage
 	statsStorage *StatsStorage
 
-	stats *Stats
+	stats *Statistics
 
 	currentSong      songplayer.Playable
 	playlistPosition int
@@ -45,7 +45,8 @@ func NewPlayer(queueFilePath, statsFilePath string) (player *Player) {
 		status:           STOPPED,
 		playlistPosition: 0,
 
-		stats: &Stats{
+		stats: &Statistics{
+			TimeByPlayer:        make(map[string]time.Duration),
 			SongsPlayedByPlayer: make(map[string]int),
 		},
 	}
@@ -112,26 +113,42 @@ func (p *Player) Init() {
 			song, ok := args[1].(songplayer.Playable)
 			if ok {
 				p.stats.TotalTimePlayed += song.GetDuration()
+
+				plyr, ok := args[2].(songplayer.SongPlayer)
+				if ok {
+					p.stats.TimeByPlayer[plyr.Name()] += song.GetDuration()
+				}
 				p.EmitEvent("stats_updated", p.stats)
 			}
 		}
 	})
 	p.AddListener("stop", func(args ...interface{}) {
 		if len(args) >= 3 {
-			dur, ok := args[2].(time.Duration)
+			timePlayed, ok := args[2].(time.Duration)
 			if ok {
-				p.stats.TotalTimePlayed += dur
+				p.stats.TotalTimePlayed += timePlayed
+
+				plyr, ok := args[1].(songplayer.SongPlayer)
+				if ok {
+					p.stats.TimeByPlayer[plyr.Name()] += timePlayed
+				}
 				p.EmitEvent("stats_updated", p.stats)
 			}
 		}
 	})
 	p.AddListener("song_seek", func(args ...interface{}) {
-		if len(args) >= 4 {
-			fromDuration, fromOK := args[2].(time.Duration)
-			toDuration, toOK := args[3].(time.Duration)
+		if len(args) >= 5 {
+			fromDuration, fromOK := args[3].(time.Duration)
+			toDuration, toOK := args[4].(time.Duration)
 			if fromOK && toOK {
 				// We substract the time skipped from the song, the stop and play_done event handlers will compensate
 				p.stats.TotalTimePlayed -= toDuration - fromDuration
+
+				plyr, ok := args[1].(songplayer.SongPlayer)
+				if ok {
+					p.stats.TimeByPlayer[plyr.Name()] -= toDuration - fromDuration
+				}
+
 				p.EmitEvent("stats_updated", p.stats)
 			}
 		}
@@ -168,7 +185,7 @@ func (p *Player) GetQueuedSongs() (songs []songplayer.Playable) {
 	return p.playlist[p.playlistPosition+1:]
 }
 
-func (p *Player) GetStats() (stats *Stats) {
+func (p *Player) GetStatistics() (stats *Statistics) {
 	return p.stats
 }
 
@@ -324,7 +341,7 @@ func (p *Player) playWait() {
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
 
-	p.EmitEvent("play_done", p.currentSong)
+	p.EmitEvent("play_done", p.currentSong, p.currentPlayer)
 	p.currentSong = nil
 
 	if p.playlistPosition < len(p.playlist)-1 && p.status == PLAYING {
@@ -361,7 +378,7 @@ func (p *Player) Seek(positionSeconds int) (err error) {
 
 	p.playTimer.Reset(remainingDuration)
 	p.endTime = time.Now().Add(remainingDuration)
-	p.EmitEvent("song_seek", p.currentSong, remainingDuration, currentDuration, positionDuration)
+	p.EmitEvent("song_seek", p.currentSong, p.currentPlayer, remainingDuration, currentDuration, positionDuration)
 
 	logrus.Infof("Player.Seek: Play seeked from %v to %v (Remaining: %v)", currentDuration, positionDuration, remainingDuration)
 	return

@@ -8,7 +8,7 @@ import (
 )
 
 type StatsStorage struct {
-	stats *Stats
+	stats *Statistics
 	path  string
 	mutex sync.Mutex
 }
@@ -23,7 +23,7 @@ func (s *StatsStorage) OnStatsUpdate(args ...interface{}) {
 	if len(args) < 1 {
 		return
 	}
-	stats, ok := args[0].(*Stats)
+	stats, ok := args[0].(*Statistics)
 	if !ok {
 		return
 	}
@@ -35,7 +35,7 @@ func (s *StatsStorage) OnStatsUpdate(args ...interface{}) {
 	}
 }
 
-func (s *StatsStorage) SaveStats(stats *Stats) (err error) {
+func (s *StatsStorage) SaveStats(stats *Statistics) (err error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -53,7 +53,7 @@ func (s *StatsStorage) SaveStats(stats *Stats) (err error) {
 	return
 }
 
-func (s *StatsStorage) ReadStats() (stats *Stats, err error) {
+func (s *StatsStorage) ReadStats() (stats *Statistics, err error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -63,7 +63,7 @@ func (s *StatsStorage) ReadStats() (stats *Stats, err error) {
 		return
 	}
 
-	stats = &Stats{}
+	stats = &Statistics{}
 	err = json.Unmarshal(buf, stats)
 	if err != nil {
 		logrus.Errorf("StatsStorage.ReadStats: Error unmarshalling json: %v", err)
