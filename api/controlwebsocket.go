@@ -60,6 +60,11 @@ func (cws *ControlWebsocket) onEvent(event string, args ...interface{}) {
 			apiArgs[i] = getAPISong(song, song.GetDuration())
 			continue
 		}
+		plyr, ok := apiArgs[i].(songplayer.SongPlayer)
+		if ok {
+			apiArgs[i] = plyr.Name()
+			continue
+		}
 		dur, ok := apiArgs[i].(time.Duration)
 		if ok {
 			apiArgs[i] = int(dur.Seconds())
@@ -170,6 +175,9 @@ func (cws *ControlWebsocket) executeCommand(cmd *Command) {
 		cws.write(resp)
 	case "next":
 		_, err := cws.player.Next()
+		cws.write(getCommandResponse(cmd, err))
+	case "previous":
+		_, err := cws.player.Previous()
 		cws.write(getCommandResponse(cmd, err))
 	case "stop":
 		err := cws.player.Stop()

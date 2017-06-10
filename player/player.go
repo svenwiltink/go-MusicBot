@@ -44,6 +44,10 @@ func NewPlayer(queueFilePath, statsFilePath string) (player *Player) {
 		queueStorage:     NewQueueStorage(queueFilePath),
 		status:           STOPPED,
 		playlistPosition: 0,
+
+		stats: &Stats{
+			SongsPlayedByPlayer: make(map[string]int),
+		},
 	}
 	return
 }
@@ -69,7 +73,6 @@ func (p *Player) Init() {
 
 	p.stats, err = p.statsStorage.ReadStats()
 	if err != nil {
-		p.stats = &Stats{}
 		p.EmitEvent("stats_error_loading", p.statsStorage.path, err)
 		logrus.Warnf("Player.Init: Error reading stats from file [%s] %v", p.statsStorage.path, err)
 	} else {
@@ -80,6 +83,59 @@ func (p *Player) Init() {
 	// Setup listener to keep the queue file updated
 	p.AddListener("queue_updated", p.queueStorage.OnListUpdate)
 	p.AddListener("stats_updated", p.statsStorage.OnStatsUpdate)
+
+	// Add stats listeners
+	p.AddListener("next_song", func(args ...interface{}) {
+		p.stats.TotalTimesNext++
+		p.EmitEvent("stats_updated", p.stats)
+	})
+	p.AddListener("previous_song", func(args ...interface{}) {
+		p.stats.TotalTimesPrevious++
+		p.EmitEvent("stats_updated", p.stats)
+	})
+	p.AddListener("pause", func(args ...interface{}) {
+		p.stats.TotalTimesPaused++
+		p.EmitEvent("stats_updated", p.stats)
+	})
+	p.AddListener("play_start", func(args ...interface{}) {
+		p.stats.TotalSongsPlayed++
+		if len(args) >= 2 {
+			player, ok := args[1].(songplayer.SongPlayer)
+			if ok {
+				p.stats.SongsPlayedByPlayer[player.Name()]++
+			}
+		}
+		p.EmitEvent("stats_updated", p.stats)
+	})
+	p.AddListener("play_done", func(args ...interface{}) {
+		if len(args) >= 1 {
+			song, ok := args[1].(songplayer.Playable)
+			if ok {
+				p.stats.TotalTimePlayed += song.GetDuration()
+				p.EmitEvent("stats_updated", p.stats)
+			}
+		}
+	})
+	p.AddListener("stop", func(args ...interface{}) {
+		if len(args) >= 3 {
+			dur, ok := args[2].(time.Duration)
+			if ok {
+				p.stats.TotalTimePlayed += dur
+				p.EmitEvent("stats_updated", p.stats)
+			}
+		}
+	})
+	p.AddListener("song_seek", func(args ...interface{}) {
+		if len(args) >= 4 {
+			fromDuration, fromOK := args[2].(time.Duration)
+			toDuration, toOK := args[3].(time.Duration)
+			if fromOK && toOK {
+				// We substract the time skipped from the song, the stop and play_done event handlers will compensate
+				p.stats.TotalTimePlayed -= toDuration - fromDuration
+				p.EmitEvent("stats_updated", p.stats)
+			}
+		}
+	})
 }
 
 func (p *Player) GetSongPlayer(name string) (songPlayer songplayer.SongPlayer) {
@@ -151,6 +207,9 @@ func (p *Player) AddSongs(url string) (addedSongs []songplayer.Playable, err err
 		logrus.Warnf("Player.AddSongs: Error adding songs [%s] %v", url, err)
 		return
 	}
+	p.stats.TotalSongsQueued += len(addedSongs)
+	p.EmitEvent("stats_updated", p.stats)
+
 	logrus.Infof("Player.AddSongs: Added %d songs from url [%s]", len(addedSongs), url)
 	return
 }
@@ -164,6 +223,10 @@ func (p *Player) InsertSongs(url string, position int) (addedSongs []songplayer.
 		logrus.Warnf("Player.InsertSongs: Error inserting songs [%s] %v", url, err)
 		return
 	}
+
+	p.stats.TotalSongsQueued += len(addedSongs)
+	p.EmitEvent("stats_updated", p.stats)
+
 	logrus.Infof("Player.InsertSongs: Inserted %d songs from url [%s]", len(addedSongs), url)
 	return
 }
@@ -292,14 +355,15 @@ func (p *Player) Seek(positionSeconds int) (err error) {
 		return
 	}
 
+	currentDuration := p.currentSong.GetDuration() - p.endTime.Sub(time.Now())
 	positionDuration := time.Duration(int64(time.Second) * int64(positionSeconds))
 	remainingDuration := p.currentSong.GetDuration() - positionDuration
 
 	p.playTimer.Reset(remainingDuration)
 	p.endTime = time.Now().Add(remainingDuration)
-	p.EmitEvent("song_seek", p.currentSong, remainingDuration)
+	p.EmitEvent("song_seek", p.currentSong, remainingDuration, currentDuration, positionDuration)
 
-	logrus.Infof("Player.Seek: Play resumed for remaining duration of %v", remainingDuration)
+	logrus.Infof("Player.Seek: Play seeked from %v to %v (Remaining: %v)", currentDuration, positionDuration, remainingDuration)
 	return
 }
 
@@ -312,7 +376,14 @@ func (p *Player) Next() (song songplayer.Playable, err error) {
 		return
 	}
 
-	return p.setPlaylistPosition(p.playlistPosition + 1)
+	song, err = p.setPlaylistPosition(p.playlistPosition + 1)
+	if err != nil {
+		logrus.Errorf("Player.Next: Error setting playlist position: %v", err)
+		return
+	}
+
+	p.EmitEvent("next_song", song)
+	return
 }
 
 func (p *Player) Previous() (song songplayer.Playable, err error) {
@@ -324,7 +395,14 @@ func (p *Player) Previous() (song songplayer.Playable, err error) {
 		return
 	}
 
-	return p.setPlaylistPosition(p.playlistPosition - 1)
+	song, err = p.setPlaylistPosition(p.playlistPosition - 1)
+	if err != nil {
+		logrus.Errorf("Player.Previous: Error setting playlist position: %v", err)
+		return
+	}
+
+	p.EmitEvent("previous_song", song)
+	return
 }
 
 func (p *Player) setPlaylistPosition(newPosition int) (song songplayer.Playable, err error) {
@@ -333,7 +411,11 @@ func (p *Player) setPlaylistPosition(newPosition int) (song songplayer.Playable,
 		return
 	}
 	if p.status == PLAYING || p.status == PAUSED {
-		p.stop()
+		err = p.stop()
+		if err != nil {
+			logrus.Errorf("Player.setPlaylistPosition: Error stopping current player: %v", err)
+			return
+		}
 	}
 
 	song = p.playlist[newPosition]
@@ -355,7 +437,7 @@ func (p *Player) setPlaylistPosition(newPosition int) (song songplayer.Playable,
 
 	// Start waiting for the song to be done
 	go p.playWait()
-	p.EmitEvent("play_start", p.currentSong)
+	p.EmitEvent("play_start", p.currentSong, p.currentPlayer)
 	p.EmitEvent("queue_updated", p.GetQueuedSongs())
 
 	logrus.Infof("Player.setPlaylistPosition: %s started playing %s successfully", musicPlayer.Name(), song.GetURL())
@@ -374,6 +456,7 @@ func (p *Player) stop() (err error) {
 		err = ErrNothingPlaying
 		return
 	}
+	currentSong := p.currentSong
 	currentPlayer := p.currentPlayer
 	err = currentPlayer.Stop()
 	if err != nil {
@@ -387,9 +470,11 @@ func (p *Player) stop() (err error) {
 		// Kill the current playWait()
 		p.playTimer.Stop()
 	}
-	p.EmitEvent("stop")
 
-	logrus.Infof("Player.stop: %s stopped playing", currentPlayer.Name())
+	timePlayed := p.endTime.Sub(time.Now())
+	p.EmitEvent("stop", currentSong, currentPlayer, timePlayed)
+
+	logrus.Infof("Player.stop: %s stopped playing with a play time of %v", currentPlayer.Name(), timePlayed)
 	return
 }
 

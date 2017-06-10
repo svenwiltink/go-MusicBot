@@ -2,7 +2,6 @@ package bot
 
 import (
 	"fmt"
-	"github.com/SvenWiltink/go-MusicBot/bot"
 	"github.com/SvenWiltink/go-MusicBot/config"
 	"github.com/SvenWiltink/go-MusicBot/player"
 	"github.com/SvenWiltink/go-MusicBot/songplayer"
@@ -37,10 +36,10 @@ func (m *MusicBot) SetPlayer(plr player.MusicPlayer) {
 	m.player = plr
 
 	m.player.AddListener("queue_loaded", func(args ...interface{}) {
-		m.Announcef("%sLoaded %d songs from queue file", bot.ITALIC_CHARACTER, len(m.player.GetQueuedSongs()))
+		m.Announcef("%sLoaded %d songs from queue file", ITALIC_CHARACTER, len(m.player.GetQueuedSongs()))
 	})
 	m.player.AddListener("queue_error_loading", func(args ...interface{}) {
-		m.Announcef("%sError loading queue from file: %v", args[1].(error), bot.INVERSE_CHARACTER)
+		m.Announcef("%sError loading queue from file: %v", args[1].(error), INVERSE_CHARACTER)
 	})
 	m.player.AddListener("play_start", m.onPlay)
 }
