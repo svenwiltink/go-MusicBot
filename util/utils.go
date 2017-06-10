@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func FormatSongLength(duration time.Duration) (form string) {
+func FormatDuration(duration time.Duration) (form string) {
 	minutes := int(duration.Minutes())
 	seconds := int(duration.Seconds()) - (minutes * 60)
 

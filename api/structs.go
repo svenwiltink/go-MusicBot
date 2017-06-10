@@ -48,7 +48,7 @@ func getAPISong(song songplayer.Playable, remaining time.Duration) (apiSong *Son
 			URL:              song.GetURL(),
 			Seconds:          int(duration.Seconds()),
 			SecondsRemaining: int(remaining.Seconds()),
-			FormattedTime:    util.FormatSongLength(duration),
+			FormattedTime:    util.FormatDuration(duration),
 			ImageURL:         song.GetImageURL(),
 		}
 	}

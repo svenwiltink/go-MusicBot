@@ -79,7 +79,7 @@ func colourText(foreground, backgroundColor Color, s string) (cs string) {
 }
 
 func formatSong(song songplayer.Playable) (s string) {
-	s = fmt.Sprintf("%s %s%s%s", song.GetTitle(), getColourCode(COLOUR_TEAL, COLOUR_NONE), util.FormatSongLength(song.GetDuration()), getColourCode(COLOUR_DEFAULT, COLOUR_NONE))
+	s = fmt.Sprintf("%s %s%s%s", song.GetTitle(), getColourCode(COLOUR_TEAL, COLOUR_NONE), util.FormatDuration(song.GetDuration()), getColourCode(COLOUR_DEFAULT, COLOUR_NONE))
 	return
 }
 

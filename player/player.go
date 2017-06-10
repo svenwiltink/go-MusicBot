@@ -492,7 +492,7 @@ func (p *Player) stop() (err error) {
 		p.playTimer.Stop()
 	}
 
-	timePlayed := p.endTime.Sub(time.Now())
+	timePlayed := time.Now().Sub(p.endTime.Add(-currentSong.GetDuration()))
 	p.EmitEvent("stop", currentSong, currentPlayer, timePlayed)
 
 	logrus.Infof("Player.stop: %s stopped playing with a play time of %v", currentPlayer.Name(), timePlayed)

@@ -222,7 +222,7 @@ var CurrentCommand = Command{
 		target, _, _ := bot.getTarget(event)
 		song, remaining := bot.player.GetCurrentSong()
 		if song != nil {
-			event.Connection.Privmsgf(target, "Current song: %s%s%s "+italicText("(%s remaining)"), BOLD_CHARACTER, formatSong(song), BOLD_CHARACTER, util.FormatSongLength(remaining))
+			event.Connection.Privmsgf(target, "Current song: %s%s%s "+italicText("(%s remaining)"), BOLD_CHARACTER, formatSong(song), BOLD_CHARACTER, util.FormatDuration(remaining))
 			event.Connection.Privmsgf(target, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
 		} else {
 			event.Connection.Privmsg(target, italicText("Nothing currently playing"))
@@ -400,9 +400,9 @@ var StatsCommand = Command{
 
 		var timeByPlayer []string
 		for player, time := range stats.TimeByPlayer {
-			timeByPlayer = append(timeByPlayer, fmt.Sprintf("%s: %s%v%s", player, BOLD_CHARACTER, time, BOLD_CHARACTER))
+			timeByPlayer = append(timeByPlayer, fmt.Sprintf("%s: %s%s%s", player, BOLD_CHARACTER, util.FormatDuration(time), BOLD_CHARACTER))
 		}
-		bot.ircConn.Privmsgf(target, "Total play time: %s%v%s (%s)", BOLD_CHARACTER, stats.TotalTimePlayed, BOLD_CHARACTER, strings.Join(timeByPlayer, " | "))
+		bot.ircConn.Privmsgf(target, "Total play time: %s%v%s (%s)", BOLD_CHARACTER, util.FormatDuration(stats.TotalTimePlayed), BOLD_CHARACTER, strings.Join(timeByPlayer, " | "))
 
 		var playedByPlayer []string
 		for player, count := range stats.SongsPlayedByPlayer {
