@@ -246,7 +246,10 @@ var AddCommand = Command{
 			return
 		}
 		bot.announceAddedSongs(event, songs)
-		bot.player.Play()
+
+		if bot.player.GetStatus() != player.PLAYING {
+			bot.player.Play()
+		}
 	},
 }
 
@@ -266,7 +269,9 @@ var OpenCommand = Command{
 			return
 		}
 		bot.announceAddedSongs(event, songs)
-		bot.player.Play()
+		if bot.player.GetStatus() != player.PLAYING {
+			bot.player.Play()
+		}
 	},
 }
 
@@ -383,7 +388,9 @@ var SearchAddCommand = Command{
 					event.Connection.Privmsg(target, inverseText(err.Error()))
 					return
 				}
-				bot.player.Play()
+				if bot.player.GetStatus() != player.PLAYING {
+					bot.player.Play()
+				}
 				return
 			}
 		}
