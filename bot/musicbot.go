@@ -18,7 +18,7 @@ type MusicBot struct {
 	config    *config.MusicBot
 }
 
-func NewMusicBot(conf *config.MusicBot, player player.MusicPlayer) (mb *MusicBot, err error) {
+func NewMusicBot(conf *config.MusicBot) (mb *MusicBot, err error) {
 	whitelist, err := config.ReadWhitelist(conf.IRC.WhiteListPath)
 	if err != nil {
 		return
@@ -28,9 +28,12 @@ func NewMusicBot(conf *config.MusicBot, player player.MusicPlayer) (mb *MusicBot
 		commands:  make(map[string]Command),
 		whitelist: whitelist,
 		config:    conf,
-		player:    player,
 	}
 	return
+}
+
+func (m *MusicBot) SetPlayer(plr player.MusicPlayer) {
+	m.player = plr
 }
 
 func (m *MusicBot) getCommand(name string) (command Command, exists bool) {
@@ -107,6 +110,11 @@ func (m *MusicBot) Start() (err error) {
 
 		if strings.HasPrefix(message, "!music") {
 			isWhiteListed, _ := m.isUserWhitelisted(realname)
+
+			if m.player == nil {
+				event.Connection.Privmsgf(channel, "%sError: MusicPlayer has not been configured", INVERSE_CHARACTER)
+				return
+			}
 
 			if m.config.IRC.Master == realname || isWhiteListed {
 				arguments := strings.Split(message, " ")[1:]

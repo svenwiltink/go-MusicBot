@@ -64,16 +64,8 @@ func main() {
 		}
 	}
 
-	queueStorage := config.NewQueueStorage(conf.QueuePath)
-	playr := player.NewPlayer()
-
-	// Initialize the API
-	apiObject := api.NewAPI(&conf.API, playr)
-	logrus.Infof("main: Starting HTTP API")
-	go apiObject.Start()
-
 	// Initialize the IRC bot
-	musicBot, err := bot.NewMusicBot(conf, playr)
+	musicBot, err := bot.NewMusicBot(conf)
 	if err != nil {
 		logrus.Fatalf("main: Error creating IRC MusicBot: %v", err)
 		return
@@ -84,6 +76,20 @@ func main() {
 		logrus.Fatalf("main: Error starting IRC MusicBot: %v", err)
 		return
 	}
+
+	playr := player.NewPlayer(conf.QueuePath)
+	musicBot.SetPlayer(playr)
+	playr.AddListener("queue_loaded", func(args... interface{}) {
+		musicBot.Announce(fmt.Sprintf("%sLoaded %d songs from queue file", bot.ITALIC_CHARACTER, len(playr.GetQueuedSongs())))
+	})
+	playr.AddListener("queue_error_loading", func(args... interface{}) {
+		musicBot.Announce(fmt.Sprintf("Error loading queue from file: %v", args[1].(error)))
+	})
+
+	// Initialize the API
+	apiObject := api.NewAPI(&conf.API, playr)
+	logrus.Infof("main: Starting HTTP API")
+	go apiObject.Start()
 
 	if conf.YoutubePlayer.Enabled {
 		logrus.Infof("main: Creating YoutubePlayer")
@@ -139,23 +145,7 @@ func main() {
 		}
 	}
 
-	urls, err := queueStorage.ReadQueue()
-	if err != nil {
-		logrus.Warnf("main: Error reading queue file: %v", err)
-		musicBot.Announce(fmt.Sprintf("[Queue] Error loading queue: %v", err))
-	} else {
-		for _, url := range urls {
-			_, err = playr.AddSongs(url)
-			if err != nil {
-				logrus.Errorf("main: Error adding song from queue [%s] %v", url, err)
-			}
-
-		}
-		logrus.Infof("main: Loaded %d songs from queue file", len(playr.GetQueuedSongs()))
-		musicBot.Announce(fmt.Sprintf("%sLoaded %d songs from queue file", bot.ITALIC_CHARACTER, len(playr.GetQueuedSongs())))
-	}
-
-	playr.AddListener("queue_updated", queueStorage.OnListUpdate)
+	playr.Init()
 
 	// Wait for a terminate signal
 	sigs := make(chan os.Signal, 1)
