@@ -67,6 +67,16 @@ func (p *Player) Init() {
 		p.EmitEvent("queue_loaded", songs)
 	}
 
+	p.stats, err = p.statsStorage.ReadStats()
+	if err != nil {
+		p.stats = &Stats{}
+		p.EmitEvent("stats_error_loading", p.statsStorage.path, err)
+		logrus.Warnf("Player.Init: Error reading stats from file [%s] %v", p.statsStorage.path, err)
+	} else {
+		logrus.Info("Player.Init: Loaded stats from statsstorage")
+		p.EmitEvent("stats_loaded", p.stats)
+	}
+
 	// Setup listener to keep the queue file updated
 	p.AddListener("queue_updated", p.queueStorage.OnListUpdate)
 	p.AddListener("stats_updated", p.statsStorage.OnStatsUpdate)
