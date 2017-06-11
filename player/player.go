@@ -360,7 +360,6 @@ func (p *Player) playWait() {
 	defer p.controlMutex.Unlock()
 
 	p.EmitEvent("play_done", p.currentSong, p.currentPlayer)
-	p.currentSong = nil
 
 	if p.playlistPosition < len(p.playlist)-1 && p.status == PLAYING {
 		p.setPlaylistPosition(p.playlistPosition + 1)
@@ -509,7 +508,7 @@ func (p *Player) stop() (err error) {
 	timePlayed := time.Now().Sub(p.endTime.Add(-currentSong.GetDuration()))
 	p.EmitEvent("stop", currentSong, currentPlayer, timePlayed)
 
-	logrus.Infof("Player.stop: %s stopped playing with a play time of %v", currentPlayer.Name(), timePlayed)
+	logrus.Infof("Player.stop: %s stopped playing %s with a play time of %v", currentPlayer.Name(), currentSong.GetURL(), timePlayed)
 	return
 }
 
