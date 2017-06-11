@@ -5,6 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"sync"
+	"time"
 )
 
 type StatsStorage struct {
@@ -63,7 +64,11 @@ func (s *StatsStorage) ReadStats() (stats *Statistics, err error) {
 		return
 	}
 
-	stats = &Statistics{}
+	stats = &Statistics{
+		TimeByPlayer:        make(map[string]time.Duration),
+		SongsPlayedByPlayer: make(map[string]int),
+		SongsAddedByUser:    make(map[string]int),
+	}
 	err = json.Unmarshal(buf, stats)
 	if err != nil {
 		logrus.Errorf("StatsStorage.ReadStats: Error unmarshalling json: %v", err)
