@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"time"
 	"sort"
+	"time"
 )
 
 type Pair struct {
