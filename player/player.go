@@ -48,6 +48,7 @@ func NewPlayer(queueFilePath, statsFilePath string) (player *Player) {
 		stats: &Statistics{
 			TimeByPlayer:        make(map[string]time.Duration),
 			SongsPlayedByPlayer: make(map[string]int),
+			SongsAddedByUser:    make(map[string]int),
 		},
 	}
 	return
@@ -102,6 +103,22 @@ func (p *Player) addStatisticsEvents() {
 		p.stats.TotalTimesPaused++
 		p.EmitEvent("stats_updated", p.stats)
 	})
+	p.AddListener("added_songs_user", func(args ...interface{}) {
+		if len(args) >= 3 {
+			user, ok := args[2].(string)
+			if !ok || user == "" {
+				user = "?"
+			}
+
+			songs, ok := args[0].([]songplayer.Playable)
+			if ok {
+				p.stats.TotalSongsQueued += len(songs)
+				p.stats.SongsAddedByUser[user] += len(songs)
+			}
+
+			p.EmitEvent("stats_updated", p.stats)
+		}
+	})
 	p.AddListener("play_start", func(args ...interface{}) {
 		p.stats.TotalSongsPlayed++
 		if len(args) >= 2 {
@@ -113,7 +130,7 @@ func (p *Player) addStatisticsEvents() {
 		p.EmitEvent("stats_updated", p.stats)
 	})
 	p.AddListener("play_done", func(args ...interface{}) {
-		if len(args) >= 1 {
+		if len(args) >= 3 {
 			song, ok := args[1].(songplayer.Playable)
 			if ok {
 				p.stats.TotalTimePlayed += song.GetDuration()
@@ -219,7 +236,7 @@ func (p *Player) findPlayer(url string) (songPlayer songplayer.SongPlayer, err e
 	return
 }
 
-func (p *Player) AddSongs(url string) (addedSongs []songplayer.Playable, err error) {
+func (p *Player) AddSongs(url, actionUser string) (addedSongs []songplayer.Playable, err error) {
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
 
@@ -228,14 +245,13 @@ func (p *Player) AddSongs(url string) (addedSongs []songplayer.Playable, err err
 		logrus.Warnf("Player.AddSongs: Error adding songs [%s] %v", url, err)
 		return
 	}
-	p.stats.TotalSongsQueued += len(addedSongs)
-	p.EmitEvent("stats_updated", p.stats)
+	p.EmitEvent("added_songs_user", addedSongs, len(p.GetQueuedSongs()), actionUser)
 
 	logrus.Infof("Player.AddSongs: Added %d songs from url [%s]", len(addedSongs), url)
 	return
 }
 
-func (p *Player) InsertSongs(url string, position int) (addedSongs []songplayer.Playable, err error) {
+func (p *Player) InsertSongs(url string, position int, actionUser string) (addedSongs []songplayer.Playable, err error) {
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
 
@@ -244,9 +260,7 @@ func (p *Player) InsertSongs(url string, position int) (addedSongs []songplayer.
 		logrus.Warnf("Player.InsertSongs: Error inserting songs [%s] %v", url, err)
 		return
 	}
-
-	p.stats.TotalSongsQueued += len(addedSongs)
-	p.EmitEvent("stats_updated", p.stats)
+	p.EmitEvent("added_songs_user", addedSongs, position, actionUser)
 
 	logrus.Infof("Player.InsertSongs: Inserted %d songs from url [%s]", len(addedSongs), url)
 	return

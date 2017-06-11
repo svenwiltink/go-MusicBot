@@ -41,7 +41,32 @@ func (m *MusicBot) SetPlayer(plr player.MusicPlayer) {
 	m.player.AddListener("queue_error_loading", func(args ...interface{}) {
 		m.Announcef("%sError loading queue from file: %v", args[1].(error), INVERSE_CHARACTER)
 	})
-	m.player.AddListener("play_start", m.onPlay)
+	m.player.AddListener("play_start", func(args ...interface{}) {
+		if len(args) < 1 {
+			return
+		}
+
+		itm, ok := args[0].(songplayer.Playable)
+		if !ok {
+			logrus.Warnf("MusicBot.onPlay: Error casting song: %v", args[0])
+			return
+		}
+
+		m.ircConn.Actionf(m.config.IRC.Channel, "starts playing: %s", boldText(formatSong(itm)))
+	})
+	m.player.AddListener("added_songs_user", func(args ...interface{}) {
+		if len(args) >= 3 {
+			user, ok := args[2].(string)
+			if !ok || user == "" {
+				user = "?"
+			}
+
+			songs, ok := args[0].([]songplayer.Playable)
+			if ok {
+				m.announceAddedSongs(user, songs)
+			}
+		}
+	})
 }
 
 func (m *MusicBot) getCommand(name string) (command Command, exists bool) {
@@ -168,7 +193,7 @@ func (m *MusicBot) getTarget(event *irc.Event) (target string, isPrivate, isMain
 	return
 }
 
-func (m *MusicBot) announceAddedSongs(event *irc.Event, songs []songplayer.Playable) {
+func (m *MusicBot) announceAddedSongs(user string, songs []songplayer.Playable) {
 	var songTitles []string
 	i := 6
 	for _, song := range songs {
@@ -179,7 +204,7 @@ func (m *MusicBot) announceAddedSongs(event *irc.Event, songs []songplayer.Playa
 			break
 		}
 	}
-	m.announceMessagef(false, event, "%s added song(s): %s", boldText(event.Nick), strings.Join(songTitles, " | "))
+	m.ircConn.Privmsgf(m.config.IRC.Channel, "%s added song(s): %s", boldText(user), strings.Join(songTitles, " | "))
 }
 
 func (m *MusicBot) Announce(message string) {
@@ -210,18 +235,4 @@ func (m *MusicBot) announceMessagef(nonMainOnly bool, event *irc.Event, format s
 		// Announce it to the main channel as well
 		event.Connection.Privmsgf(m.config.IRC.Channel, format, a...)
 	}
-}
-
-func (m *MusicBot) onPlay(args ...interface{}) {
-	if len(args) < 1 {
-		return
-	}
-
-	itm, ok := args[0].(songplayer.Playable)
-	if !ok {
-		logrus.Warnf("MusicBot.onPlay: Error casting song: %v", args[0])
-		return
-	}
-
-	m.ircConn.Actionf(m.config.IRC.Channel, "starts playing: %s", boldText(formatSong(itm)))
 }

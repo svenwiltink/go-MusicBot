@@ -5,7 +5,13 @@ import (
 	"fmt"
 	"net"
 	"time"
+	"sort"
 )
+
+type Pair struct {
+	Key string
+	Val int
+}
 
 func FormatDuration(duration time.Duration) (form string) {
 	minutes := int(duration.Minutes())
@@ -59,5 +65,19 @@ func GetExternalIPs() (ips []net.IP, err error) {
 	if len(ips) == 0 {
 		err = errors.New("are you connected to the network?")
 	}
+	return
+}
+
+func GetSortedStringIntMap(mp map[string]int) (slice []Pair) {
+	for key, val := range mp {
+		slice = append(slice, Pair{
+			Key: key,
+			Val: val,
+		})
+	}
+
+	sort.Slice(slice, func(i, j int) bool {
+		return slice[i].Val < slice[j].Val
+	})
 	return
 }

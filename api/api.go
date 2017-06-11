@@ -93,6 +93,10 @@ func (api *API) initializeRoutes() {
 			Method:  http.MethodGet,
 			handler: api.CurrentHandler,
 		}, {
+			Pattern: "/statistics",
+			Method:  http.MethodGet,
+			handler: api.StatisticsHandler,
+		}, {
 			Pattern: "/play",
 			Method:  http.MethodGet,
 			handler: api.authenticator(api.PlayHandler, false),
@@ -171,6 +175,16 @@ func (api *API) CurrentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (api *API) StatisticsHandler(w http.ResponseWriter, r *http.Request) {
+	stats := api.player.GetStatistics()
+	err := json.NewEncoder(w).Encode(stats)
+	if err != nil {
+		logrus.Errorf("API.StatisticsHandler: Json encode error: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
 func (api *API) PlayHandler(w http.ResponseWriter, r *http.Request) {
 	song, err := api.player.Play()
 	if err != nil {
@@ -238,7 +252,8 @@ func (api *API) PreviousHandler(w http.ResponseWriter, r *http.Request) {
 
 func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
-	songs, err := api.player.AddSongs(url)
+	user, _, _ := r.BasicAuth()
+	songs, err := api.player.AddSongs(url, fmt.Sprintf("WebAPI_%s", user))
 	if err != nil {
 		logrus.Errorf("API.AddHandler: Error adding [%s] %v", url, err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -254,7 +269,8 @@ func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
 
 func (api *API) OpenHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
-	songs, err := api.player.InsertSongs(url, 0)
+	user, _, _ := r.BasicAuth()
+	songs, err := api.player.InsertSongs(url, 0, fmt.Sprintf("WebAPI_%s", user))
 	if err != nil {
 		logrus.Errorf("API.OpenHandler: Error inserting [%s] %v", url, err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -277,7 +293,8 @@ func (api *API) SocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logrus.Infof("API.SocketHandler: Opening new socket [ReadOnly: %v]", readOnly)
-	cws := NewControlWebsocket(ws, readOnly, api.player)
+	user, _, _ := r.BasicAuth()
+	logrus.Infof("API.SocketHandler: Opening new socket [ReadOnly: %v | User: %s]", readOnly, user)
+	cws := NewControlWebsocket(ws, readOnly, api.player, fmt.Sprintf("WebAPI_%s", user))
 	cws.Start()
 }

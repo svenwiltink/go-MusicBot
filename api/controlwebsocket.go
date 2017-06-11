@@ -27,13 +27,15 @@ type ControlWebsocket struct {
 	player    player.MusicPlayer
 	capturer  *eventemitter.Capturer
 	writeLock sync.Mutex
+	user      string
 }
 
-func NewControlWebsocket(ws *websocket.Conn, readOnly bool, player player.MusicPlayer) (cws *ControlWebsocket) {
+func NewControlWebsocket(ws *websocket.Conn, readOnly bool, player player.MusicPlayer, user string) (cws *ControlWebsocket) {
 	cws = &ControlWebsocket{
 		ws:       ws,
 		readOnly: readOnly,
 		player:   player,
+		user:     user,
 	}
 	return
 }
@@ -148,7 +150,7 @@ func (cws *ControlWebsocket) executeCommand(cmd *Command) {
 			cws.write(getCommandResponse(cmd, err))
 			return
 		}
-		_, err := cws.player.AddSongs(cmd.Arguments[0])
+		_, err := cws.player.AddSongs(cmd.Arguments[0], cws.user)
 		cws.write(getCommandResponse(cmd, err))
 	case "open":
 		if len(cmd.Arguments) < 1 {
@@ -156,7 +158,7 @@ func (cws *ControlWebsocket) executeCommand(cmd *Command) {
 			cws.write(getCommandResponse(cmd, err))
 			return
 		}
-		_, err := cws.player.InsertSongs(cmd.Arguments[0], 0)
+		_, err := cws.player.InsertSongs(cmd.Arguments[0], 0, cws.user)
 		cws.write(getCommandResponse(cmd, err))
 	case "play":
 		_, err := cws.player.Play()

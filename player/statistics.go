@@ -13,4 +13,5 @@ type Statistics struct {
 	TotalTimesPaused    int
 	TimeByPlayer        map[string]time.Duration
 	SongsPlayedByPlayer map[string]int
+	SongsAddedByUser    map[string]int
 }
