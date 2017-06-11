@@ -314,14 +314,20 @@ var QueueCommand = Command{
 			event.Connection.Privmsg(target, italicText("The queue is empty"))
 		}
 
-		for i, item := range items {
-			event.Connection.Privmsgf(target, "%d. %s", i+1, formatSong(item))
-
-			if i >= 9 && len(items) > 10 {
-				event.Connection.Privmsgf(target, italicText("And %d more.."), len(items)-10)
-				return
+		dur := time.Duration(0)
+		for i, song := range items {
+			if i < 10 {
+				event.Connection.Privmsgf(target, "%d. %s", i+1, formatSong(song))
 			}
+			dur += song.GetDuration()
 		}
+
+		if len(items) > 10 {
+			event.Connection.Privmsgf(target, italicText("And %d more.."), len(items)-10)
+			return
+		}
+
+		event.Connection.Privmsgf(target, "Total duration: %s%s", BOLD_CHARACTER, util.FormatDuration(dur))
 	},
 }
 
@@ -334,12 +340,20 @@ var HistoryCommand = Command{
 			event.Connection.Privmsg(target, italicText("The history is empty"))
 		}
 
-		for i, item := range items {
-			if i < len(items)-11 {
-				continue
+		dur := time.Duration(0)
+		for i, song := range items {
+			if i < 10 {
+				event.Connection.Privmsgf(target, "%d. %s", i+1, formatSong(song))
 			}
-			event.Connection.Privmsgf(target, "%d. %s", i+1, formatSong(item))
+			dur += song.GetDuration()
 		}
+
+		if len(items) > 10 {
+			event.Connection.Privmsgf(target, italicText("And %d more.."), len(items)-10)
+			return
+		}
+
+		event.Connection.Privmsgf(target, "Total duration: %s%s", BOLD_CHARACTER, util.FormatDuration(dur))
 	},
 }
 
@@ -438,7 +452,7 @@ var StatsCommand = Command{
 		}
 		bot.ircConn.Privmsgf(target, "Total songs played: %s%d%s (%s)", BOLD_CHARACTER, stats.TotalSongsPlayed, BOLD_CHARACTER, strings.Join(playedByPlayer, " | "))
 		bot.ircConn.Privmsgf(target, "Total songs queued: %s%d", BOLD_CHARACTER, stats.TotalSongsQueued)
-		bot.ircConn.Privmsgf(target, "Total songs skipped: %s%d", BOLD_CHARACTER, stats.TotalTimesNext+stats.TotalTimesPrevious+stats.TotalTimesJump)
+		bot.ircConn.Privmsgf(target, "Total times skipped: %s%d", BOLD_CHARACTER, stats.TotalTimesNext+stats.TotalTimesPrevious+stats.TotalTimesJump)
 		bot.ircConn.Privmsgf(target, "Total times paused: %s%d", BOLD_CHARACTER, stats.TotalTimesPaused)
 
 		var songQueuers []string
