@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"strconv"
 )
 
 type API struct {
@@ -116,6 +117,10 @@ func (api *API) initializeRoutes() {
 			Pattern: "/previous",
 			Method:  http.MethodGet,
 			handler: api.authenticator(api.PreviousHandler, false),
+		}, {
+			Pattern: "/jump",
+			Method:  http.MethodGet,
+			handler: api.authenticator(api.JumpHandler, false),
 		}, {
 			Pattern: "/add",
 			Method:  http.MethodGet,
@@ -245,6 +250,27 @@ func (api *API) PreviousHandler(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(getAPISong(song, song.GetDuration()))
 	if err != nil {
 		logrus.Errorf("API.PreviousHandler: Json encode error: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (api *API) JumpHandler(w http.ResponseWriter, r *http.Request) {
+	index, err := strconv.ParseInt(r.URL.Query().Get("index"), 10, 32)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	song, err := api.player.Jump(int(index))
+	if err != nil {
+		logrus.Errorf("API.JumpHandler: Error jumping: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(getAPISong(song, song.GetDuration()))
+	if err != nil {
+		logrus.Errorf("API.JumpHandler: Json encode error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

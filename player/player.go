@@ -99,6 +99,10 @@ func (p *Player) addStatisticsEvents() {
 		p.stats.TotalTimesPrevious++
 		p.EmitEvent("stats_updated", p.stats)
 	})
+	p.AddListener("jump_song", func(args ...interface{}) {
+		p.stats.TotalTimesJump++
+		p.EmitEvent("stats_updated", p.stats)
+	})
 	p.AddListener("pause", func(args ...interface{}) {
 		p.stats.TotalTimesPaused++
 		p.EmitEvent("stats_updated", p.stats)
@@ -436,6 +440,26 @@ func (p *Player) Previous() (song songplayer.Playable, err error) {
 	}
 
 	p.EmitEvent("previous_song", song)
+	return
+}
+
+func (p *Player) Jump(deltaIndex int) (song songplayer.Playable, err error) {
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
+	newPosition := p.playlistPosition + deltaIndex
+	if len(p.playlist) == 0 || newPosition < 0 || newPosition >= len(p.playlist) {
+		err = fmt.Errorf("invalid deltaIndex %d, valid range is [%d - %d]", deltaIndex, 0, len(p.playlist)-1-p.playlistPosition)
+		return
+	}
+
+	song, err = p.setPlaylistPosition(newPosition)
+	if err != nil {
+		logrus.Errorf("Player.Jump: Error setting playlist position: %v", err)
+		return
+	}
+
+	p.EmitEvent("jump_song", deltaIndex, song, p.playlistPosition)
 	return
 }
 

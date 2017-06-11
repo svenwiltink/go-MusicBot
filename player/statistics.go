@@ -10,6 +10,7 @@ type Statistics struct {
 	TotalSongsQueued    int
 	TotalTimesNext      int
 	TotalTimesPrevious  int
+	TotalTimesJump      int
 	TotalTimesPaused    int
 	TimeByPlayer        map[string]time.Duration
 	SongsPlayedByPlayer map[string]int

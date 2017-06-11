@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/vansante/go-event-emitter"
 	"io/ioutil"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -180,6 +181,19 @@ func (cws *ControlWebsocket) executeCommand(cmd *Command) {
 		cws.write(getCommandResponse(cmd, err))
 	case "previous":
 		_, err := cws.player.Previous()
+		cws.write(getCommandResponse(cmd, err))
+	case "jump":
+		if len(cmd.Arguments) < 1 {
+			err := errors.New("Missing deltaIndex argument")
+			cws.write(getCommandResponse(cmd, err))
+			return
+		}
+		index, err := strconv.ParseInt(cmd.Arguments[0], 10, 32)
+		if err != nil {
+			cws.write(getCommandResponse(cmd, err))
+			return
+		}
+		_, err = cws.player.Jump(int(index))
 		cws.write(getCommandResponse(cmd, err))
 	case "stop":
 		err := cws.player.Stop()

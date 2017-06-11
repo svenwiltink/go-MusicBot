@@ -125,6 +125,29 @@ var PreviousCommand = Command{
 	},
 }
 
+var JumpCommand = Command{
+	Name: "jump",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		target, _, _ := bot.getTarget(event)
+		if len(parameters) < 1 {
+			event.Connection.Privmsg(target, boldText("Usage: !music jump <deltaIndex> (positive index for forwards, negative index for backwards)"))
+			return
+		}
+
+		index, err := strconv.ParseInt(parameters[0], 10, 32)
+		if err != nil {
+			event.Connection.Privmsg(target, inverseText("Error parsing jump index"))
+			return
+		}
+		_, err = bot.player.Jump(int(index))
+		if err != nil {
+			event.Connection.Privmsg(target, inverseText(err.Error()))
+			return
+		}
+		bot.announceMessagef(true, event, "%s jumped to song at index %d", boldText(event.Nick), index)
+	},
+}
+
 var PlayCommand = Command{
 	Name: "play",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
@@ -151,12 +174,12 @@ var SeekCommand = Command{
 		if strings.HasSuffix(seekStr, "%") {
 			percentage, err := strconv.ParseInt(seekStr[:len(seekStr)-1], 10, 32)
 			if err != nil {
-				event.Connection.Privmsg(target, boldText("Error parsing seek percentage"))
+				event.Connection.Privmsg(target, inverseText("Error parsing seek percentage"))
 				return
 			}
 			song, _ := bot.player.GetCurrentSong()
 			if song == nil {
-				event.Connection.Privmsg(target, boldText("Nothing playing!"))
+				event.Connection.Privmsg(target, inverseText("Nothing playing!"))
 				return
 			}
 			duration := song.GetDuration().Nanoseconds() / 100 * percentage
@@ -165,7 +188,7 @@ var SeekCommand = Command{
 			var err error
 			seekSeconds, err = strconv.ParseInt(seekStr, 10, 32)
 			if err != nil {
-				event.Connection.Privmsg(target, boldText("Error parsing seek seconds"))
+				event.Connection.Privmsg(target, inverseText("Error parsing seek seconds"))
 				return
 			}
 		}
@@ -415,7 +438,7 @@ var StatsCommand = Command{
 		}
 		bot.ircConn.Privmsgf(target, "Total songs played: %s%d%s (%s)", BOLD_CHARACTER, stats.TotalSongsPlayed, BOLD_CHARACTER, strings.Join(playedByPlayer, " | "))
 		bot.ircConn.Privmsgf(target, "Total songs queued: %s%d", BOLD_CHARACTER, stats.TotalSongsQueued)
-		bot.ircConn.Privmsgf(target, "Total songs skipped: %s%d", BOLD_CHARACTER, stats.TotalTimesNext+stats.TotalTimesPrevious)
+		bot.ircConn.Privmsgf(target, "Total songs skipped: %s%d", BOLD_CHARACTER, stats.TotalTimesNext+stats.TotalTimesPrevious+stats.TotalTimesJump)
 		bot.ircConn.Privmsgf(target, "Total times paused: %s%d", BOLD_CHARACTER, stats.TotalTimesPaused)
 
 		var songQueuers []string

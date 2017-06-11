@@ -31,6 +31,7 @@ type MusicPlayer interface {
 	Seek(positionSeconds int) (err error)
 	Next() (song songplayer.Playable, err error)
 	Previous() (song songplayer.Playable, err error)
+	Jump(deltaIndex int) (song songplayer.Playable, err error)
 	Stop() (err error)
 	Pause() (err error)
 	GetStatistics() (stats *Statistics)
