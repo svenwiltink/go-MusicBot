@@ -35,13 +35,13 @@ func NewMusicBot(conf *config.MusicBot) (mb *MusicBot, err error) {
 func (m *MusicBot) SetPlayer(plr player.MusicPlayer) {
 	m.player = plr
 
-	m.player.AddListener("queue_loaded", func(args ...interface{}) {
+	m.player.AddListener(player.EVENT_QUEUE_LOADED, func(args ...interface{}) {
 		m.Announcef("%sLoaded %d songs from queue file", ITALIC_CHARACTER, len(m.player.GetQueuedSongs()))
 	})
-	m.player.AddListener("queue_error_loading", func(args ...interface{}) {
+	m.player.AddListener(player.EVENT_QUEUE_ERROR_LOADING, func(args ...interface{}) {
 		m.Announcef("%sError loading queue from file: %v", args[1].(error), INVERSE_CHARACTER)
 	})
-	m.player.AddListener("play_start", func(args ...interface{}) {
+	m.player.AddListener(player.EVENT_PLAY_START, func(args ...interface{}) {
 		if len(args) < 1 {
 			return
 		}
@@ -54,7 +54,7 @@ func (m *MusicBot) SetPlayer(plr player.MusicPlayer) {
 
 		m.ircConn.Actionf(m.config.IRC.Channel, "starts playing: %s", boldText(formatSong(itm)))
 	})
-	m.player.AddListener("added_songs_user", func(args ...interface{}) {
+	m.player.AddListener(player.EVENT_ADDED_SONGS_USER, func(args ...interface{}) {
 		if len(args) >= 3 {
 			user, ok := args[2].(string)
 			if !ok || user == "" {

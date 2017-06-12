@@ -57,7 +57,7 @@ func NewPlayer(queueFilePath, statsFilePath string) (player *Player) {
 func (p *Player) Init() {
 	urls, err := p.queueStorage.ReadQueue()
 	if err != nil {
-		p.EmitEvent("queue_error_loading", p.queueStorage.path, err)
+		p.EmitEvent(EVENT_QUEUE_ERROR_LOADING, p.queueStorage.path, err)
 		logrus.Warnf("Player.Init: Error reading queue from file [%s] %v", p.queueStorage.path, err)
 	} else {
 		var songs []songplayer.Playable
@@ -70,44 +70,43 @@ func (p *Player) Init() {
 		}
 
 		logrus.Infof("Player.Init: Loaded %d songs from queue storage", len(songs))
-		p.EmitEvent("queue_loaded", songs)
+		p.EmitEvent(EVENT_QUEUE_LOADED, songs)
 	}
 
 	stats, err := p.statsStorage.ReadStats()
 	if err != nil {
-		p.EmitEvent("stats_error_loading", p.statsStorage.path, err)
+		p.EmitEvent(EVENT_STATS_ERROR_LOADING, p.statsStorage.path, err)
 		logrus.Warnf("Player.Init: Error reading stats from file [%s] %v", p.statsStorage.path, err)
 	} else {
 		p.stats = stats
 		logrus.Info("Player.Init: Loaded stats from statsstorage")
-		p.EmitEvent("stats_loaded", p.stats)
+		p.EmitEvent(EVENT_STATS_LOADED, p.stats)
 	}
 
 	p.addStatisticsEvents()
+
+	p.AddListener(EVENT_QUEUE_UPDATED, p.queueStorage.OnQueueUpdate)
+	p.AddListener(EVENT_STATS_UPDATED, p.statsStorage.OnStatsUpdate)
 }
 
 func (p *Player) addStatisticsEvents() {
-	p.AddListener("queue_updated", p.queueStorage.OnListUpdate)
-	p.AddListener("stats_updated", p.statsStorage.OnStatsUpdate)
-
-	// Add stats listeners
-	p.AddListener("next_song", func(args ...interface{}) {
+	p.AddListener(EVENT_NEXT_SONG, func(args ...interface{}) {
 		p.stats.TotalTimesNext++
-		p.EmitEvent("stats_updated", p.stats)
+		p.EmitEvent(EVENT_STATS_UPDATED, p.stats)
 	})
-	p.AddListener("previous_song", func(args ...interface{}) {
+	p.AddListener(EVENT_PREVIOUS_SONG, func(args ...interface{}) {
 		p.stats.TotalTimesPrevious++
-		p.EmitEvent("stats_updated", p.stats)
+		p.EmitEvent(EVENT_STATS_UPDATED, p.stats)
 	})
-	p.AddListener("jump_song", func(args ...interface{}) {
+	p.AddListener(EVENT_JUMP_SONG, func(args ...interface{}) {
 		p.stats.TotalTimesJump++
-		p.EmitEvent("stats_updated", p.stats)
+		p.EmitEvent(EVENT_STATS_UPDATED, p.stats)
 	})
-	p.AddListener("pause", func(args ...interface{}) {
+	p.AddListener(EVENT_PAUSE, func(args ...interface{}) {
 		p.stats.TotalTimesPaused++
-		p.EmitEvent("stats_updated", p.stats)
+		p.EmitEvent(EVENT_STATS_UPDATED, p.stats)
 	})
-	p.AddListener("added_songs_user", func(args ...interface{}) {
+	p.AddListener(EVENT_ADDED_SONGS_USER, func(args ...interface{}) {
 		if len(args) >= 3 {
 			user, ok := args[2].(string)
 			if !ok || user == "" {
@@ -120,10 +119,10 @@ func (p *Player) addStatisticsEvents() {
 				p.stats.SongsAddedByUser[user] += len(songs)
 			}
 
-			p.EmitEvent("stats_updated", p.stats)
+			p.EmitEvent(EVENT_STATS_UPDATED, p.stats)
 		}
 	})
-	p.AddListener("play_start", func(args ...interface{}) {
+	p.AddListener(EVENT_PLAY_START, func(args ...interface{}) {
 		p.stats.TotalSongsPlayed++
 		if len(args) >= 2 {
 			player, ok := args[1].(songplayer.SongPlayer)
@@ -131,9 +130,9 @@ func (p *Player) addStatisticsEvents() {
 				p.stats.SongsPlayedByPlayer[player.Name()]++
 			}
 		}
-		p.EmitEvent("stats_updated", p.stats)
+		p.EmitEvent(EVENT_STATS_UPDATED, p.stats)
 	})
-	p.AddListener("play_done", func(args ...interface{}) {
+	p.AddListener(EVENT_PLAY_DONE, func(args ...interface{}) {
 		if len(args) >= 3 {
 			song, ok := args[1].(songplayer.Playable)
 			if ok {
@@ -143,11 +142,11 @@ func (p *Player) addStatisticsEvents() {
 				if ok {
 					p.stats.TimeByPlayer[plyr.Name()] += song.GetDuration()
 				}
-				p.EmitEvent("stats_updated", p.stats)
+				p.EmitEvent(EVENT_STATS_UPDATED, p.stats)
 			}
 		}
 	})
-	p.AddListener("stop", func(args ...interface{}) {
+	p.AddListener(EVENT_STOP, func(args ...interface{}) {
 		if len(args) >= 3 {
 			timePlayed, ok := args[2].(time.Duration)
 			if ok {
@@ -157,11 +156,11 @@ func (p *Player) addStatisticsEvents() {
 				if ok {
 					p.stats.TimeByPlayer[plyr.Name()] += timePlayed
 				}
-				p.EmitEvent("stats_updated", p.stats)
+				p.EmitEvent(EVENT_STATS_UPDATED, p.stats)
 			}
 		}
 	})
-	p.AddListener("song_seek", func(args ...interface{}) {
+	p.AddListener(EVENT_SONG_SEEK, func(args ...interface{}) {
 		if len(args) >= 5 {
 			fromDuration, fromOK := args[3].(time.Duration)
 			toDuration, toOK := args[4].(time.Duration)
@@ -174,7 +173,7 @@ func (p *Player) addStatisticsEvents() {
 					p.stats.TimeByPlayer[plyr.Name()] -= toDuration - fromDuration
 				}
 
-				p.EmitEvent("stats_updated", p.stats)
+				p.EmitEvent(EVENT_STATS_UPDATED, p.stats)
 			}
 		}
 	})
@@ -249,7 +248,7 @@ func (p *Player) AddSongs(url, actionUser string) (addedSongs []songplayer.Playa
 		logrus.Warnf("Player.AddSongs: Error adding songs [%s] %v", url, err)
 		return
 	}
-	p.EmitEvent("added_songs_user", addedSongs, len(p.GetQueuedSongs()), actionUser)
+	p.EmitEvent(EVENT_ADDED_SONGS_USER, addedSongs, len(p.GetQueuedSongs()), actionUser)
 
 	logrus.Infof("Player.AddSongs: Added %d songs from url [%s]", len(addedSongs), url)
 	return
@@ -264,7 +263,7 @@ func (p *Player) InsertSongs(url string, position int, actionUser string) (added
 		logrus.Warnf("Player.InsertSongs: Error inserting songs [%s] %v", url, err)
 		return
 	}
-	p.EmitEvent("added_songs_user", addedSongs, position, actionUser)
+	p.EmitEvent(EVENT_ADDED_SONGS_USER, addedSongs, position, actionUser)
 
 	logrus.Infof("Player.InsertSongs: Inserted %d songs from url [%s]", len(addedSongs), url)
 	return
@@ -302,8 +301,8 @@ func (p *Player) insertPlayables(playables []songplayer.Playable, position int) 
 		p.playlist[position+i] = playable
 	}
 
-	p.EmitEvent("songs_added", playables, position)
-	p.EmitEvent("queue_updated", p.GetQueuedSongs())
+	p.EmitEvent(EVENT_SONGS_ADDED, playables, position)
+	p.EmitEvent(EVENT_QUEUE_UPDATED, p.GetQueuedSongs())
 	return
 }
 
@@ -315,7 +314,7 @@ func (p *Player) ShuffleQueue() {
 		j := rand.Intn(i + 1)
 		p.playlist[i], p.playlist[j] = p.playlist[j], p.playlist[i]
 	}
-	p.EmitEvent("queue_updated", p.GetQueuedSongs())
+	p.EmitEvent(EVENT_QUEUE_UPDATED, p.GetQueuedSongs())
 
 	logrus.Infof("Player.ShuffleQueue: Queue successfully shuffled")
 }
@@ -331,7 +330,7 @@ func (p *Player) EmptyQueue() {
 	}
 	p.playlist = newList
 
-	p.EmitEvent("queue_updated", p.GetQueuedSongs())
+	p.EmitEvent(EVENT_QUEUE_UPDATED, p.GetQueuedSongs())
 
 	logrus.Infof("Player.ShuffleQueue: Queue successfully emptied")
 }
@@ -363,7 +362,7 @@ func (p *Player) playWait() {
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
 
-	p.EmitEvent("play_done", p.currentSong, p.currentPlayer)
+	p.EmitEvent(EVENT_PLAY_DONE, p.currentSong, p.currentPlayer)
 
 	if p.playlistPosition < len(p.playlist)-1 && p.status == PLAYING {
 		p.setPlaylistPosition(p.playlistPosition + 1)
@@ -399,7 +398,7 @@ func (p *Player) Seek(positionSeconds int) (err error) {
 
 	p.playTimer.Reset(remainingDuration)
 	p.endTime = time.Now().Add(remainingDuration)
-	p.EmitEvent("song_seek", p.currentSong, p.currentPlayer, remainingDuration, currentDuration, positionDuration)
+	p.EmitEvent(EVENT_SONG_SEEK, p.currentSong, p.currentPlayer, remainingDuration, currentDuration, positionDuration)
 
 	logrus.Infof("Player.Seek: Play seeked from %v to %v (Remaining: %v)", currentDuration, positionDuration, remainingDuration)
 	return
@@ -420,7 +419,7 @@ func (p *Player) Next() (song songplayer.Playable, err error) {
 		return
 	}
 
-	p.EmitEvent("next_song", song)
+	p.EmitEvent(EVENT_NEXT_SONG, song)
 	return
 }
 
@@ -439,7 +438,7 @@ func (p *Player) Previous() (song songplayer.Playable, err error) {
 		return
 	}
 
-	p.EmitEvent("previous_song", song)
+	p.EmitEvent(EVENT_PREVIOUS_SONG, song)
 	return
 }
 
@@ -459,7 +458,7 @@ func (p *Player) Jump(deltaIndex int) (song songplayer.Playable, err error) {
 		return
 	}
 
-	p.EmitEvent("jump_song", deltaIndex, song, p.playlistPosition)
+	p.EmitEvent(EVENT_JUMP_SONG, deltaIndex, song, p.playlistPosition)
 	return
 }
 
@@ -495,8 +494,8 @@ func (p *Player) setPlaylistPosition(newPosition int) (song songplayer.Playable,
 
 	// Start waiting for the song to be done
 	go p.playWait()
-	p.EmitEvent("play_start", p.currentSong, p.currentPlayer)
-	p.EmitEvent("queue_updated", p.GetQueuedSongs())
+	p.EmitEvent(EVENT_PLAY_START, p.currentSong, p.currentPlayer)
+	p.EmitEvent(EVENT_QUEUE_UPDATED, p.GetQueuedSongs())
 
 	logrus.Infof("Player.setPlaylistPosition: %s started playing %s successfully", musicPlayer.Name(), song.GetURL())
 	return
@@ -530,7 +529,7 @@ func (p *Player) stop() (err error) {
 	}
 
 	timePlayed := time.Now().Sub(p.endTime.Add(-currentSong.GetDuration()))
-	p.EmitEvent("stop", currentSong, currentPlayer, timePlayed)
+	p.EmitEvent(EVENT_STOP, currentSong, currentPlayer, timePlayed)
 
 	logrus.Infof("Player.stop: %s stopped playing %s with a play time of %v", currentPlayer.Name(), currentSong.GetURL(), timePlayed)
 	return
@@ -560,7 +559,7 @@ func (p *Player) pause() (err error) {
 		// Restart the play wait goroutine with the new time
 		go p.playWait()
 
-		p.EmitEvent("unpause", p.currentSong, p.remainingDuration)
+		p.EmitEvent(EVENT_UNPAUSE, p.currentSong, p.remainingDuration)
 
 		logrus.Infof("Player.pause: %s resumed playing %s", p.currentPlayer.Name(), p.currentSong.GetURL())
 	} else {
@@ -570,7 +569,7 @@ func (p *Player) pause() (err error) {
 			// Kill the current playWait()
 			p.playTimer.Stop()
 		}
-		p.EmitEvent("pause", p.currentSong, p.remainingDuration)
+		p.EmitEvent(EVENT_PAUSE, p.currentSong, p.remainingDuration)
 
 		logrus.Infof("Player.pause: %s paused playing %s", p.currentPlayer.Name(), p.currentSong.GetURL())
 	}

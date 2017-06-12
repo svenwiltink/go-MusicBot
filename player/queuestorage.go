@@ -21,7 +21,7 @@ func NewQueueStorage(path string) (qs *QueueStorage) {
 	}
 }
 
-func (qs *QueueStorage) OnListUpdate(args ...interface{}) {
+func (qs *QueueStorage) OnQueueUpdate(args ...interface{}) {
 	if len(args) < 1 {
 		return
 	}
@@ -36,7 +36,7 @@ func (qs *QueueStorage) OnListUpdate(args ...interface{}) {
 
 	err := qs.saveQueue(urls)
 	if err != nil {
-		logrus.Errorf("QueueStorage.OnListUpdate: Error saving queue: %v", err)
+		logrus.Errorf("QueueStorage.OnQueueUpdate: Error saving queue: %v", err)
 		return
 	}
 }
