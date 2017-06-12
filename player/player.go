@@ -203,7 +203,7 @@ func (p *Player) GetPastSongs() (songs []songplayer.Playable) {
 }
 
 func (p *Player) GetQueuedSongs() (songs []songplayer.Playable) {
-	if p.playlistPosition == len(p.playlist)-1 {
+	if p.playlistPosition == len(p.playlist)-1 || len(p.playlist) == 0 {
 		return []songplayer.Playable{}
 	}
 	return p.playlist[p.playlistPosition+1:]
