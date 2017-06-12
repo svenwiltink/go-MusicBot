@@ -324,7 +324,6 @@ var QueueCommand = Command{
 
 		if len(items) > 10 {
 			event.Connection.Privmsgf(target, italicText("And %d more.."), len(items)-10)
-			return
 		}
 
 		event.Connection.Privmsgf(target, "Total duration: %s%s", BOLD_CHARACTER, util.FormatDuration(dur))
@@ -350,7 +349,6 @@ var HistoryCommand = Command{
 
 		if len(items) > 10 {
 			event.Connection.Privmsgf(target, italicText("And %d more.."), len(items)-10)
-			return
 		}
 
 		event.Connection.Privmsgf(target, "Total duration: %s%s", BOLD_CHARACTER, util.FormatDuration(dur))
