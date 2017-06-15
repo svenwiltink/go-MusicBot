@@ -177,7 +177,7 @@ var SeekCommand = Command{
 				event.Connection.Privmsg(target, inverseText("Error parsing seek percentage"))
 				return
 			}
-			song, _ := bot.player.GetCurrentSong()
+			song, _ := bot.player.GetCurrent()
 			if song == nil {
 				event.Connection.Privmsg(target, inverseText("Nothing playing!"))
 				return
@@ -197,7 +197,7 @@ var SeekCommand = Command{
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
 		}
-		song, remaining := bot.player.GetCurrentSong()
+		song, remaining := bot.player.GetCurrent()
 		if song != nil {
 			bot.announceMessagef(false, event, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
 		}
@@ -213,7 +213,7 @@ var PauseCommand = Command{
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
 		}
-		song, remaining := bot.player.GetCurrentSong()
+		song, remaining := bot.player.GetCurrent()
 		state := bot.player.GetStatus()
 		switch state {
 		case player.PAUSED:
@@ -243,7 +243,7 @@ var CurrentCommand = Command{
 	Name: "current",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		target, _, _ := bot.getTarget(event)
-		song, remaining := bot.player.GetCurrentSong()
+		song, remaining := bot.player.GetCurrent()
 		if song != nil {
 			event.Connection.Privmsgf(target, "Current song: %s%s%s "+italicText("(%s remaining)"), BOLD_CHARACTER, formatSong(song), BOLD_CHARACTER, util.FormatDuration(remaining))
 			event.Connection.Privmsgf(target, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
@@ -263,7 +263,7 @@ var AddCommand = Command{
 		}
 		url := parameters[0]
 
-		_, err := bot.player.AddSongs(url, event.User)
+		_, err := bot.player.Add(url, event.User)
 		if err != nil {
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
@@ -285,7 +285,7 @@ var OpenCommand = Command{
 		}
 		url := parameters[0]
 
-		_, err := bot.player.InsertSongs(url, 0, event.User)
+		_, err := bot.player.Insert(url, 0, event.User)
 		if err != nil {
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
@@ -309,7 +309,7 @@ var QueueCommand = Command{
 	Name: "queue",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		target, _, _ := bot.getTarget(event)
-		items := bot.player.GetQueuedSongs()
+		items := bot.player.GetQueue()
 		if len(items) == 0 {
 			event.Connection.Privmsg(target, italicText("The queue is empty"))
 		}
@@ -334,7 +334,7 @@ var HistoryCommand = Command{
 	Name: "history",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		target, _, _ := bot.getTarget(event)
-		items := bot.player.GetPastSongs()
+		items := bot.player.GetHistory()
 		if len(items) == 0 {
 			event.Connection.Privmsg(target, italicText("The history is empty"))
 		}
@@ -416,7 +416,7 @@ var SearchAddCommand = Command{
 		}
 		for _, res := range results {
 			for _, item := range res {
-				_, err := bot.player.AddSongs(item.GetURL(), event.User)
+				_, err := bot.player.Add(item.GetURL(), event.User)
 				if err != nil {
 					event.Connection.Privmsg(target, inverseText(err.Error()))
 					return

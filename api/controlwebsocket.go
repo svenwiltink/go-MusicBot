@@ -151,7 +151,7 @@ func (cws *ControlWebsocket) executeCommand(cmd *Command) {
 			cws.write(getCommandResponse(cmd, err))
 			return
 		}
-		_, err := cws.player.AddSongs(cmd.Arguments[0], cws.user)
+		_, err := cws.player.Add(cmd.Arguments[0], cws.user)
 		cws.write(getCommandResponse(cmd, err))
 	case "open":
 		if len(cmd.Arguments) < 1 {
@@ -159,7 +159,7 @@ func (cws *ControlWebsocket) executeCommand(cmd *Command) {
 			cws.write(getCommandResponse(cmd, err))
 			return
 		}
-		_, err := cws.player.InsertSongs(cmd.Arguments[0], 0, cws.user)
+		_, err := cws.player.Insert(cmd.Arguments[0], 0, cws.user)
 		cws.write(getCommandResponse(cmd, err))
 	case "play":
 		_, err := cws.player.Play()
@@ -168,12 +168,12 @@ func (cws *ControlWebsocket) executeCommand(cmd *Command) {
 		err := cws.player.Pause()
 		cws.write(getCommandResponse(cmd, err))
 	case "status":
-		song, remaining := cws.player.GetCurrentSong()
+		song, remaining := cws.player.GetCurrent()
 		resp := getCommandResponse(cmd, nil)
 		resp.Status = &Status{
 			Status:  cws.player.GetStatus(),
 			Current: getAPISong(song, remaining),
-			List:    getAPISongs(cws.player.GetQueuedSongs()),
+			List:    getAPISongs(cws.player.GetQueue()),
 		}
 		cws.write(resp)
 	case "next":
