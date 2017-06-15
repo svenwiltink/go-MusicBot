@@ -68,6 +68,7 @@ func GetExternalIPs() (ips []net.IP, err error) {
 	return
 }
 
+// GetSortedStringIntMap - Takes a map[string]int, creates key/val Pairs and returns a sorted slice
 func GetSortedStringIntMap(mp map[string]int) (slice []Pair) {
 	for key, val := range mp {
 		slice = append(slice, Pair{
