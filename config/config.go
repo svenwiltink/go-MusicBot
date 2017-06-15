@@ -8,11 +8,13 @@ import (
 const (
 	DEFAULT_LOGFILE_PATH = "musicbot.log"
 	DEFAULT_QUEUE_PATH   = "queue.txt"
+	DEFAULT_STATS_PATH   = "musicbot-stats.json"
 )
 
 type MusicBot struct {
 	LogFile   string
 	QueuePath string
+	StatsPath string
 
 	IRC           IRC
 	API           API
@@ -84,7 +86,9 @@ func ReadConfig(path string) (conf *MusicBot, err error) {
 }
 
 func (c *MusicBot) ApplyDefaults() {
+	c.LogFile = DEFAULT_LOGFILE_PATH
 	c.QueuePath = DEFAULT_QUEUE_PATH
+	c.StatsPath = DEFAULT_STATS_PATH
 	c.IRC.WhiteListPath = DEFAULT_WHITELIST_PATH
 	c.API.Port = DEFAULT_API_PORT
 	c.SpotifyPlayer.Enabled = true

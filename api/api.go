@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"strconv"
 )
 
 type API struct {
@@ -93,6 +94,10 @@ func (api *API) initializeRoutes() {
 			Method:  http.MethodGet,
 			handler: api.CurrentHandler,
 		}, {
+			Pattern: "/statistics",
+			Method:  http.MethodGet,
+			handler: api.StatisticsHandler,
+		}, {
 			Pattern: "/play",
 			Method:  http.MethodGet,
 			handler: api.authenticator(api.PlayHandler, false),
@@ -112,6 +117,10 @@ func (api *API) initializeRoutes() {
 			Pattern: "/previous",
 			Method:  http.MethodGet,
 			handler: api.authenticator(api.PreviousHandler, false),
+		}, {
+			Pattern: "/jump",
+			Method:  http.MethodGet,
+			handler: api.authenticator(api.JumpHandler, false),
 		}, {
 			Pattern: "/add",
 			Method:  http.MethodGet,
@@ -166,6 +175,16 @@ func (api *API) CurrentHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewEncoder(w).Encode(getAPISong(song, remaining))
 	if err != nil {
 		logrus.Errorf("API.CurrentHandler: Json encode error: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (api *API) StatisticsHandler(w http.ResponseWriter, r *http.Request) {
+	stats := api.player.GetStatistics()
+	err := json.NewEncoder(w).Encode(stats)
+	if err != nil {
+		logrus.Errorf("API.StatisticsHandler: Json encode error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -236,9 +255,31 @@ func (api *API) PreviousHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (api *API) JumpHandler(w http.ResponseWriter, r *http.Request) {
+	index, err := strconv.ParseInt(r.URL.Query().Get("index"), 10, 32)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	song, err := api.player.Jump(int(index))
+	if err != nil {
+		logrus.Errorf("API.JumpHandler: Error jumping: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(getAPISong(song, song.GetDuration()))
+	if err != nil {
+		logrus.Errorf("API.JumpHandler: Json encode error: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
 func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
-	songs, err := api.player.AddSongs(url)
+	user := r.Context().Value(CONTEXT_USERNAME).(string)
+	songs, err := api.player.AddSongs(url, fmt.Sprintf("WebAPI_%s", user))
 	if err != nil {
 		logrus.Errorf("API.AddHandler: Error adding [%s] %v", url, err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -254,7 +295,8 @@ func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
 
 func (api *API) OpenHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
-	songs, err := api.player.InsertSongs(url, 0)
+	user := r.Context().Value(CONTEXT_USERNAME).(string)
+	songs, err := api.player.InsertSongs(url, 0, fmt.Sprintf("WebAPI_%s", user))
 	if err != nil {
 		logrus.Errorf("API.OpenHandler: Error inserting [%s] %v", url, err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -277,7 +319,8 @@ func (api *API) SocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logrus.Infof("API.SocketHandler: Opening new socket [ReadOnly: %v]", readOnly)
-	cws := NewControlWebsocket(ws, readOnly, api.player)
+	user, _, _ := r.BasicAuth()
+	logrus.Infof("API.SocketHandler: Opening new socket [ReadOnly: %v | User: %s]", readOnly, user)
+	cws := NewControlWebsocket(ws, readOnly, api.player, fmt.Sprintf("WebAPI_%s", user))
 	cws.Start()
 }

@@ -2,6 +2,7 @@ package bot
 
 import (
 	"bufio"
+	"fmt"
 	"github.com/SvenWiltink/go-MusicBot/config"
 	"github.com/SvenWiltink/go-MusicBot/player"
 	"github.com/SvenWiltink/go-MusicBot/util"
@@ -124,6 +125,29 @@ var PreviousCommand = Command{
 	},
 }
 
+var JumpCommand = Command{
+	Name: "jump",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		target, _, _ := bot.getTarget(event)
+		if len(parameters) < 1 {
+			event.Connection.Privmsg(target, boldText("Usage: !music jump <deltaIndex> (positive index for forwards, negative index for backwards)"))
+			return
+		}
+
+		index, err := strconv.ParseInt(parameters[0], 10, 32)
+		if err != nil {
+			event.Connection.Privmsg(target, inverseText("Error parsing jump index"))
+			return
+		}
+		_, err = bot.player.Jump(int(index))
+		if err != nil {
+			event.Connection.Privmsg(target, inverseText(err.Error()))
+			return
+		}
+		bot.announceMessagef(true, event, "%s jumped to song at index %d", boldText(event.Nick), index)
+	},
+}
+
 var PlayCommand = Command{
 	Name: "play",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
@@ -150,12 +174,12 @@ var SeekCommand = Command{
 		if strings.HasSuffix(seekStr, "%") {
 			percentage, err := strconv.ParseInt(seekStr[:len(seekStr)-1], 10, 32)
 			if err != nil {
-				event.Connection.Privmsg(target, boldText("Error parsing seek percentage"))
+				event.Connection.Privmsg(target, inverseText("Error parsing seek percentage"))
 				return
 			}
 			song, _ := bot.player.GetCurrentSong()
 			if song == nil {
-				event.Connection.Privmsg(target, boldText("Nothing playing!"))
+				event.Connection.Privmsg(target, inverseText("Nothing playing!"))
 				return
 			}
 			duration := song.GetDuration().Nanoseconds() / 100 * percentage
@@ -164,7 +188,7 @@ var SeekCommand = Command{
 			var err error
 			seekSeconds, err = strconv.ParseInt(seekStr, 10, 32)
 			if err != nil {
-				event.Connection.Privmsg(target, boldText("Error parsing seek seconds"))
+				event.Connection.Privmsg(target, inverseText("Error parsing seek seconds"))
 				return
 			}
 		}
@@ -221,7 +245,7 @@ var CurrentCommand = Command{
 		target, _, _ := bot.getTarget(event)
 		song, remaining := bot.player.GetCurrentSong()
 		if song != nil {
-			event.Connection.Privmsgf(target, "Current song: %s%s%s "+italicText("(%s remaining)"), BOLD_CHARACTER, formatSong(song), BOLD_CHARACTER, util.FormatSongLength(remaining))
+			event.Connection.Privmsgf(target, "Current song: %s%s%s "+italicText("(%s remaining)"), BOLD_CHARACTER, formatSong(song), BOLD_CHARACTER, util.FormatDuration(remaining))
 			event.Connection.Privmsgf(target, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
 		} else {
 			event.Connection.Privmsg(target, italicText("Nothing currently playing"))
@@ -239,13 +263,15 @@ var AddCommand = Command{
 		}
 		url := parameters[0]
 
-		songs, err := bot.player.AddSongs(url)
+		_, err := bot.player.AddSongs(url, event.User)
 		if err != nil {
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
 		}
-		bot.announceAddedSongs(event, songs)
-		bot.player.Play()
+
+		if bot.player.GetStatus() != player.PLAYING {
+			bot.player.Play()
+		}
 	},
 }
 
@@ -259,13 +285,15 @@ var OpenCommand = Command{
 		}
 		url := parameters[0]
 
-		songs, err := bot.player.InsertSongs(url, 0)
+		_, err := bot.player.InsertSongs(url, 0, event.User)
 		if err != nil {
 			event.Connection.Privmsg(target, inverseText(err.Error()))
 			return
 		}
-		bot.announceAddedSongs(event, songs)
-		bot.player.Play()
+
+		if bot.player.GetStatus() != player.PLAYING {
+			bot.player.Play()
+		}
 	},
 }
 
@@ -286,14 +314,19 @@ var QueueCommand = Command{
 			event.Connection.Privmsg(target, italicText("The queue is empty"))
 		}
 
-		for i, item := range items {
-			event.Connection.Privmsgf(target, "%d. %s", i+1, formatSong(item))
-
-			if i >= 9 && len(items) > 10 {
-				event.Connection.Privmsgf(target, italicText("And %d more.."), len(items)-10)
-				return
+		dur := time.Duration(0)
+		for i, song := range items {
+			if i < 10 {
+				event.Connection.Privmsgf(target, "%d. %s", i+1, formatSong(song))
 			}
+			dur += song.GetDuration()
 		}
+
+		if len(items) > 10 {
+			event.Connection.Privmsgf(target, italicText("And %d more.."), len(items)-10)
+		}
+
+		event.Connection.Privmsgf(target, "Total duration: %s%s", BOLD_CHARACTER, util.FormatDuration(dur))
 	},
 }
 
@@ -306,12 +339,19 @@ var HistoryCommand = Command{
 			event.Connection.Privmsg(target, italicText("The history is empty"))
 		}
 
-		for i, item := range items {
-			if i < len(items)-11 {
-				continue
+		dur := time.Duration(0)
+		for i, song := range items {
+			if i < 10 {
+				event.Connection.Privmsgf(target, "%d. %s", i+1, formatSong(song))
 			}
-			event.Connection.Privmsgf(target, "%d. %s", i+1, formatSong(item))
+			dur += song.GetDuration()
 		}
+
+		if len(items) > 10 {
+			event.Connection.Privmsgf(target, italicText("And %d more.."), len(items)-10)
+		}
+
+		event.Connection.Privmsgf(target, "Total duration: %s%s", BOLD_CHARACTER, util.FormatDuration(dur))
 	},
 }
 
@@ -374,18 +414,56 @@ var SearchAddCommand = Command{
 			event.Connection.Privmsg(target, italicText("Nothing found!"))
 			return
 		}
-		for plyr, res := range results {
+		for _, res := range results {
 			for _, item := range res {
-				bot.announceMessagef(false, event, "%s added song(s): %s (%s)", boldText(event.Nick), formatSong(item), italicText(plyr))
-				_, err := bot.player.AddSongs(item.GetURL())
+				_, err := bot.player.AddSongs(item.GetURL(), event.User)
 				if err != nil {
 					event.Connection.Privmsg(target, inverseText(err.Error()))
 					return
 				}
-				bot.player.Play()
+				if bot.player.GetStatus() != player.PLAYING {
+					bot.player.Play()
+				}
 				return
 			}
 		}
+	},
+}
+
+var StatsCommand = Command{
+	Name: "stats",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		target, _, _ := bot.getTarget(event)
+		bot.ircConn.Privmsgf(target, "%s Statistics!", GetMusicBotStringFormatted())
+
+		stats := bot.player.GetStatistics()
+
+		var timeByPlayer []string
+		for player, time := range stats.TimeByPlayer {
+			timeByPlayer = append(timeByPlayer, fmt.Sprintf("%s: %s%s%s", player, BOLD_CHARACTER, util.FormatDuration(time), BOLD_CHARACTER))
+		}
+		bot.ircConn.Privmsgf(target, "Total play time: %s%v%s (%s)", BOLD_CHARACTER, util.FormatDuration(stats.TotalTimePlayed), BOLD_CHARACTER, strings.Join(timeByPlayer, " | "))
+
+		var playedByPlayer []string
+		for player, count := range stats.SongsPlayedByPlayer {
+			playedByPlayer = append(playedByPlayer, fmt.Sprintf("%s: %s%d%s", player, BOLD_CHARACTER, count, BOLD_CHARACTER))
+		}
+		bot.ircConn.Privmsgf(target, "Total songs played: %s%d%s (%s)", BOLD_CHARACTER, stats.TotalSongsPlayed, BOLD_CHARACTER, strings.Join(playedByPlayer, " | "))
+		bot.ircConn.Privmsgf(target, "Total songs queued: %s%d", BOLD_CHARACTER, stats.TotalSongsQueued)
+		bot.ircConn.Privmsgf(target, "Total times skipped: %s%d", BOLD_CHARACTER, stats.TotalTimesNext+stats.TotalTimesPrevious+stats.TotalTimesJump)
+		bot.ircConn.Privmsgf(target, "Total times paused: %s%d", BOLD_CHARACTER, stats.TotalTimesPaused)
+
+		var songQueuers []string
+		pairs := util.GetSortedStringIntMap(stats.SongsAddedByUser)
+		pos := 1
+		for i := len(pairs) - 1; i >= 0; i-- {
+			songQueuers = append(songQueuers, fmt.Sprintf("%d. %s: %s%d%s", pos, pairs[i].Key, BOLD_CHARACTER, pairs[i].Val, BOLD_CHARACTER))
+			pos++
+			if pos > 10 {
+				break
+			}
+		}
+		bot.ircConn.Privmsgf(target, "Top 10 song queuers: %s", strings.Join(songQueuers, " | "))
 	},
 }
 
@@ -395,7 +473,7 @@ var VolUpCommand = Command{
 		err := volumecontrol.IncreaseVolume(10)
 		if err != nil {
 			target, _, _ := bot.getTarget(event)
-			event.Connection.Privmsg(target, "error: "+err.Error())
+			event.Connection.Privmsgf(target, "%s%v", INVERSE_CHARACTER, err)
 		}
 	},
 }
@@ -406,7 +484,7 @@ var VolDownCommand = Command{
 		err := volumecontrol.DecreaseVolume(10)
 		if err != nil {
 			target, _, _ := bot.getTarget(event)
-			event.Connection.Privmsg(target, "error: "+err.Error())
+			event.Connection.Privmsgf(target, "%s%v", INVERSE_CHARACTER, err)
 		}
 	},
 }
@@ -422,13 +500,13 @@ var VolCommand = Command{
 
 		vol, err := strconv.Atoi(parameters[0])
 		if err != nil {
-			event.Connection.Privmsg(target, "error: "+err.Error())
+			event.Connection.Privmsgf(target, "%s%v", INVERSE_CHARACTER, err)
 			return
 		}
 
 		err = volumecontrol.SetVolume(vol)
 		if err != nil {
-			event.Connection.Privmsg(target, "error: "+err.Error())
+			event.Connection.Privmsgf(target, "%s%v", INVERSE_CHARACTER, err)
 			return
 		}
 	},

@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/vansante/go-event-emitter"
 	"io/ioutil"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -27,13 +28,15 @@ type ControlWebsocket struct {
 	player    player.MusicPlayer
 	capturer  *eventemitter.Capturer
 	writeLock sync.Mutex
+	user      string
 }
 
-func NewControlWebsocket(ws *websocket.Conn, readOnly bool, player player.MusicPlayer) (cws *ControlWebsocket) {
+func NewControlWebsocket(ws *websocket.Conn, readOnly bool, player player.MusicPlayer, user string) (cws *ControlWebsocket) {
 	cws = &ControlWebsocket{
 		ws:       ws,
 		readOnly: readOnly,
 		player:   player,
+		user:     user,
 	}
 	return
 }
@@ -58,6 +61,11 @@ func (cws *ControlWebsocket) onEvent(event string, args ...interface{}) {
 		song, ok := apiArgs[i].(songplayer.Playable)
 		if ok {
 			apiArgs[i] = getAPISong(song, song.GetDuration())
+			continue
+		}
+		plyr, ok := apiArgs[i].(songplayer.SongPlayer)
+		if ok {
+			apiArgs[i] = plyr.Name()
 			continue
 		}
 		dur, ok := apiArgs[i].(time.Duration)
@@ -143,7 +151,7 @@ func (cws *ControlWebsocket) executeCommand(cmd *Command) {
 			cws.write(getCommandResponse(cmd, err))
 			return
 		}
-		_, err := cws.player.AddSongs(cmd.Arguments[0])
+		_, err := cws.player.AddSongs(cmd.Arguments[0], cws.user)
 		cws.write(getCommandResponse(cmd, err))
 	case "open":
 		if len(cmd.Arguments) < 1 {
@@ -151,7 +159,7 @@ func (cws *ControlWebsocket) executeCommand(cmd *Command) {
 			cws.write(getCommandResponse(cmd, err))
 			return
 		}
-		_, err := cws.player.InsertSongs(cmd.Arguments[0], 0)
+		_, err := cws.player.InsertSongs(cmd.Arguments[0], 0, cws.user)
 		cws.write(getCommandResponse(cmd, err))
 	case "play":
 		_, err := cws.player.Play()
@@ -170,6 +178,22 @@ func (cws *ControlWebsocket) executeCommand(cmd *Command) {
 		cws.write(resp)
 	case "next":
 		_, err := cws.player.Next()
+		cws.write(getCommandResponse(cmd, err))
+	case "previous":
+		_, err := cws.player.Previous()
+		cws.write(getCommandResponse(cmd, err))
+	case "jump":
+		if len(cmd.Arguments) < 1 {
+			err := errors.New("Missing deltaIndex argument")
+			cws.write(getCommandResponse(cmd, err))
+			return
+		}
+		index, err := strconv.ParseInt(cmd.Arguments[0], 10, 32)
+		if err != nil {
+			cws.write(getCommandResponse(cmd, err))
+			return
+		}
+		_, err = cws.player.Jump(int(index))
 		cws.write(getCommandResponse(cmd, err))
 	case "stop":
 		err := cws.player.Stop()

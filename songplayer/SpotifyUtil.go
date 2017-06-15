@@ -104,7 +104,7 @@ func GetSpotifySearchResults(spClient *spotify.Client, searchType SearchType, se
 			if len(searchPlaylist.Images) > 0 {
 				imageURL = searchPlaylist.Images[0].URL
 			}
-			results = append(results, NewSongResult(SEARCH_TYPE_ALBUM, searchPlaylist.Name, duration, string(searchPlaylist.URI), imageURL))
+			results = append(results, NewSongResult(SEARCH_TYPE_PLAYLIST, searchPlaylist.Name, duration, string(searchPlaylist.URI), imageURL))
 		}
 	}
 	return

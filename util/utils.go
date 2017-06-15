@@ -4,10 +4,16 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"sort"
 	"time"
 )
 
-func FormatSongLength(duration time.Duration) (form string) {
+type Pair struct {
+	Key string
+	Val int
+}
+
+func FormatDuration(duration time.Duration) (form string) {
 	minutes := int(duration.Minutes())
 	seconds := int(duration.Seconds()) - (minutes * 60)
 
@@ -59,5 +65,20 @@ func GetExternalIPs() (ips []net.IP, err error) {
 	if len(ips) == 0 {
 		err = errors.New("are you connected to the network?")
 	}
+	return
+}
+
+// GetSortedStringIntMap - Takes a map[string]int, creates key/val Pairs and returns a sorted slice
+func GetSortedStringIntMap(mp map[string]int) (slice []Pair) {
+	for key, val := range mp {
+		slice = append(slice, Pair{
+			Key: key,
+			Val: val,
+		})
+	}
+
+	sort.Slice(slice, func(i, j int) bool {
+		return slice[i].Val < slice[j].Val
+	})
 	return
 }
