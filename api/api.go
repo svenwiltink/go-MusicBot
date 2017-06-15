@@ -278,7 +278,7 @@ func (api *API) JumpHandler(w http.ResponseWriter, r *http.Request) {
 
 func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
-	user, _, _ := r.BasicAuth()
+	user := r.Context().Value(CONTEXT_USERNAME).(string)
 	songs, err := api.player.AddSongs(url, fmt.Sprintf("WebAPI_%s", user))
 	if err != nil {
 		logrus.Errorf("API.AddHandler: Error adding [%s] %v", url, err)
@@ -295,7 +295,7 @@ func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
 
 func (api *API) OpenHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
-	user, _, _ := r.BasicAuth()
+	user := r.Context().Value(CONTEXT_USERNAME).(string)
 	songs, err := api.player.InsertSongs(url, 0, fmt.Sprintf("WebAPI_%s", user))
 	if err != nil {
 		logrus.Errorf("API.OpenHandler: Error inserting [%s] %v", url, err)
