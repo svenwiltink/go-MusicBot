@@ -2,7 +2,7 @@ package songplayer
 
 import (
 	"fmt"
-	"github.com/DexterLB/mpvipc"
+	"github.com/dexterlb/mpvipc"
 	"github.com/sirupsen/logrus"
 	"github.com/vansante/go-event-emitter"
 	"os"

@@ -7,6 +7,14 @@ import (
 	"time"
 )
 
+type Version struct {
+	VersionTag string
+	GitCommit  string
+	BuildDate  string
+	BuildHost  string
+	GoVersion  string
+}
+
 type Song struct {
 	Title            string
 	Seconds          int

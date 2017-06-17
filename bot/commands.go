@@ -512,6 +512,18 @@ var VolCommand = Command{
 	},
 }
 
+var VersionCommand = Command{
+	Name: "version",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		target, _, _ := bot.getTarget(event)
+
+		bot.ircConn.Privmsgf(target, "%s v%s (%s)", GetMusicBotStringFormatted(), util.VersionTag, util.GitCommit)
+		bot.ircConn.Privmsgf(target, "Built: %s", util.BuildDate)
+		bot.ircConn.Privmsgf(target, "Built on: %s", util.BuildHost)
+		bot.ircConn.Privmsgf(target, "GO version: %s", util.GoVersion)
+	},
+}
+
 var LogCommand = Command{
 	Name: "log",
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
