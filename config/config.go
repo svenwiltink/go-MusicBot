@@ -6,15 +6,20 @@ import (
 )
 
 const (
-	DEFAULT_LOGFILE_PATH = "musicbot.log"
-	DEFAULT_QUEUE_PATH   = "queue.txt"
-	DEFAULT_STATS_PATH   = "musicbot-stats.json"
+	DEFAULT_LOGFILE_PATH   = "musicbot.log"
+	DEFAULT_QUEUE_PATH     = "queue.txt"
+	DEFAULT_STATS_PATH     = "musicbot-stats.json"
+	DEFAULT_MPV_BIN_PATH   = "mpv"
+	DEFAULT_MPV_INPUT_PATH = ".mpv-input"
 )
 
 type MusicBot struct {
 	LogFile   string
 	QueuePath string
 	StatsPath string
+
+	MpvBinPath   string
+	MpvInputPath string
 
 	IRC           IRC
 	API           API
@@ -46,15 +51,10 @@ type API struct {
 const DEFAULT_API_PORT = 7070
 
 type YoutubePlayer struct {
-	Enabled      bool
-	MpvBinPath   string
-	MpvInputPath string
+	Enabled bool
 
 	YoutubeAPIKey string
 }
-
-const DEFAULT_MPV_BIN_PATH = "mpv"
-const DEFAULT_MPV_INPUT_PATH = ".mpv-input"
 
 type SpotifyPlayer struct {
 	Enabled       bool
@@ -89,11 +89,16 @@ func (c *MusicBot) ApplyDefaults() {
 	c.LogFile = DEFAULT_LOGFILE_PATH
 	c.QueuePath = DEFAULT_QUEUE_PATH
 	c.StatsPath = DEFAULT_STATS_PATH
+
+	c.MpvBinPath = DEFAULT_MPV_BIN_PATH
+	c.MpvInputPath = DEFAULT_MPV_INPUT_PATH
+
 	c.IRC.WhiteListPath = DEFAULT_WHITELIST_PATH
+
 	c.API.Port = DEFAULT_API_PORT
+
 	c.SpotifyPlayer.Enabled = true
 	c.SpotifyPlayer.TokenFilePath = DEFAULT_TOKEN_FILE_PATH
+
 	c.YoutubePlayer.Enabled = true
-	c.YoutubePlayer.MpvBinPath = DEFAULT_MPV_BIN_PATH
-	c.YoutubePlayer.MpvInputPath = DEFAULT_MPV_INPUT_PATH
 }

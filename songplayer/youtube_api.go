@@ -30,7 +30,7 @@ func NewYoutubeAPI(youtubeAPIKey string) (yt *YouTubeAPI) {
 	return
 }
 
-// init - Initialize the youtube service
+// initMpv - Initialize the youtube service
 func (yt *YouTubeAPI) init() (err error) {
 	client := &http.Client{
 		Transport: &transport.APIKey{Key: yt.apiKey},
@@ -38,7 +38,7 @@ func (yt *YouTubeAPI) init() (err error) {
 
 	service, err := youtube.New(client)
 	if err != nil {
-		logrus.Errorf("YoutubeAPI.init: Error creating client: %v", err)
+		logrus.Errorf("YoutubeAPI.initMpv: Error creating client: %v", err)
 		return
 	}
 

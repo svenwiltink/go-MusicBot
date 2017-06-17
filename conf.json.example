@@ -2,6 +2,10 @@
   "LogFile": "musicbot.log",
   "QueuePath": "musicbot-queue.txt",
   "StatsPath": "musicbot-stats.json",
+
+  "MpvBinPath": "mpv",
+  "MpvInputPath": ".musicbot-mpv-input",
+
   "IRC": {
      "Server": "server:port",
      "Ssl": true,
@@ -12,18 +16,19 @@
      "Master": "swiltink",
      "WhiteListPath": "whitelist.txt"
   },
+
   "API": {
      "Host": "",
      "Port": 7070,
      "Username": "admin",
      "Password": "bla"
   },
+
   "YoutubePlayer": {
-     YoutubeAPIKey": "<api key>",
      "Enabled": true,
-     "MpvBinPath": "mpv",
-     "MpvInputPath": ".musicbot-mpv-input"
+     "YoutubeAPIKey": "<api key>",
   },
+
   "SpotifyPlayer": {
      "Enabled": true,
      "Host": "127.0.0.1",

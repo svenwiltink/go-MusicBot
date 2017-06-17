@@ -85,13 +85,20 @@ func main() {
 	logrus.Infof("main: Starting HTTP API")
 	go apiObject.Start()
 
+	logrus.Infof("main: Creating MPV control")
+	mpvControl, err := songplayer.NewMpvControl(conf.MpvBinPath, conf.MpvInputPath)
+	if err != nil {
+		logrus.Fatalf("main: Error creating MPV control: %v", err)
+		musicBot.Announcef("%s[MpvControl] Error creating control: %v", bot.INVERSE_CHARACTER, err)
+	}
+
 	if conf.YoutubePlayer.Enabled {
 		logrus.Infof("main: Creating YoutubePlayer")
 
-		ytPlayer, err := songplayer.NewYoutubePlayer(conf.YoutubePlayer.YoutubeAPIKey, conf.YoutubePlayer.MpvBinPath, conf.YoutubePlayer.MpvInputPath)
+		ytPlayer, err := songplayer.NewYoutubePlayer(conf.YoutubePlayer.YoutubeAPIKey, mpvControl)
 		if err != nil {
 			logrus.Errorf("main: Error creating YoutubePlayer: %v", err)
-			musicBot.Announcef("[YoutubePlayer] Error creating player: %v", err)
+			musicBot.Announcef("%s[YoutubePlayer] Error creating player: %v", bot.INVERSE_CHARACTER, err)
 		} else {
 			playr.AddSongPlayer(ytPlayer)
 		}
@@ -103,7 +110,7 @@ func main() {
 		spPlayer, authURL, err := songplayer.NewSpotifyConnectPlayer(conf.SpotifyPlayer.ClientID, conf.SpotifyPlayer.ClientSecret, conf.SpotifyPlayer.TokenFilePath, "", 0)
 		if err != nil {
 			logrus.Errorf("main: Error creating SpotifyConnectPlayer: %v", err)
-			musicBot.Announcef("[SpotifyConnectPlayer] Error creating player: %v", err)
+			musicBot.Announcef("%s[SpotifyConnectPlayer] Error creating player: %v", bot.INVERSE_CHARACTER, err)
 		} else if authURL != "" {
 			ips, err := util.GetExternalIPs()
 			ipStr := "???"
@@ -133,7 +140,7 @@ func main() {
 		spPlayer, err := songplayer.NewSpotifyPlayer(conf.SpotifyPlayer.Host)
 		if err != nil {
 			logrus.Errorf("main: Error creating SpotifyPlayer: %v", err)
-			musicBot.Announcef("[SpotifyPlayer] Error creating player: %v", err)
+			musicBot.Announcef("%s[SpotifyPlayer] Error creating player: %v", bot.INVERSE_CHARACTER, err)
 		} else {
 			playr.AddSongPlayer(spPlayer)
 		}
