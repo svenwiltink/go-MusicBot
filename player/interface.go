@@ -32,6 +32,7 @@ const (
 	EVENT_PAUSE               = "pause"
 	EVENT_UNPAUSE             = "unpause"
 	EVENT_STOP                = "stop"
+	EVENT_QUEUE_DONE          = "queue_done"
 )
 
 type MusicPlayer interface {
@@ -39,11 +40,11 @@ type MusicPlayer interface {
 
 	GetSongPlayer(name string) (player songplayer.SongPlayer)
 	GetSongPlayers() (players []songplayer.SongPlayer)
-	GetPastSongs() (songs []songplayer.Playable)
-	GetQueuedSongs() (songs []songplayer.Playable)
-	GetCurrentSong() (song songplayer.Playable, remaining time.Duration)
-	AddSongs(url, actionUser string) (addedSongs []songplayer.Playable, err error)
-	InsertSongs(url string, position int, actionUser string) (addedSongs []songplayer.Playable, err error)
+	GetHistory() (songs []songplayer.Playable)
+	GetQueue() (songs []songplayer.Playable)
+	GetCurrent() (song songplayer.Playable, remaining time.Duration)
+	Add(url, actionUser string) (addedSongs []songplayer.Playable, err error)
+	Insert(url string, position int, actionUser string) (addedSongs []songplayer.Playable, err error)
 	ShuffleQueue()
 	EmptyQueue()
 	GetStatus() (status Status)

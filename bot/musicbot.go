@@ -36,7 +36,7 @@ func (m *MusicBot) SetPlayer(plr player.MusicPlayer) {
 	m.player = plr
 
 	m.player.AddListener(player.EVENT_QUEUE_LOADED, func(args ...interface{}) {
-		m.Announcef("%sLoaded %d songs from queue file", ITALIC_CHARACTER, len(m.player.GetQueuedSongs()))
+		m.Announcef("%sLoaded %d songs from queue file", ITALIC_CHARACTER, len(m.player.GetQueue()))
 	})
 	m.player.AddListener(player.EVENT_QUEUE_ERROR_LOADING, func(args ...interface{}) {
 		m.Announcef("%sError loading queue from file: %v", args[1].(error), INVERSE_CHARACTER)
@@ -53,6 +53,9 @@ func (m *MusicBot) SetPlayer(plr player.MusicPlayer) {
 		}
 
 		m.ircConn.Actionf(m.config.IRC.Channel, "starts playing: %s", boldText(formatSong(itm)))
+	})
+	m.player.AddListener(player.EVENT_QUEUE_DONE, func(args ...interface{}) {
+		m.ircConn.Action(m.config.IRC.Channel, "finished the queue")
 	})
 	m.player.AddListener(player.EVENT_ADDED_SONGS_USER, func(args ...interface{}) {
 		if len(args) >= 3 {

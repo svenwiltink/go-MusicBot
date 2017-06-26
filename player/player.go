@@ -62,7 +62,7 @@ func (p *Player) Init() {
 	} else {
 		var songs []songplayer.Playable
 		for i, url := range urls {
-			insertedSongs, err := p.insertSongs(url, i)
+			insertedSongs, err := p.insert(url, i)
 			if err != nil {
 				logrus.Errorf("Player.Init: Error inserting song from queue [%d | %s] %v", i, url, err)
 			}
@@ -198,11 +198,11 @@ func (p *Player) AddSongPlayer(player songplayer.SongPlayer) {
 	p.players = append(p.players, player)
 }
 
-func (p *Player) GetPastSongs() (songs []songplayer.Playable) {
+func (p *Player) GetHistory() (songs []songplayer.Playable) {
 	return p.playlist[:p.playlistPosition]
 }
 
-func (p *Player) GetQueuedSongs() (songs []songplayer.Playable) {
+func (p *Player) GetQueue() (songs []songplayer.Playable) {
 	if p.playlistPosition == len(p.playlist)-1 || len(p.playlist) == 0 {
 		return []songplayer.Playable{}
 	}
@@ -213,7 +213,7 @@ func (p *Player) GetStatistics() (stats *Statistics) {
 	return p.stats
 }
 
-func (p *Player) GetCurrentSong() (song songplayer.Playable, remaining time.Duration) {
+func (p *Player) GetCurrent() (song songplayer.Playable, remaining time.Duration) {
 	song = p.currentSong
 	switch p.status {
 	case PLAYING:
@@ -239,60 +239,74 @@ func (p *Player) findPlayer(url string) (songPlayer songplayer.SongPlayer, err e
 	return
 }
 
-func (p *Player) AddSongs(url, actionUser string) (addedSongs []songplayer.Playable, err error) {
+func (p *Player) Add(url, actionUser string) (addedSongs []songplayer.Playable, err error) {
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
 
-	addedSongs, err = p.insertSongs(url, len(p.GetQueuedSongs()))
+	position := len(p.GetQueue())
+	addedSongs, err = p.insert(url, position)
 	if err != nil {
-		logrus.Warnf("Player.AddSongs: Error adding songs [%s] %v", url, err)
-		return
-	}
-	p.EmitEvent(EVENT_ADDED_SONGS_USER, addedSongs, len(p.GetQueuedSongs()), actionUser)
-
-	logrus.Infof("Player.AddSongs: Added %d songs from url [%s]", len(addedSongs), url)
-	return
-}
-
-func (p *Player) InsertSongs(url string, position int, actionUser string) (addedSongs []songplayer.Playable, err error) {
-	p.controlMutex.Lock()
-	defer p.controlMutex.Unlock()
-
-	addedSongs, err = p.insertSongs(url, position)
-	if err != nil {
-		logrus.Warnf("Player.InsertSongs: Error inserting songs [%s] %v", url, err)
+		logrus.Warnf("Player.Add: Error adding songs [%s] %v", url, err)
 		return
 	}
 	p.EmitEvent(EVENT_ADDED_SONGS_USER, addedSongs, position, actionUser)
 
-	logrus.Infof("Player.InsertSongs: Inserted %d songs from url [%s]", len(addedSongs), url)
+	logrus.Infof("Player.Add: Added %d songs from url %s on position %d", len(addedSongs), url, position)
 	return
 }
 
-func (p *Player) insertSongs(url string, position int) (addedSongs []songplayer.Playable, err error) {
+func (p *Player) Insert(url string, position int, actionUser string) (addedSongs []songplayer.Playable, err error) {
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
+	addedSongs, err = p.insert(url, position)
+	if err != nil {
+		logrus.Warnf("Player.Insert: Error inserting songs [%s] %v", url, err)
+		return
+	}
+	p.EmitEvent(EVENT_ADDED_SONGS_USER, addedSongs, position, actionUser)
+
+	logrus.Infof("Player.Insert: Inserted %d songs from url %s on position %d", len(addedSongs), url, position)
+	return
+}
+
+func (p *Player) insert(url string, position int) (addedSongs []songplayer.Playable, err error) {
 	musicPlayer, err := p.findPlayer(url)
 	if err != nil {
-		logrus.Infof("Player.insertSongs: No songplayer found to play %s", url)
+		logrus.Infof("Player.insert: No songplayer found to play %s", url)
 		return
 	}
 
 	addedSongs, err = musicPlayer.GetSongs(url)
 	if err != nil {
-		logrus.Warnf("Player.insertSongs: Error getting songs from url [%s] %v", musicPlayer.Name(), err)
+		logrus.Warnf("Player.insert: Error getting songs from url [%s] %v", musicPlayer.Name(), err)
 		return
 	}
 
 	// Convert position by offsetting it against current position
 	position += p.playlistPosition
+	if len(p.playlist) > 0 {
+		// We want to insert it after all current items
+		position++
+	}
 
 	err = p.insertPlayables(addedSongs, position)
 	return
 }
 
 func (p *Player) insertPlayables(playables []songplayer.Playable, position int) (err error) {
+	if len(playables) == 0 {
+		return
+	}
+
 	if position < 0 || position > len(p.playlist) {
 		err = errors.New("invalid position to insert songs")
 		return
+	}
+
+	// If we have previously reached the end of the playlist, we want to hear the new songs, not the old
+	if p.status == STOPPED && len(p.playlist) > 0 && p.playlistPosition == len(p.playlist)-1 {
+		p.playlistPosition++
 	}
 
 	for i, playable := range playables {
@@ -302,7 +316,7 @@ func (p *Player) insertPlayables(playables []songplayer.Playable, position int) 
 	}
 
 	p.EmitEvent(EVENT_SONGS_ADDED, playables, position)
-	p.EmitEvent(EVENT_QUEUE_UPDATED, p.GetQueuedSongs())
+	p.EmitEvent(EVENT_QUEUE_UPDATED, p.GetQueue())
 	return
 }
 
@@ -314,7 +328,7 @@ func (p *Player) ShuffleQueue() {
 		j := rand.Intn(i + 1)
 		p.playlist[i], p.playlist[j] = p.playlist[j], p.playlist[i]
 	}
-	p.EmitEvent(EVENT_QUEUE_UPDATED, p.GetQueuedSongs())
+	p.EmitEvent(EVENT_QUEUE_UPDATED, p.GetQueue())
 
 	logrus.Infof("Player.ShuffleQueue: Queue successfully shuffled")
 }
@@ -330,7 +344,7 @@ func (p *Player) EmptyQueue() {
 	}
 	p.playlist = newList
 
-	p.EmitEvent(EVENT_QUEUE_UPDATED, p.GetQueuedSongs())
+	p.EmitEvent(EVENT_QUEUE_UPDATED, p.GetQueue())
 
 	logrus.Infof("Player.ShuffleQueue: Queue successfully emptied")
 }
@@ -367,6 +381,9 @@ func (p *Player) playWait() {
 	if p.playlistPosition < len(p.playlist)-1 && p.status == PLAYING {
 		p.setPlaylistPosition(p.playlistPosition + 1)
 	} else {
+		if p.playlistPosition == len(p.playlist)-1 {
+			p.EmitEvent(EVENT_QUEUE_DONE, len(p.playlist))
+		}
 		p.stop()
 	}
 }
@@ -495,7 +512,7 @@ func (p *Player) setPlaylistPosition(newPosition int) (song songplayer.Playable,
 	// Start waiting for the song to be done
 	go p.playWait()
 	p.EmitEvent(EVENT_PLAY_START, p.currentSong, p.currentPlayer)
-	p.EmitEvent(EVENT_QUEUE_UPDATED, p.GetQueuedSongs())
+	p.EmitEvent(EVENT_QUEUE_UPDATED, p.GetQueue())
 
 	logrus.Infof("Player.setPlaylistPosition: %s started playing %s successfully", musicPlayer.Name(), song.GetURL())
 	return

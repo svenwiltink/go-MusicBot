@@ -145,12 +145,12 @@ func (api *API) registerRoute(route Route) bool {
 }
 
 func (api *API) StatusHandler(w http.ResponseWriter, r *http.Request) {
-	song, remaining := api.player.GetCurrentSong()
+	song, remaining := api.player.GetCurrent()
 
 	s := Status{
 		Status:  api.player.GetStatus(),
 		Current: getAPISong(song, remaining),
-		List:    getAPISongs(api.player.GetQueuedSongs()),
+		List:    getAPISongs(api.player.GetQueue()),
 	}
 	err := json.NewEncoder(w).Encode(s)
 	if err != nil {
@@ -161,7 +161,7 @@ func (api *API) StatusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
-	songs := api.player.GetQueuedSongs()
+	songs := api.player.GetQueue()
 	err := json.NewEncoder(w).Encode(getAPISongs(songs))
 	if err != nil {
 		logrus.Errorf("API.ListHandler: Json encode error: %v", err)
@@ -171,7 +171,7 @@ func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) CurrentHandler(w http.ResponseWriter, r *http.Request) {
-	song, remaining := api.player.GetCurrentSong()
+	song, remaining := api.player.GetCurrent()
 	err := json.NewEncoder(w).Encode(getAPISong(song, remaining))
 	if err != nil {
 		logrus.Errorf("API.CurrentHandler: Json encode error: %v", err)
@@ -279,7 +279,7 @@ func (api *API) JumpHandler(w http.ResponseWriter, r *http.Request) {
 func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
 	user := r.Context().Value(CONTEXT_USERNAME).(string)
-	songs, err := api.player.AddSongs(url, fmt.Sprintf("WebAPI_%s", user))
+	songs, err := api.player.Add(url, fmt.Sprintf("WebAPI_%s", user))
 	if err != nil {
 		logrus.Errorf("API.AddHandler: Error adding [%s] %v", url, err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -296,7 +296,7 @@ func (api *API) AddHandler(w http.ResponseWriter, r *http.Request) {
 func (api *API) OpenHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
 	user := r.Context().Value(CONTEXT_USERNAME).(string)
-	songs, err := api.player.InsertSongs(url, 0, fmt.Sprintf("WebAPI_%s", user))
+	songs, err := api.player.Insert(url, 0, fmt.Sprintf("WebAPI_%s", user))
 	if err != nil {
 		logrus.Errorf("API.OpenHandler: Error inserting [%s] %v", url, err)
 		w.WriteHeader(http.StatusInternalServerError)
