@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/svenwiltink/go-musicbot/songplayer"
-	"github.com/sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"os"
 	"strings"
 	"sync"

@@ -6,7 +6,7 @@ import (
 	"github.com/svenwiltink/go-musicbot/player"
 	"github.com/svenwiltink/go-musicbot/songplayer"
 	"github.com/gorilla/websocket"
-	"github.com/sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/vansante/go-event-emitter"
 	"io/ioutil"
 	"strconv"

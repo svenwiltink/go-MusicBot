@@ -2,7 +2,7 @@ package songplayer
 
 import (
 	"errors"
-	"github.com/sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/vansante/go-spotify-control"
 	"github.com/zmb3/spotify"
 	"time"

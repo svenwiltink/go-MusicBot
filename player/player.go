@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/svenwiltink/go-musicbot/songplayer"
-	"github.com/sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/vansante/go-event-emitter"
 	"math/rand"
 	"strings"

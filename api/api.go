@@ -8,7 +8,7 @@ import (
 	"github.com/svenwiltink/go-musicbot/player"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"github.com/sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"net/http"
 	"strconv"
 )

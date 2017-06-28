@@ -7,7 +7,7 @@ import (
 	"github.com/svenwiltink/go-musicbot/player"
 	"github.com/svenwiltink/go-musicbot/songplayer"
 	"github.com/svenwiltink/go-musicbot/util"
-	"github.com/sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"os"
 	"os/signal"
 	"strings"

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dexterlb/mpvipc"
-	"github.com/sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/vansante/go-event-emitter"
 	"os"
 	"os/exec"

@@ -2,7 +2,7 @@ package player
 
 import (
 	"encoding/json"
-	"github.com/sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"io/ioutil"
 	"sync"
 	"time"

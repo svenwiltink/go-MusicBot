@@ -3,7 +3,7 @@ package config
 import (
 	"bufio"
 	"fmt"
-	"github.com/sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"os"
 )
 

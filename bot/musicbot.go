@@ -5,7 +5,7 @@ import (
 	"github.com/svenwiltink/go-musicbot/config"
 	"github.com/svenwiltink/go-musicbot/player"
 	"github.com/svenwiltink/go-musicbot/songplayer"
-	"github.com/sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	irc "github.com/thoj/go-ircevent"
 	"strings"
 )

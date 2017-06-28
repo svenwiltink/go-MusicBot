@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/channelmeter/iso8601duration"
-	"github.com/sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
 	"net/http"
