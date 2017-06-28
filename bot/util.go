@@ -3,9 +3,9 @@ package bot
 import (
 	"errors"
 	"fmt"
-	"github.com/SvenWiltink/go-MusicBot/player"
-	"github.com/SvenWiltink/go-MusicBot/songplayer"
-	"github.com/SvenWiltink/go-MusicBot/util"
+	"github.com/svenwiltink/go-musicbot/player"
+	"github.com/svenwiltink/go-musicbot/songplayer"
+	"github.com/svenwiltink/go-musicbot/util"
 	"github.com/sirupsen/logrus"
 	"strings"
 	"time"

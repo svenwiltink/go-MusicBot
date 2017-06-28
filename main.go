@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/SvenWiltink/go-MusicBot/api"
-	"github.com/SvenWiltink/go-MusicBot/bot"
-	"github.com/SvenWiltink/go-MusicBot/config"
-	"github.com/SvenWiltink/go-MusicBot/player"
-	"github.com/SvenWiltink/go-MusicBot/songplayer"
-	"github.com/SvenWiltink/go-MusicBot/util"
+	"github.com/svenwiltink/go-musicbot/api"
+	"github.com/svenwiltink/go-musicbot/bot"
+	"github.com/svenwiltink/go-musicbot/config"
+	"github.com/svenwiltink/go-musicbot/player"
+	"github.com/svenwiltink/go-musicbot/songplayer"
+	"github.com/svenwiltink/go-musicbot/util"
 	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"

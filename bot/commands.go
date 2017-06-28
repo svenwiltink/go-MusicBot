@@ -3,9 +3,9 @@ package bot
 import (
 	"bufio"
 	"fmt"
-	"github.com/SvenWiltink/go-MusicBot/config"
-	"github.com/SvenWiltink/go-MusicBot/player"
-	"github.com/SvenWiltink/go-MusicBot/util"
+	"github.com/svenwiltink/go-musicbot/config"
+	"github.com/svenwiltink/go-musicbot/player"
+	"github.com/svenwiltink/go-musicbot/util"
 	"github.com/SvenWiltink/volumecontrol"
 	"github.com/sirupsen/logrus"
 	"github.com/thoj/go-ircevent"

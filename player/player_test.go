@@ -1,7 +1,7 @@
 package player
 
 import (
-	"github.com/SvenWiltink/go-MusicBot/songplayer"
+	"github.com/svenwiltink/go-musicbot/songplayer"
 	"testing"
 	"time"
 )
