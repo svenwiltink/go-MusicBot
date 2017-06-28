@@ -6,7 +6,7 @@ import (
 	"github.com/svenwiltink/go-musicbot/config"
 	"github.com/svenwiltink/go-musicbot/player"
 	"github.com/svenwiltink/go-musicbot/util"
-	"github.com/SvenWiltink/volumecontrol"
+	"github.com/svenwiltink/volumecontrol"
 	"github.com/sirupsen/logrus"
 	"github.com/thoj/go-ircevent"
 	"os"
