@@ -97,13 +97,13 @@ func main() {
 		}
 	}
 
-	if conf.SpotifyPlayer.Enabled && conf.SpotifyPlayer.UseConnect {
-		logrus.Infof("main: Creating SpotifyConnectPlayer")
+	if conf.SpotifyPlayer.Enabled {
+		logrus.Infof("main: Creating SpotifyPlayer")
 
-		spPlayer, authURL, err := songplayer.NewSpotifyConnectPlayer(conf.SpotifyPlayer.ClientID, conf.SpotifyPlayer.ClientSecret, conf.SpotifyPlayer.TokenFilePath, "", 0)
+		spPlayer, authURL, err := songplayer.NewSpotifyPlayer(conf.SpotifyPlayer.ClientID, conf.SpotifyPlayer.ClientSecret, conf.SpotifyPlayer.TokenFilePath, "", 0)
 		if err != nil {
-			logrus.Errorf("main: Error creating SpotifyConnectPlayer: %v", err)
-			musicBot.Announcef("[SpotifyConnectPlayer] Error creating player: %v", err)
+			logrus.Errorf("main: Error creating SpotifyPlayer: %v", err)
+			musicBot.Announcef("[SpotifyPlayer] Error creating player: %v", err)
 		} else if authURL != "" {
 			ips, err := util.GetExternalIPs()
 			ipStr := "???"
@@ -116,24 +116,12 @@ func main() {
 				}
 				ipStr = strings.TrimSpace(ipStr)
 			}
-			musicBot.Announcef("[SpotifyConnectPlayer] Authorisation: Add the external IP (%s) of the bot to your hosts file under 'musicbot' and visit:", ipStr)
+			musicBot.Announcef("[SpotifyPlayer] Authorisation: Add the external IP (%s) of the bot to your hosts file under 'musicbot' and visit:", ipStr)
 			musicBot.Announce(authURL)
 			spPlayer.AddAuthorisationListener(func() {
 				playr.AddSongPlayer(spPlayer)
-				musicBot.Announce("[SpotifyConnectPlayer] The musicbot was successfully authorised!")
+				musicBot.Announce("[SpotifyPlayer] The musicbot was successfully authorised!")
 			})
-		} else {
-			playr.AddSongPlayer(spPlayer)
-		}
-	}
-
-	if conf.SpotifyPlayer.Enabled && !conf.SpotifyPlayer.UseConnect {
-		logrus.Infof("main: Creating SpotifyPlayer")
-
-		spPlayer, err := songplayer.NewSpotifyPlayer(conf.SpotifyPlayer.Host)
-		if err != nil {
-			logrus.Errorf("main: Error creating SpotifyPlayer: %v", err)
-			musicBot.Announcef("[SpotifyPlayer] Error creating player: %v", err)
 		} else {
 			playr.AddSongPlayer(spPlayer)
 		}

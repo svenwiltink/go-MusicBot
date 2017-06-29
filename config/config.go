@@ -58,8 +58,6 @@ const DEFAULT_MPV_INPUT_PATH = ".mpv-input"
 
 type SpotifyPlayer struct {
 	Enabled       bool
-	Host          string
-	UseConnect    bool
 	ClientID      string
 	ClientSecret  string
 	TokenFilePath string

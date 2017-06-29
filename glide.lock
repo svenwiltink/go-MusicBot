@@ -32,8 +32,6 @@ imports:
   version: a6b1561a016c2a4aae183c3ef152c25d134c095d
 - name: github.com/vansante/go-event-emitter
   version: 8744934c8f5045bdf7b81481a122fc9941386077
-- name: github.com/vansante/go-spotify-control
-  version: 80ca199cb8958c03d1a8850d98faab4571a87eca
 - name: github.com/zmb3/spotify
   version: 84bf5e353eaccd52f17bbbfdfd1accfc56361bb6
 - name: golang.org/x/net
