@@ -3,6 +3,7 @@ package songplayer
 import (
 	"errors"
 	"github.com/Sirupsen/logrus"
+	"github.com/svenwiltink/go-musicbot/util"
 	"regexp"
 	"strings"
 )
@@ -10,12 +11,12 @@ import (
 var youtubeURLRegex, _ = regexp.Compile(`^(https?://)?(www\.)?(youtube\.com|youtu\.?be)/.+$`)
 
 type YoutubePlayer struct {
-	*MpvControl
+	*util.MpvControl
 
 	ytAPI *YouTubeAPI
 }
 
-func NewYoutubePlayer(youtubeAPIKey string, mpvControl *MpvControl) (player *YoutubePlayer, err error) {
+func NewYoutubePlayer(youtubeAPIKey string, mpvControl *util.MpvControl) (player *YoutubePlayer, err error) {
 	if youtubeAPIKey == "" {
 		err = errors.New("Youtube API key is empty")
 		return

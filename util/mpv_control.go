@@ -1,4 +1,4 @@
-package songplayer
+package util
 
 import (
 	"fmt"

@@ -85,17 +85,16 @@ func main() {
 	logrus.Infof("main: Starting HTTP API")
 	go apiObject.Start()
 
-	logrus.Infof("main: Creating MPV control")
-	mpvControl, err := songplayer.NewMpvControl(conf.MpvBinPath, conf.MpvInputPath)
-	if err != nil {
-		logrus.Fatalf("main: Error creating MPV control: %v", err)
-		musicBot.Announcef("%s[MpvControl] Error creating control: %v", bot.INVERSE_CHARACTER, err)
-	}
-
 	if conf.YoutubePlayer.Enabled {
-		logrus.Infof("main: Creating YoutubePlayer")
+		logrus.Infof("main: Creating YoutubePlayer MPV control")
+		ytMpvControl, err := util.NewMpvControl(conf.YoutubePlayer.MpvBinPath, conf.YoutubePlayer.MpvInputPath)
+		if err != nil {
+			logrus.Fatalf("main: Error creating YoutubePlayer MPV control: %v", err)
+			musicBot.Announcef("%s[YoutubePlayer] Error creating MPV control: %v", bot.INVERSE_CHARACTER, err)
+		}
 
-		ytPlayer, err := songplayer.NewYoutubePlayer(conf.YoutubePlayer.YoutubeAPIKey, mpvControl)
+		logrus.Infof("main: Creating YoutubePlayer")
+		ytPlayer, err := songplayer.NewYoutubePlayer(conf.YoutubePlayer.YoutubeAPIKey, ytMpvControl)
 		if err != nil {
 			logrus.Errorf("main: Error creating YoutubePlayer: %v", err)
 			musicBot.Announcef("%s[YoutubePlayer] Error creating player: %v", bot.INVERSE_CHARACTER, err)

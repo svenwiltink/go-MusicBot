@@ -3,9 +3,6 @@
   "QueuePath": "musicbot-queue.txt",
   "StatsPath": "musicbot-stats.json",
 
-  "MpvBinPath": "mpv",
-  "MpvInputPath": ".musicbot-mpv-input",
-
   "IRC": {
      "Server": "server:port",
      "Ssl": true,
@@ -27,6 +24,8 @@
   "YoutubePlayer": {
      "Enabled": true,
      "YoutubeAPIKey": "<api key>",
+     "MpvBinPath": "mpv",
+     "MpvInputPath": ".yt-mpv-input"
   },
 
   "SpotifyPlayer": {
