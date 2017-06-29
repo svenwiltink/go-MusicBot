@@ -3,10 +3,10 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"github.com/Sirupsen/logrus"
+	"github.com/gorilla/websocket"
 	"github.com/svenwiltink/go-musicbot/player"
 	"github.com/svenwiltink/go-musicbot/songplayer"
-	"github.com/gorilla/websocket"
-	"github.com/Sirupsen/logrus"
 	"github.com/vansante/go-event-emitter"
 	"io/ioutil"
 	"strconv"

@@ -3,8 +3,8 @@ package songplayer
 import (
 	"errors"
 	"fmt"
-	"github.com/channelmeter/iso8601duration"
 	"github.com/Sirupsen/logrus"
+	"github.com/channelmeter/iso8601duration"
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
 	"net/http"

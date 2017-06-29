@@ -1,13 +1,13 @@
 package main
 
 import (
+	"github.com/Sirupsen/logrus"
 	"github.com/svenwiltink/go-musicbot/api"
 	"github.com/svenwiltink/go-musicbot/bot"
 	"github.com/svenwiltink/go-musicbot/config"
 	"github.com/svenwiltink/go-musicbot/player"
 	"github.com/svenwiltink/go-musicbot/songplayer"
 	"github.com/svenwiltink/go-musicbot/util"
-	"github.com/Sirupsen/logrus"
 	"os"
 	"os/signal"
 	"strings"

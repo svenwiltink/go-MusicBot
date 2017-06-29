@@ -3,8 +3,8 @@ package player
 import (
 	"errors"
 	"fmt"
-	"github.com/svenwiltink/go-musicbot/songplayer"
 	"github.com/Sirupsen/logrus"
+	"github.com/svenwiltink/go-musicbot/songplayer"
 	"github.com/vansante/go-event-emitter"
 	"math/rand"
 	"strings"

@@ -3,8 +3,8 @@ package songplayer
 import (
 	"errors"
 	"fmt"
-	"github.com/dexterlb/mpvipc"
 	"github.com/Sirupsen/logrus"
+	"github.com/dexterlb/mpvipc"
 	"github.com/vansante/go-event-emitter"
 	"os"
 	"os/exec"

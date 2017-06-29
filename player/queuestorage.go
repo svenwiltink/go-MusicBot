@@ -3,8 +3,8 @@ package player
 import (
 	"bufio"
 	"fmt"
-	"github.com/svenwiltink/go-musicbot/songplayer"
 	"github.com/Sirupsen/logrus"
+	"github.com/svenwiltink/go-musicbot/songplayer"
 	"os"
 	"strings"
 	"sync"

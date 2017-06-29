@@ -3,11 +3,11 @@ package bot
 import (
 	"bufio"
 	"fmt"
+	"github.com/Sirupsen/logrus"
 	"github.com/svenwiltink/go-musicbot/config"
 	"github.com/svenwiltink/go-musicbot/player"
 	"github.com/svenwiltink/go-musicbot/util"
 	"github.com/svenwiltink/volumecontrol"
-	"github.com/Sirupsen/logrus"
 	"github.com/thoj/go-ircevent"
 	"os"
 	"sort"
