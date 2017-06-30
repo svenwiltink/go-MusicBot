@@ -1,4 +1,4 @@
-package: github.com/svenwiltink/go-MusicBot
+package: github.com/svenwiltink/go-musicbot
 import:
 - package: github.com/thoj/go-ircevent
   version: ^0.1.0
