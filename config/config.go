@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	DEFAULT_LOGFILE_PATH   = "musicbot.log"
-	DEFAULT_QUEUE_PATH     = "queue.txt"
-	DEFAULT_STATS_PATH     = "musicbot-stats.json"
+	DEFAULT_LOGFILE_PATH = "musicbot.log"
+	DEFAULT_QUEUE_PATH   = "queue.txt"
+	DEFAULT_STATS_PATH   = "musicbot-stats.json"
 )
 
 type MusicBot struct {
