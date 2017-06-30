@@ -204,6 +204,8 @@ func (cws *ControlWebsocket) executeCommand(cmd *Command) {
 	case "shuffle-list":
 		cws.player.ShuffleQueue()
 		cws.write(getCommandResponse(cmd, nil))
+	default:
+		cws.write(getCommandResponse(cmd, errors.New("Command not found")))
 	}
 }
 

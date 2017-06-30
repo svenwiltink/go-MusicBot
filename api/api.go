@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/svenwiltink/go-musicbot/config"
 	"github.com/svenwiltink/go-musicbot/player"
+	"github.com/svenwiltink/go-musicbot/util"
 	"net/http"
 	"strconv"
 )
@@ -82,6 +83,10 @@ func (api *API) authenticator(inner http.HandlerFunc, optional bool) http.Handle
 func (api *API) initializeRoutes() {
 	api.routes = []Route{
 		{
+			Pattern: "/version",
+			Method:  http.MethodGet,
+			handler: api.VersionHandler,
+		}, {
 			Pattern: "/status",
 			Method:  http.MethodGet,
 			handler: api.StatusHandler,
@@ -137,11 +142,26 @@ func (api *API) initializeRoutes() {
 	}
 }
 
-// registerRoute - Register a rout with the
+// registerRoute - Register a route with the API
 func (api *API) registerRoute(route Route) bool {
 	api.router.HandleFunc(route.Pattern, route.handler).Methods(route.Method)
 
 	return true
+}
+
+func (api *API) VersionHandler(w http.ResponseWriter, r *http.Request) {
+	err := json.NewEncoder(w).Encode(&Version{
+		VersionTag: util.VersionTag,
+		GitCommit:  util.GitCommit,
+		BuildDate:  util.BuildDate,
+		BuildHost:  util.BuildHost,
+		GoVersion:  util.GoVersion,
+	})
+	if err != nil {
+		logrus.Errorf("API.VersionHandler: Json encode error: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func (api *API) StatusHandler(w http.ResponseWriter, r *http.Request) {
