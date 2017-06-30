@@ -1,5 +1,5 @@
-hash: d87e41151c1b5c7e60c22efe82eee68cb52f03a44ff6d188602bee9dfcc11394
-updated: 2017-06-30T11:14:13.549062593+02:00
+hash: e921d4d31c44d31c15f3c59fadd7ea8ee61a0ac6d7fb6101e0ac6e88f44bf100
+updated: 2017-06-30T13:05:07.9380384+02:00
 imports:
 - name: github.com/channelmeter/iso8601duration
   version: 8da3af7a2a61a4eb5ae9bddec06bf637fa9593da
@@ -24,7 +24,7 @@ imports:
 - name: github.com/vansante/go-event-emitter
   version: 8744934c8f5045bdf7b81481a122fc9941386077
 - name: github.com/zmb3/spotify
-  version: 84bf5e353eaccd52f17bbbfdfd1accfc56361bb6
+  version: 59ba3b693ce328fdf2448159e05c98f74b7eb66e
 - name: golang.org/x/net
   version: 1f9224279e98554b6a6432d4dd998a739f8b2b7c
   subpackages:
@@ -41,19 +41,19 @@ imports:
 - name: google.golang.org/api
   version: e6586c9293b9d514c7f5d5076731ec977cff1be6
   subpackages:
-  - googleapi/transport
-  - youtube/v3
   - gensupport
   - googleapi
   - googleapi/internal/uritemplates
+  - googleapi/transport
+  - youtube/v3
 - name: google.golang.org/appengine
   version: a2f4131514e563cedfdb6e7d267df9ad48591e93
   subpackages:
-  - urlfetch
   - internal
-  - internal/urlfetch
   - internal/base
   - internal/datastore
   - internal/log
   - internal/remote_api
+  - internal/urlfetch
+  - urlfetch
 testImports: []
