@@ -1,4 +1,4 @@
-package: github.com/svenwiltink/go-MusicBot
+package: github.com/svenwiltink/go-musicbot
 import:
 - package: github.com/thoj/go-ircevent
   version: ^0.1.0
@@ -9,9 +9,8 @@ import:
   subpackages:
   - googleapi/transport
   - youtube/v3
-- package: github.com/vansante/go-spotify-control
 - package: github.com/zmb3/spotify
-  version: 84bf5e353eaccd52f17bbbfdfd1accfc56361bb6
+  version: master
 - package: golang.org/x/oauth2
 - package: github.com/vansante/go-event-emitter
 - package: github.com/gorilla/websocket

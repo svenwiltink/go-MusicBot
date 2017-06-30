@@ -30,8 +30,6 @@
 
   "SpotifyPlayer": {
      "Enabled": true,
-     "Host": "127.0.0.1",
-     "UseConnect": false,
      "ClientID": "<clientID>",
      "ClientSecret": "<secret>",
      "TokenFilePath": ".musicbot-spotify-token"

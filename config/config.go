@@ -60,8 +60,6 @@ const (
 
 type SpotifyPlayer struct {
 	Enabled       bool
-	Host          string
-	UseConnect    bool
 	ClientID      string
 	ClientSecret  string
 	TokenFilePath string
