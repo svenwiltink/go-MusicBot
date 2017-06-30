@@ -17,15 +17,6 @@ imports:
   version: ea4d1f681babbce9545c9c5f3d5194a789c89f5b
 - name: github.com/Sirupsen/logrus
   version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
-- name: github.com/svenwiltink/go-musicbot
-  version: a2746b8b519ffebe15fdc741a1468b1079caf83a
-  subpackages:
-  - api
-  - bot
-  - config
-  - player
-  - songplayer
-  - util
 - name: github.com/svenwiltink/volumecontrol
   version: d0d13eb7fe1c62098302f616b1f47f48bb6380da
 - name: github.com/thoj/go-ircevent
