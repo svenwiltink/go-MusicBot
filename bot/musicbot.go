@@ -6,6 +6,7 @@ import (
 	"github.com/svenwiltink/go-musicbot/config"
 	"github.com/svenwiltink/go-musicbot/player"
 	"github.com/svenwiltink/go-musicbot/songplayer"
+	"github.com/svenwiltink/go-musicbot/util"
 	"github.com/thoj/go-ircevent"
 	"strings"
 )
@@ -174,7 +175,7 @@ func (m *MusicBot) Start() (err error) {
 		}
 	})
 
-	m.ircConn.Privmsgf(m.config.IRC.Channel, "%s v%s connected", GetMusicBotStringFormatted(), util.VersionTag)
+	m.ircConn.Privmsgf(m.config.IRC.Channel, "%s %s connected", GetMusicBotStringFormatted(), util.VersionTag)
 	return
 }
 
