@@ -19,7 +19,6 @@ jobs:
     on:
       tags: false
   - stage: release
-    install: skip
     script:
       - make deps
       - glide install
