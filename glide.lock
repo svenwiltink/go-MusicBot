@@ -1,5 +1,5 @@
-hash: a532255492f8243fdf265e1e41baf5e4ce41650a6efc16711796d3864a1ce899
-updated: 2017-06-30T11:08:45.689491206+02:00
+hash: d87e41151c1b5c7e60c22efe82eee68cb52f03a44ff6d188602bee9dfcc11394
+updated: 2017-06-30T11:14:13.549062593+02:00
 imports:
 - name: github.com/channelmeter/iso8601duration
   version: 8da3af7a2a61a4eb5ae9bddec06bf637fa9593da
@@ -18,7 +18,7 @@ imports:
 - name: github.com/Sirupsen/logrus
   version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
 - name: github.com/svenwiltink/go-musicbot
-  version: 779c2ef6b63b6dbeb02b2089e7d404da0101248f
+  version: a2746b8b519ffebe15fdc741a1468b1079caf83a
   subpackages:
   - api
   - bot
@@ -35,7 +35,7 @@ imports:
 - name: github.com/vansante/go-spotify-control
   version: 80ca199cb8958c03d1a8850d98faab4571a87eca
 - name: github.com/zmb3/spotify
-  version: 59ba3b693ce328fdf2448159e05c98f74b7eb66e
+  version: 84bf5e353eaccd52f17bbbfdfd1accfc56361bb6
 - name: golang.org/x/net
   version: 1f9224279e98554b6a6432d4dd998a739f8b2b7c
   subpackages:
