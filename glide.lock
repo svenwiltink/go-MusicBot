@@ -1,12 +1,12 @@
-hash: 75467a5f7fe6b89f0416312bd1bb61dfe15276f24a50bd907c1749e140fef423
-updated: 2017-06-07T13:10:59.3409911+02:00
+hash: a532255492f8243fdf265e1e41baf5e4ce41650a6efc16711796d3864a1ce899
+updated: 2017-06-30T11:08:45.689491206+02:00
 imports:
 - name: github.com/channelmeter/iso8601duration
   version: 8da3af7a2a61a4eb5ae9bddec06bf637fa9593da
-- name: github.com/DexterLB/mpvipc
+- name: github.com/dexterlb/mpvipc
   version: 642a40c6e5c6fc3fb28bf37cf723f95a2033baac
 - name: github.com/golang/protobuf
-  version: 2bba0603135d7d7f5cb73b2125beeda19c09f4ef
+  version: 6a1fa9404c0aebf36c879bc50152edcc953910d2
   subpackages:
   - proto
 - name: github.com/gorilla/context
@@ -14,48 +14,57 @@ imports:
 - name: github.com/gorilla/mux
   version: 392c28fe23e1c45ddba891b0320b3b5df220beea
 - name: github.com/gorilla/websocket
-  version: 3ab3a8b8831546bd18fd182c20687ca853b2bb13
-- name: github.com/sirupsen/logrus
+  version: ea4d1f681babbce9545c9c5f3d5194a789c89f5b
+- name: github.com/Sirupsen/logrus
   version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
-- name: github.com/SvenWiltink/volumecontrol
-  version: 67d5959260fc95c1d4fd2f522d022ad91b7258a2
+- name: github.com/svenwiltink/go-musicbot
+  version: 779c2ef6b63b6dbeb02b2089e7d404da0101248f
+  subpackages:
+  - api
+  - bot
+  - config
+  - player
+  - songplayer
+  - util
+- name: github.com/svenwiltink/volumecontrol
+  version: d0d13eb7fe1c62098302f616b1f47f48bb6380da
 - name: github.com/thoj/go-ircevent
   version: a6b1561a016c2a4aae183c3ef152c25d134c095d
 - name: github.com/vansante/go-event-emitter
   version: 8744934c8f5045bdf7b81481a122fc9941386077
 - name: github.com/vansante/go-spotify-control
-  version: 698a948a0e19d1d7ef3aa0de854c059ec348fda5
+  version: 80ca199cb8958c03d1a8850d98faab4571a87eca
 - name: github.com/zmb3/spotify
-  version: 84bf5e353eaccd52f17bbbfdfd1accfc56361bb6
+  version: 59ba3b693ce328fdf2448159e05c98f74b7eb66e
 - name: golang.org/x/net
-  version: a6577fac2d73be281a500b310739095313165611
+  version: 1f9224279e98554b6a6432d4dd998a739f8b2b7c
   subpackages:
   - context
   - context/ctxhttp
 - name: golang.org/x/oauth2
-  version: 7fdf09982454086d5570c7db3e11f360194830ca
+  version: cce311a261e6fcf29de72ca96827bdb0b7d9c9e6
   subpackages:
   - internal
 - name: golang.org/x/sys
-  version: b90f89a1e7a9c1f6b918820b3daa7f08488c8594
+  version: 90796e5a05ce440b41c768bd9af257005e470461
   subpackages:
   - unix
 - name: google.golang.org/api
-  version: 1202890e803f07684581b575fda809bf335a533f
+  version: e6586c9293b9d514c7f5d5076731ec977cff1be6
   subpackages:
+  - googleapi/transport
+  - youtube/v3
   - gensupport
   - googleapi
   - googleapi/internal/uritemplates
-  - googleapi/transport
-  - youtube/v3
 - name: google.golang.org/appengine
-  version: 56d253d1dd14aa01937e12c73a0971bcfd797ff2
+  version: a2f4131514e563cedfdb6e7d267df9ad48591e93
   subpackages:
+  - urlfetch
   - internal
+  - internal/urlfetch
   - internal/base
   - internal/datastore
   - internal/log
   - internal/remote_api
-  - internal/urlfetch
-  - urlfetch
 testImports: []
