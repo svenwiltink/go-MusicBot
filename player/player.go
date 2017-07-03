@@ -60,16 +60,19 @@ func (p *Player) Init() {
 		p.EmitEvent(EVENT_QUEUE_ERROR_LOADING, p.queueStorage.path, err)
 		logrus.Warnf("Player.Init: Error reading queue from file [%s] %v", p.queueStorage.path, err)
 	} else {
+		// Reverse the url array so we can insert them easier at pos 0
+		for i, j := 0, len(urls)-1; i < j; i, j = i+1, j-1 {
+			urls[i], urls[j] = urls[j], urls[i]
+		}
+
 		var songs []songplayer.Playable
-		offset := 0
 		for _, url := range urls {
-			insertedSongs, err := p.insert(url, offset)
+			insertedSongs, err := p.insert(url, 0)
 			if err != nil {
-				logrus.Errorf("Player.Init: Error inserting song from queue [%d | %s] %v", offset, url, err)
+				logrus.Errorf("Player.Init: Error inserting song from queue [%s] %v", url, err)
 				continue
 			}
 			songs = append(songs, insertedSongs...)
-			offset += len(insertedSongs)
 		}
 
 		logrus.Infof("Player.Init: Loaded %d songs from queue storage", len(songs))
@@ -273,14 +276,14 @@ func (p *Player) Insert(url string, queuePosition int, actionUser string) (added
 	return
 }
 
-func (p *Player) insert(url string, queuePosition int) (addedSongs []songplayer.Playable, err error) {
+func (p *Player) insert(url string, queuePosition int) (songs []songplayer.Playable, err error) {
 	musicPlayer, err := p.findPlayer(url)
 	if err != nil {
 		logrus.Infof("Player.insert: No songplayer found to play %s", url)
 		return
 	}
 
-	addedSongs, err = musicPlayer.GetSongs(url)
+	songs, err = musicPlayer.GetSongs(url)
 	if err != nil {
 		logrus.Warnf("Player.insert: Error getting songs from url [%s] %v", musicPlayer.Name(), err)
 		return
@@ -289,7 +292,7 @@ func (p *Player) insert(url string, queuePosition int) (addedSongs []songplayer.
 	// Convert queuePosition by offsetting it against current queuePosition
 	queuePosition += p.playlistPosition
 
-	err = p.insertPlayables(addedSongs, queuePosition)
+	err = p.insertPlayables(songs, queuePosition)
 	return
 }
 
