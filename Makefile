@@ -6,6 +6,9 @@ BUILD_DATE=`date +%Y-%m-%d_%H:%M:%S`
 BUILD_HOST=`hostname`
 GO_VERSION=`go version | awk '{print $$3}'`
 GIT_VERSION_TAG=`git describe --tags --long`
+LDFLAGS="-X util.GitCommit=${GIT_COMMIT_HASH} -X util.BuildHost=${BUILD_HOST} -X util.BuildDate=${BUILD_DATE} -X util.GoVersion=${GO_VERSION} -X util.VersionTag=${GIT_VERSION_TAG}"
+
+echo "$LDFLAGS"
 
 BUILD_PLATFORMS ?= -os '!netbsd' -os '!openbsd' -os '!freebsd' -os '!windows'
 
@@ -30,5 +33,5 @@ lint:
 
 build:
 	gox $(BUILD_PLATFORMS) \
-	        -ldflags="-X util.GitCommit=${GIT_COMMIT_HASH} -X util.BuildHost=${BUILD_HOST} -X util.BuildDate=${BUILD_DATE} -X util.GoVersion=${GO_VERSION} -X util.VersionTag=${GIT_VERSION_TAG}" \
+	        -ldflags=${LDFLAGS} \
             -output="out/binaries/$(NAME)-{{.OS}}-{{.Arch}}"
