@@ -255,6 +255,12 @@ func (p *Player) Add(url, actionUser string) (addedSongs []songplayer.Playable, 
 		logrus.Warnf("Player.Add: Error adding songs [%s] %v", url, err)
 		return
 	}
+
+	// If we have previously reached the end of the playlist, we want to hear the new songs, not the old
+	if p.status == STOPPED && len(p.playlist) > 0 && p.playlistPosition == len(p.playlist)-1 {
+		p.playlistPosition++
+	}
+
 	p.EmitEvent(EVENT_ADDED_SONGS_USER, addedSongs, position, actionUser)
 
 	logrus.Infof("Player.Add: Added %d songs from url %s on position %d", len(addedSongs), url, position)
@@ -298,17 +304,13 @@ func (p *Player) insert(url string, queuePosition int) (songs []songplayer.Playa
 
 func (p *Player) insertPlayables(playables []songplayer.Playable, playlistPosition int) (err error) {
 	if len(playables) == 0 {
+		err = errors.New("no playables given")
 		return
 	}
 
 	if playlistPosition < 0 || playlistPosition > len(p.playlist) {
 		err = errors.New("invalid playlistPosition to insert songs")
 		return
-	}
-
-	// If we have previously reached the end of the playlist, we want to hear the new songs, not the old
-	if p.status == STOPPED && len(p.playlist) > 0 && p.playlistPosition == len(p.playlist)-1 {
-		p.playlistPosition++
 	}
 
 	for i, playable := range playables {
