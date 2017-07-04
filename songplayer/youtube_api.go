@@ -131,7 +131,8 @@ func (yt *YouTubeAPI) GetPlayablesForPlaylistIdentifier(identifier string, limit
 			PageToken(nextPageToken).
 			PlaylistId(identifier)
 
-		response, err := call.Do()
+		var response *youtube.PlaylistItemListResponse
+		response, err = call.Do()
 		if err != nil {
 			logrus.Errorf("YoutubeAPI.GetPlayablesForPlaylistIdentifier: Error listing [%s | %d] %v", identifier, limit, err)
 			return
