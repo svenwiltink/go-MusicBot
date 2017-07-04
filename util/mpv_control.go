@@ -90,6 +90,10 @@ func (c *MpvControl) initMpv() (err error) {
 	// Turn on all events.
 	c.mpvConn.Call("enable_event", "all")
 
+	c.mpvEvents.AddCapturer(func(eventName string, arguments ...interface{}) {
+		logrus.Debugf("MpvControl.mpvEvent [%s] %#v", eventName, arguments)
+	})
+
 	go func() {
 		events, stopListening := c.mpvConn.NewEventListener()
 		for event := range events {
