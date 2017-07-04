@@ -12,8 +12,12 @@ import (
 	"strings"
 )
 
-const DEFAULT_AUTHORISE_PORT = 5678
-const DEFAULT_AUTHORISE_URL = "http://musicbot:5678/authorise/"
+const (
+	DEFAULT_AUTHORISE_PORT = 5678
+	DEFAULT_AUTHORISE_URL  = "http://musicbot:5678/authorise/"
+
+	MAX_SPOTIFY_PLAYLIST_ITEMS = 1000
+)
 
 var ErrNotAuthorised = errors.New("Client has not been authorised yet")
 
@@ -219,20 +223,32 @@ func (p *SpotifyPlayer) GetSongs(url string) (songs []Playable, err error) {
 			)
 		}
 	case TYPE_PLAYLIST:
-		var listTracks *spotify.PlaylistTrackPage
-		listTracks, err = p.client.GetPlaylistTracks(userID, spotify.ID(id))
-		if err != nil {
-			p.logger.Errorf("SpotifyPlayer.GetSongs: Could not get playlist data for URL [%s] %v", url, err)
-			return
-		}
-		for _, track := range listTracks.Tracks {
-			if strings.HasPrefix(string(track.Track.URI), "spotify:local:") {
-				p.logger.Infof("SpotifyPlayer.GetSongs: Skipping local song %s", track.Track.URI)
-				continue
+		offset := 0
+		limit := 50
+		for {
+			var listTracks *spotify.PlaylistTrackPage
+			listTracks, err = p.client.GetPlaylistTracksOpt(userID, spotify.ID(id), &spotify.Options{
+				Offset: &offset,
+				Limit:  &limit,
+			}, "")
+			if err != nil {
+				p.logger.Errorf("SpotifyPlayer.GetSongs: Could not get playlist data for URL [%s] %v", url, err)
+				return
 			}
-			songs = append(songs,
-				NewSong(GetSpotifyTrackName(&track.Track.SimpleTrack), track.Track.TimeDuration(), string(track.Track.URI), GetSpotifyAlbumImage(&track.Track.Album)),
-			)
+
+			for _, track := range listTracks.Tracks {
+				if strings.HasPrefix(string(track.Track.URI), "spotify:local:") {
+					p.logger.Infof("SpotifyPlayer.GetSongs: Skipping local song %s", track.Track.URI)
+					continue
+				}
+				songs = append(songs,
+					NewSong(GetSpotifyTrackName(&track.Track.SimpleTrack), track.Track.TimeDuration(), string(track.Track.URI), GetSpotifyAlbumImage(&track.Track.Album)),
+				)
+			}
+			offset += limit
+			if offset >= listTracks.Total || offset > MAX_SPOTIFY_PLAYLIST_ITEMS {
+				break
+			}
 		}
 	}
 	return
