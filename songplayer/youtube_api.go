@@ -126,7 +126,7 @@ func (yt *YouTubeAPI) GetPlayablesForPlaylistIdentifier(identifier string, limit
 	nextPageToken := ""
 	for {
 		call := yt.service.PlaylistItems.
-			List("snippet").
+			List("snippet,contentDetails").
 			MaxResults(50).
 			PageToken(nextPageToken).
 			PlaylistId(identifier)
@@ -139,7 +139,7 @@ func (yt *YouTubeAPI) GetPlayablesForPlaylistIdentifier(identifier string, limit
 		}
 
 		for _, item := range response.Items {
-			if item.Kind != "youtube#playlistItem" {
+			if item.Kind != "youtube#playlistItem" || item.ContentDetails == nil {
 				continue
 			}
 			item, err := yt.GetPlayableForIdentifier(item.ContentDetails.VideoId)
