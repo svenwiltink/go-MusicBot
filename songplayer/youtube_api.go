@@ -148,8 +148,7 @@ func (yt *YouTubeAPI) GetPlayablesForPlaylistIdentifier(identifier string, limit
 			}
 		}
 		nextPageToken = response.NextPageToken
-
-		if len(items) > MAX_YOUTUBE_PLAYLIST_ITEMS {
+		if nextPageToken == "" || len(items) > MAX_YOUTUBE_PLAYLIST_ITEMS{
 			break
 		}
 	}
