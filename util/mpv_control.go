@@ -7,6 +7,7 @@ import (
 	"github.com/vansante/go-event-emitter"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 	"time"
 )
@@ -91,7 +92,11 @@ func (c *MpvControl) initMpv() (err error) {
 	c.mpvConn.Call("enable_event", "all")
 
 	c.mpvEvents.AddCapturer(func(eventName string, arguments ...interface{}) {
-		logrus.Debugf("MpvControl.mpvEvent [%s] %#v", eventName, arguments)
+		var strArgs []string
+		for _, arg := range arguments {
+			strArgs = append(strArgs, fmt.Sprintf("%#v", arg))
+		}
+		logrus.Debugf("MpvControl.mpvEvent [%s] %s", eventName, strings.Join(strArgs, " | "))
 	})
 
 	go func() {

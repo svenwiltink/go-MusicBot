@@ -350,7 +350,7 @@ func (p *Player) EmptyQueue() {
 
 	p.EmitEvent(EVENT_QUEUE_UPDATED, p.GetQueue())
 
-	logrus.Infof("Player.ShuffleQueue: Queue successfully emptied")
+	logrus.Infof("Player.EmptyQueue: Queue successfully emptied")
 }
 
 func (p *Player) GetStatus() (status Status) {
