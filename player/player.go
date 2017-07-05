@@ -61,18 +61,24 @@ func (p *Player) Init() {
 		p.EmitEvent(EVENT_QUEUE_ERROR_LOADING, p.queueStorage.path, err)
 		logrus.Warnf("Player.Init: Error reading queue from file [%s] %v", p.queueStorage.path, err)
 	} else {
-		var songs []songplayer.Playable
-		for i, url := range urls {
-			insertedSongs, err := p.insert(url, i)
+		var addedSongs []songplayer.Playable
+		for _, url := range urls {
+			songs, err := p.getSongsFromURL(url)
+			if err != nil {
+				logrus.Errorf("Player.Init: Error retrieving song from url [%s] %v", url, err)
+				return
+			}
+
+			err = p.insertPlayables(songs, len(p.playlist))
 			if err != nil {
 				logrus.Errorf("Player.Init: Error inserting song from queue [%s] %v", url, err)
 				continue
 			}
-			songs = append(songs, insertedSongs...)
+			addedSongs = append(addedSongs, songs...)
 		}
 
-		logrus.Infof("Player.Init: Loaded %d songs from queue storage", len(songs))
-		p.EmitEvent(EVENT_QUEUE_LOADED, songs)
+		logrus.Infof("Player.Init: Loaded %d addedSongs from queue storage", len(addedSongs))
+		p.EmitEvent(EVENT_QUEUE_LOADED, addedSongs)
 	}
 
 	stats, err := p.statsStorage.ReadStats()
@@ -246,55 +252,62 @@ func (p *Player) findPlayer(url string) (songPlayer songplayer.SongPlayer, err e
 	return
 }
 
-func (p *Player) Add(url, actionUser string) (addedSongs []songplayer.Playable, err error) {
+func (p *Player) Add(url, actionUser string) (songs []songplayer.Playable, err error) {
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
 
-	position := len(p.GetQueue())
-	addedSongs, err = p.insert(url, position)
+	songs, err = p.getSongsFromURL(url)
+	if err != nil {
+		return
+	}
+
+	position := len(p.playlist)
+	queuePosition := position - p.playlistPosition
+	err = p.insertPlayables(songs, position)
 	if err != nil {
 		logrus.Warnf("Player.Add: Error adding songs [%s] %v", url, err)
 		return
 	}
 
-	p.EmitEvent(EVENT_ADDED_SONGS_USER, addedSongs, position, actionUser)
+	p.EmitEvent(EVENT_ADDED_SONGS_USER, songs, queuePosition, actionUser)
 
-	logrus.Infof("Player.Add: Added %d songs from url %s on position %d", len(addedSongs), url, position)
+	logrus.Infof("Player.Add: Added %d songs from url %s on queue position %d (%d)", len(songs), url, queuePosition, position)
 	return
 }
 
-func (p *Player) Insert(url string, queuePosition int, actionUser string) (addedSongs []songplayer.Playable, err error) {
+func (p *Player) Insert(url string, queuePosition int, actionUser string) (songs []songplayer.Playable, err error) {
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
 
-	addedSongs, err = p.insert(url, queuePosition)
+	songs, err = p.getSongsFromURL(url)
+	if err != nil {
+		return
+	}
+
+	position := queuePosition + p.playlistPosition
+	err = p.insertPlayables(songs, position)
 	if err != nil {
 		logrus.Warnf("Player.Insert: Error inserting songs [%s] %v", url, err)
 		return
 	}
-	p.EmitEvent(EVENT_ADDED_SONGS_USER, addedSongs, queuePosition, actionUser)
+	p.EmitEvent(EVENT_ADDED_SONGS_USER, songs, queuePosition, actionUser)
 
-	logrus.Infof("Player.Insert: Inserted %d songs from url %s on queuePosition %d", len(addedSongs), url, queuePosition)
+	logrus.Infof("Player.Insert: Inserted %d songs from url %s on queue position %d (%d)", len(songs), url, queuePosition, position)
 	return
 }
 
-func (p *Player) insert(url string, queuePosition int) (songs []songplayer.Playable, err error) {
+func (p *Player) getSongsFromURL(url string) (songs []songplayer.Playable, err error) {
 	musicPlayer, err := p.findPlayer(url)
 	if err != nil {
-		logrus.Infof("Player.insert: No songplayer found to play %s", url)
+		logrus.Infof("Player.getSongsFromURL: No songplayer found to play %s", url)
 		return
 	}
 
 	songs, err = musicPlayer.GetSongs(url)
 	if err != nil {
-		logrus.Warnf("Player.insert: Error getting songs from url [%s] %v", musicPlayer.Name(), err)
+		logrus.Warnf("Player.getSongsFromURL: Error getting songs from url [%s] %v", musicPlayer.Name(), err)
 		return
 	}
-
-	// Convert queuePosition by offsetting it against current queuePosition and adding 1 to add it after the current song
-	queuePosition += p.playlistPosition
-
-	err = p.insertPlayables(songs, queuePosition)
 	return
 }
 
