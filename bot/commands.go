@@ -291,9 +291,7 @@ var OpenCommand = Command{
 			return
 		}
 
-		if bot.player.GetStatus() != player.PLAYING {
-			bot.player.Play()
-		}
+		bot.player.Play()
 	},
 }
 
