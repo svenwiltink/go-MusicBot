@@ -77,7 +77,7 @@ func (p *Player) Init() {
 			addedSongs = append(addedSongs, songs...)
 		}
 
-		logrus.Infof("Player.Init: Loaded %d addedSongs from queue storage", len(addedSongs))
+		logrus.Infof("Player.Init: Loaded %d songs from queue storage", len(addedSongs))
 		p.EmitEvent(EVENT_QUEUE_LOADED, addedSongs)
 	}
 
@@ -262,7 +262,7 @@ func (p *Player) Add(url, actionUser string) (songs []songplayer.Playable, err e
 	}
 
 	position := len(p.playlist)
-	queuePosition := position - p.playlistPosition
+	queuePosition := position - p.playlistPosition + 1
 	err = p.insertPlayables(songs, position)
 	if err != nil {
 		logrus.Warnf("Player.Add: Error adding songs [%s] %v", url, err)
@@ -322,11 +322,7 @@ func (p *Player) insertPlayables(playables []songplayer.Playable, playlistPositi
 		return
 	}
 
-	for i, playable := range playables {
-		p.playlist = append(p.playlist, nil)
-		copy(p.playlist[playlistPosition+i+1:], p.playlist[playlistPosition+i:])
-		p.playlist[playlistPosition+i] = playable
-	}
+	p.playlist = append(p.playlist[:playlistPosition], append(playables, p.playlist[playlistPosition:]...)...)
 
 	// If we have reached the end of the playlist, we ++ the position so we wont play the same song again
 	if p.reachedEnd {
