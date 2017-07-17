@@ -33,6 +33,7 @@
      "Enabled": true,
      "ClientID": "<clientID>",
      "ClientSecret": "<secret>",
-     "TokenFilePath": ".musicbot-spotify-token"
+     "TokenFilePath": ".musicbot-spotify-token",
+     "PlaybackDevice": ""
   }
 }

@@ -140,6 +140,11 @@ func main() {
 		} else {
 			playr.AddSongPlayer(spPlayer)
 		}
+
+		if conf.SpotifyPlayer.PlaybackDevice != "" {
+			err = spPlayer.SetPlaybackDevice(conf.SpotifyPlayer.PlaybackDevice)
+			logrus.Warnf("main: Error setting playback device [%s] %v", conf.SpotifyPlayer.PlaybackDevice, err)
+		}
 	}
 
 	playr.Init()
