@@ -284,12 +284,12 @@ func (p *SpotifyPlayer) setPlaybackDevice() (err error) {
 	}
 
 	var newDev, oldDev *spotify.PlayerDevice
-	for _, dev := range devices {
-		if dev.Active {
-			oldDev = &dev
+	for i := range devices {
+		if devices[i].Active {
+			oldDev = &devices[i]
 		}
-		if strings.ToLower(dev.Name) == strings.ToLower(p.playbackDevice) {
-			newDev = &dev
+		if strings.ToLower(devices[i].Name) == strings.ToLower(p.playbackDevice) {
+			newDev = &devices[i]
 		}
 	}
 
