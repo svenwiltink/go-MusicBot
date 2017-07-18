@@ -61,10 +61,11 @@ const (
 )
 
 type SpotifyPlayer struct {
-	Enabled       bool
-	ClientID      string
-	ClientSecret  string
-	TokenFilePath string
+	Enabled        bool
+	ClientID       string
+	ClientSecret   string
+	TokenFilePath  string
+	PlaybackDevice string
 }
 
 const DEFAULT_TOKEN_FILE_PATH = ".spotify-token"

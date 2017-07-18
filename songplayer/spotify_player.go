@@ -22,13 +22,14 @@ const (
 var ErrNotAuthorised = errors.New("Client has not been authorised yet")
 
 type SpotifyPlayer struct {
-	sessionKey    string
-	tokenFilePath string
-	client        *spotify.Client
-	user          *spotify.PrivateUser
-	auth          *spotify.Authenticator
-	logger        *logrus.Entry
-	authListeners []func()
+	sessionKey     string
+	tokenFilePath  string
+	playbackDevice string
+	client         *spotify.Client
+	user           *spotify.PrivateUser
+	auth           *spotify.Authenticator
+	logger         *logrus.Entry
+	authListeners  []func()
 }
 
 func NewSpotifyPlayer(spotifyClientID, spotifyClientSecret, tokenFilePath, authoriseRedirectURL string, authoriseHTTPPort int) (p *SpotifyPlayer, authURL string, err error) {
@@ -268,10 +269,57 @@ func (p *SpotifyPlayer) Search(searchType SearchType, searchStr string, limit in
 	return
 }
 
+func (p *SpotifyPlayer) SetPlaybackDevice(playbackDevice string) (err error) {
+	p.playbackDevice = playbackDevice
+
+	err = p.setPlaybackDevice()
+	return
+}
+
+func (p *SpotifyPlayer) setPlaybackDevice() (err error) {
+	devices, err := p.client.PlayerDevices()
+	if err != nil {
+		p.logger.Errorf("SpotifyPlayer.setPlaybackDevice: Error getting devices. %v", err)
+		return
+	}
+
+	var device *spotify.PlayerDevice
+	for _, dev := range devices {
+		if strings.ToLower(dev.Name) == strings.ToLower(p.playbackDevice) {
+			device = &dev
+		}
+	}
+
+	if device == nil {
+		err = errors.New("device not found")
+		return
+	}
+
+	if device.Active {
+		// Device is already active, nothing to do
+		return
+	}
+
+	if device.Restricted {
+		err = errors.New("device is restricted")
+		return
+	}
+
+	err = p.client.TransferPlayback(device.ID, false)
+	return
+}
+
 func (p *SpotifyPlayer) Play(url string) (err error) {
 	if p.client == nil {
 		err = ErrNotAuthorised
 		return
+	}
+
+	if p.playbackDevice != "" {
+		err = p.setPlaybackDevice()
+		if err != nil {
+			p.logger.Errorf("SpotifyPlayer.Play: Error setting playback device [%s | %s] %v", p.playbackDevice, url, err)
+		}
 	}
 
 	URI := spotify.URI(url)
