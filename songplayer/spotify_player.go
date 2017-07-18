@@ -283,29 +283,41 @@ func (p *SpotifyPlayer) setPlaybackDevice() (err error) {
 		return
 	}
 
-	var device *spotify.PlayerDevice
+	var newDev, oldDev *spotify.PlayerDevice
 	for _, dev := range devices {
+		if dev.Active {
+			oldDev = &dev
+		}
 		if strings.ToLower(dev.Name) == strings.ToLower(p.playbackDevice) {
-			device = &dev
+			newDev = &dev
 		}
 	}
 
-	if device == nil {
+	if newDev == nil {
 		err = errors.New("device not found")
 		return
 	}
 
-	if device.Active {
+	if newDev.Active {
 		// Device is already active, nothing to do
 		return
 	}
 
-	if device.Restricted {
+	if newDev.Restricted {
 		err = errors.New("device is restricted")
 		return
 	}
 
-	err = p.client.TransferPlayback(device.ID, true)
+	if oldDev != nil {
+		p.logger.Infof("SpotifyPlayer.setPlaybackDevice: Transferring playback from %s (%s) to %s (%s)", oldDev.Name, oldDev.Type, newDev.Name, newDev.Type)
+	} else {
+		p.logger.Infof("SpotifyPlayer.setPlaybackDevice: Transferring playback to %s (%s)", newDev.Name, newDev.Type)
+	}
+
+	err = p.client.TransferPlayback(newDev.ID, true)
+	if err != nil {
+		p.logger.Errorf("SpotifyPlayer.setPlaybackDevice: Error transferring playback to %s (%s). %v", newDev.Name, newDev.Type, err)
+	}
 	return
 }
 
