@@ -305,7 +305,7 @@ func (p *SpotifyPlayer) setPlaybackDevice() (err error) {
 		return
 	}
 
-	err = p.client.TransferPlayback(device.ID, false)
+	err = p.client.TransferPlayback(device.ID, true)
 	return
 }
 

@@ -143,7 +143,11 @@ func main() {
 
 		if conf.SpotifyPlayer.PlaybackDevice != "" {
 			err = spPlayer.SetPlaybackDevice(conf.SpotifyPlayer.PlaybackDevice)
-			logrus.Warnf("main: Error setting playback device [%s] %v", conf.SpotifyPlayer.PlaybackDevice, err)
+			if err != nil {
+				logrus.Warnf("main: Error setting spotify playback device [%s] %v", conf.SpotifyPlayer.PlaybackDevice, err)
+			} else {
+				logrus.Infof("main: Successfully set spotify playback device [%s]", conf.SpotifyPlayer.PlaybackDevice)
+			}
 		}
 	}
 
