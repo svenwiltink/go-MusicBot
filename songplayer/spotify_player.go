@@ -269,11 +269,10 @@ func (p *SpotifyPlayer) Search(searchType SearchType, searchStr string, limit in
 	return
 }
 
-func (p *SpotifyPlayer) SetPlaybackDevice(playbackDevice string) (err error) {
-	p.playbackDevice = playbackDevice
+func (p *SpotifyPlayer) SetPlaybackDevice(playbackDevice string) {
+	logrus.Infof("SpotifyPlayer.SetPlaybackDevice: Setting spotify playback device to [%s]", playbackDevice)
 
-	err = p.setPlaybackDevice()
-	return
+	p.playbackDevice = playbackDevice
 }
 
 func (p *SpotifyPlayer) setPlaybackDevice() (err error) {
