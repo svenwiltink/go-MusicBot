@@ -62,6 +62,15 @@ func main() {
 			})
 		}
 	}
+	if conf.LogLevel != "" {
+		lvl, err := logrus.ParseLevel(conf.LogLevel)
+		if err != nil {
+			logrus.Errorf("main: Error reading loglevel [%s] %v", conf.LogLevel, err)
+		} else {
+			logrus.Infof("main: Setting loglevel to %s", lvl.String())
+			logrus.SetLevel(lvl)
+		}
+	}
 
 	// Initialize the IRC bot
 	musicBot, err := bot.NewMusicBot(conf)

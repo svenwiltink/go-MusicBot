@@ -1,5 +1,6 @@
 {
   "LogFile": "musicbot.log",
+  "LogLevel": "info",
   "QueuePath": "musicbot-queue.txt",
   "StatsPath": "musicbot-stats.json",
 

@@ -14,6 +14,8 @@ import (
 const (
 	YouTubeVideoURL    = "https://www.youtube.com/watch?v=%s"
 	YouTubePlaylistURL = "https://www.youtube.com/watch?v=%s&list=%s"
+
+	MAX_YOUTUBE_PLAYLIST_ITEMS = 500
 )
 
 type YouTubeAPI struct {
@@ -116,25 +118,38 @@ func (yt *YouTubeAPI) GetPlayablesForPlaylistURL(source string) (items []Playabl
 		return
 	}
 
-	items, err = yt.GetPlayablesForPlaylistIdentifier(identifier, 100)
+	items, err = yt.GetPlayablesForPlaylistIdentifier(identifier, 50)
 	return
 }
 
 func (yt *YouTubeAPI) GetPlayablesForPlaylistIdentifier(identifier string, limit int) (items []Playable, err error) {
-	call := yt.service.PlaylistItems.List("snippet,contentDetails").MaxResults(int64(limit)).PlaylistId(identifier)
-	response, err := call.Do()
-	if err != nil {
-		logrus.Errorf("YoutubeAPI.GetPlayablesForPlaylistIdentifier: Error listing [%s | %d] %v", identifier, limit, err)
-		return
-	}
+	nextPageToken := ""
+	for {
+		call := yt.service.PlaylistItems.
+			List("snippet,contentDetails").
+			MaxResults(50).
+			PageToken(nextPageToken).
+			PlaylistId(identifier)
 
-	for _, item := range response.Items {
-		if item.Kind != "youtube#playlistItem" {
-			continue
+		var response *youtube.PlaylistItemListResponse
+		response, err = call.Do()
+		if err != nil {
+			logrus.Errorf("YoutubeAPI.GetPlayablesForPlaylistIdentifier: Error listing [%s | %d] %v", identifier, limit, err)
+			return
 		}
-		item, err := yt.GetPlayableForIdentifier(item.ContentDetails.VideoId)
-		if err == nil {
-			items = append(items, item)
+
+		for _, item := range response.Items {
+			if item.Kind != "youtube#playlistItem" || item.ContentDetails == nil {
+				continue
+			}
+			item, err := yt.GetPlayableForIdentifier(item.ContentDetails.VideoId)
+			if err == nil {
+				items = append(items, item)
+			}
+		}
+		nextPageToken = response.NextPageToken
+		if nextPageToken == "" || len(items) > MAX_YOUTUBE_PLAYLIST_ITEMS {
+			break
 		}
 	}
 	return

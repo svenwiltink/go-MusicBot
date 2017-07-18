@@ -7,12 +7,14 @@ import (
 
 const (
 	DEFAULT_LOGFILE_PATH = "musicbot.log"
+	DEFAULT_LOGLEVEL     = "info"
 	DEFAULT_QUEUE_PATH   = "queue.txt"
 	DEFAULT_STATS_PATH   = "musicbot-stats.json"
 )
 
 type MusicBot struct {
 	LogFile   string
+	LogLevel  string
 	QueuePath string
 	StatsPath string
 
@@ -87,6 +89,7 @@ func ReadConfig(path string) (conf *MusicBot, err error) {
 
 func (c *MusicBot) ApplyDefaults() {
 	c.LogFile = DEFAULT_LOGFILE_PATH
+	c.LogLevel = DEFAULT_LOGLEVEL
 	c.QueuePath = DEFAULT_QUEUE_PATH
 	c.StatsPath = DEFAULT_STATS_PATH
 
