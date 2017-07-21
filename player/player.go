@@ -330,6 +330,8 @@ func (p *Player) insertPlayables(playables []songplayer.Playable, playlistPositi
 		p.reachedEnd = false
 	}
 
+	p.EmitEvent(EVENT_SONGS_ADDED, playables, playlistPosition)
+	p.EmitEvent(EVENT_QUEUE_UPDATED, p.GetQueue())
 	return
 }
 
