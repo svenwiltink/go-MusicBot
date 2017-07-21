@@ -130,7 +130,7 @@ var JumpCommand = Command{
 	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
 		target, _, _ := bot.getTarget(event)
 		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, boldText("Usage: !music jump <deltaIndex> (positive index for forwards, negative index for backwards)"))
+			event.Connection.Privmsg(target, boldText("Usage: !music jump <deltaQueueIndex> (positive index for forwards, negative index for backwards)"))
 			return
 		}
 
@@ -292,6 +292,61 @@ var OpenCommand = Command{
 		}
 
 		bot.player.Play()
+	},
+}
+
+var InsertCommand = Command{
+	Name: "insert",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		target, _, _ := bot.getTarget(event)
+		if len(parameters) < 2 {
+			event.Connection.Privmsg(target, boldText("Usage: !music insert <queueIndex> <music link>"))
+			return
+		}
+		position, err := strconv.ParseInt(parameters[0], 10, 32)
+		if err != nil {
+			event.Connection.Privmsg(target, inverseText("Error parsing position"))
+			return
+		}
+
+		_, err = bot.player.Insert(parameters[1], int(position), event.User)
+		if err != nil {
+			event.Connection.Privmsg(target, inverseText(err.Error()))
+			return
+		}
+	},
+}
+
+var RemoveCommand = Command{
+	Name: "remove",
+	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
+		target, _, _ := bot.getTarget(event)
+		if len(parameters) < 1 {
+			event.Connection.Privmsg(target, boldText("Usage: !music remove <queueIndex> [<amountToRemove>]"))
+			return
+		}
+		position, err := strconv.ParseInt(parameters[0], 10, 32)
+		if err != nil {
+			event.Connection.Privmsg(target, inverseText("Error parsing queue index"))
+			return
+		}
+
+		amount := int64(1)
+		if len(parameters) > 1 {
+			amount, err = strconv.ParseInt(parameters[1], 10, 32)
+			if err != nil {
+				event.Connection.Privmsg(target, inverseText("Error parsing amount"))
+				return
+			}
+		}
+
+		err = bot.player.Remove(int(position), int(amount))
+		if err != nil {
+			event.Connection.Privmsg(target, inverseText(err.Error()))
+			return
+		}
+
+		bot.announceMessagef(true, event, "%s removed %d songs at queue index %d", boldText(event.Nick), amount, position)
 	},
 }
 

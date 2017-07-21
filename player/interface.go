@@ -23,6 +23,7 @@ const (
 	EVENT_STATS_UPDATED       = "stats_updated"
 	EVENT_ADDED_SONGS_USER    = "added_songs_user"
 	EVENT_SONGS_ADDED         = "songs_added"
+	EVENT_SONGS_REMOVED       = "songs_removed"
 	EVENT_NEXT_SONG           = "next_song"
 	EVENT_PREVIOUS_SONG       = "previous_song"
 	EVENT_JUMP_SONG           = "jump_song"
@@ -44,7 +45,8 @@ type MusicPlayer interface {
 	GetQueue() (songs []songplayer.Playable)
 	GetCurrent() (song songplayer.Playable, remaining time.Duration)
 	Add(url, actionUser string) (addedSongs []songplayer.Playable, err error)
-	Insert(url string, position int, actionUser string) (addedSongs []songplayer.Playable, err error)
+	Insert(url string, queuePosition int, actionUser string) (addedSongs []songplayer.Playable, err error)
+	Remove(queuePosition, amount int) (err error)
 	ShuffleQueue()
 	EmptyQueue()
 	GetStatus() (status Status)

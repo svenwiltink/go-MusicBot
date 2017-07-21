@@ -318,7 +318,7 @@ func (p *Player) insertPlayables(playables []songplayer.Playable, playlistPositi
 	}
 
 	if playlistPosition < 0 || playlistPosition > len(p.playlist) {
-		err = errors.New("invalid playlistPosition to insert songs")
+		err = errors.New("invalid playlist position to insert songs")
 		return
 	}
 
@@ -330,7 +330,28 @@ func (p *Player) insertPlayables(playables []songplayer.Playable, playlistPositi
 		p.reachedEnd = false
 	}
 
-	p.EmitEvent(EVENT_SONGS_ADDED, playables, playlistPosition)
+	return
+}
+
+func (p *Player) Remove(queuePosition, amount int) (err error) {
+	p.controlMutex.Lock()
+	defer p.controlMutex.Unlock()
+
+	playlistPosition := queuePosition + p.playlistPosition
+	if playlistPosition < 1 || playlistPosition >= len(p.playlist) {
+		err = errors.New("invalid playlist position to remove songs")
+		return
+	}
+
+	if playlistPosition+amount >= len(p.playlist) {
+		err = errors.New("too many songs to remove")
+		return
+	}
+
+	removed := p.playlist[playlistPosition : playlistPosition+amount]
+	p.playlist = append(p.playlist[:playlistPosition], p.playlist[playlistPosition+amount:]...)
+
+	p.EmitEvent(EVENT_SONGS_REMOVED, removed, playlistPosition, amount)
 	p.EmitEvent(EVENT_QUEUE_UPDATED, p.GetQueue())
 	return
 }
