@@ -269,11 +269,10 @@ func (p *SpotifyPlayer) Search(searchType SearchType, searchStr string, limit in
 	return
 }
 
-func (p *SpotifyPlayer) SetPlaybackDevice(playbackDevice string) (err error) {
-	p.playbackDevice = playbackDevice
+func (p *SpotifyPlayer) SetPlaybackDevice(playbackDevice string) {
+	logrus.Infof("SpotifyPlayer.SetPlaybackDevice: Setting spotify playback device to [%s]", playbackDevice)
 
-	err = p.setPlaybackDevice()
-	return
+	p.playbackDevice = playbackDevice
 }
 
 func (p *SpotifyPlayer) setPlaybackDevice() (err error) {
@@ -283,29 +282,41 @@ func (p *SpotifyPlayer) setPlaybackDevice() (err error) {
 		return
 	}
 
-	var device *spotify.PlayerDevice
-	for _, dev := range devices {
-		if strings.ToLower(dev.Name) == strings.ToLower(p.playbackDevice) {
-			device = &dev
+	var newDev, oldDev *spotify.PlayerDevice
+	for i := range devices {
+		if devices[i].Active {
+			oldDev = &devices[i]
+		}
+		if strings.ToLower(devices[i].Name) == strings.ToLower(p.playbackDevice) {
+			newDev = &devices[i]
 		}
 	}
 
-	if device == nil {
+	if newDev == nil {
 		err = errors.New("device not found")
 		return
 	}
 
-	if device.Active {
+	if newDev.Active {
 		// Device is already active, nothing to do
 		return
 	}
 
-	if device.Restricted {
+	if newDev.Restricted {
 		err = errors.New("device is restricted")
 		return
 	}
 
-	err = p.client.TransferPlayback(device.ID, false)
+	if oldDev != nil {
+		p.logger.Infof("SpotifyPlayer.setPlaybackDevice: Transferring playback from %s (%s) to %s (%s)", oldDev.Name, oldDev.Type, newDev.Name, newDev.Type)
+	} else {
+		p.logger.Infof("SpotifyPlayer.setPlaybackDevice: Transferring playback to %s (%s)", newDev.Name, newDev.Type)
+	}
+
+	err = p.client.TransferPlayback(newDev.ID, true)
+	if err != nil {
+		p.logger.Errorf("SpotifyPlayer.setPlaybackDevice: Error transferring playback to %s (%s). %v", newDev.Name, newDev.Type, err)
+	}
 	return
 }
 
