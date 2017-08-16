@@ -362,8 +362,8 @@ func (p *Player) ShuffleQueue() {
 	p.controlMutex.Lock()
 	defer p.controlMutex.Unlock()
 
-	for i := p.playlistPosition + 1; i < len(p.playlist); i++ {
-		j := rand.Intn(i + 1)
+	for i := len(p.playlist) - 2; i > p.playlistPosition; i-- {
+		j := rand.Intn(i-p.playlistPosition) + p.playlistPosition
 		p.playlist[i], p.playlist[j] = p.playlist[j], p.playlist[i]
 	}
 	p.EmitEvent(EVENT_QUEUE_UPDATED, p.GetQueue())
