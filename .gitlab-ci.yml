@@ -1,4 +1,4 @@
-image: golang:1.7.5
+image: golang:1.9.1
 
 stages:
   - formatting

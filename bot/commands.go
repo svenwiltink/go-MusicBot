@@ -45,7 +45,7 @@ var WhitelistCommand = Command{
 		target, _, _ := bot.getTarget(event)
 		realname := event.User
 		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, "Usage: !music whitelist <show|add|remove> [user]")
+			event.Connection.Privmsg(target, boldText("Usage: !music whitelist <show|add|remove> [user]"))
 			return
 		}
 
@@ -63,38 +63,52 @@ var WhitelistCommand = Command{
 				return
 			}
 			user := parameters[1]
-			if realname == bot.config.IRC.Master {
-				if isWhitelisted, _ := bot.isUserWhitelisted(user); !isWhitelisted {
-					bot.whitelist = append(bot.whitelist, user)
-
-					err := config.WriteWhitelist(bot.config.IRC.WhiteListPath, bot.whitelist)
-					if err != nil {
-						event.Connection.Privmsg(target, err.Error())
-						return
-					}
-					logrus.Infof("Whitelist: User %s added to whitelist by %s", user, event.Nick)
-					event.Connection.Privmsgf(target, boldText("User %s added to whitelist by %s"), user, event.Nick)
-				}
+			if realname != bot.config.IRC.Master {
+				event.Connection.Privmsgf(target, italicText("Only %s is allowed to edit the whitelist"), bot.config.IRC.Master)
+				return
 			}
+
+			isWhitelisted, _ := bot.isUserWhitelisted(user)
+			if isWhitelisted {
+				event.Connection.Privmsgf(target, italicText("User %s is already in the whitelist"), user)
+				return
+			}
+			bot.whitelist = append(bot.whitelist, user)
+
+			err := config.WriteWhitelist(bot.config.IRC.WhiteListPath, bot.whitelist)
+			if err != nil {
+				logrus.Errorf("Whitelist: Error writing whitelist [%s], %v", bot.config.IRC.WhiteListPath, err)
+				event.Connection.Privmsg(target, err.Error())
+				return
+			}
+			logrus.Infof("Whitelist: User %s added to whitelist by %s", user, event.Nick)
+			event.Connection.Privmsgf(target, italicText("User %s added to whitelist by %s"), user, event.Nick)
 		case "remove":
 			if len(parameters) < 2 {
 				event.Connection.Privmsg(target, boldText("Usage: !music whitelist remove [user]"))
 				return
 			}
 			user := parameters[1]
-			if realname == bot.config.IRC.Master {
-				if isWhitelisted, index := bot.isUserWhitelisted(user); isWhitelisted {
-					bot.whitelist = append(bot.whitelist[:index], bot.whitelist[index+1:]...)
-
-					err := config.WriteWhitelist(bot.config.IRC.WhiteListPath, bot.whitelist)
-					if err != nil {
-						event.Connection.Privmsg(target, err.Error())
-						return
-					}
-					logrus.Infof("Whitelist: User %s removed from whitelist by %s", user, event.Nick)
-					event.Connection.Privmsgf(target, boldText("User %s removed from whitelist by %s"), user, event.Nick)
-				}
+			if realname != bot.config.IRC.Master {
+				event.Connection.Privmsgf(target, italicText("Only %s is allowed to edit the whitelist"), bot.config.IRC.Master)
+				return
 			}
+
+			isWhitelisted, index := bot.isUserWhitelisted(user)
+			if !isWhitelisted {
+				event.Connection.Privmsgf(target, italicText("User %s is not in the whitelist"), user)
+				return
+			}
+
+			bot.whitelist = append(bot.whitelist[:index], bot.whitelist[index+1:]...)
+			err := config.WriteWhitelist(bot.config.IRC.WhiteListPath, bot.whitelist)
+			if err != nil {
+				logrus.Errorf("Whitelist: Error writing whitelist [%s], %v", bot.config.IRC.WhiteListPath, err)
+				event.Connection.Privmsg(target, err.Error())
+				return
+			}
+			logrus.Infof("Whitelist: User %s removed from whitelist by %s", user, event.Nick)
+			event.Connection.Privmsgf(target, italicText("User %s removed from whitelist by %s"), user, event.Nick)
 		}
 	},
 }

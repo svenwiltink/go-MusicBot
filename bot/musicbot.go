@@ -151,30 +151,38 @@ func (m *MusicBot) Start() (err error) {
 		message := event.Arguments[len(event.Arguments)-1]
 		realname := event.User
 
-		if strings.HasPrefix(message, "!music") {
-			isWhiteListed, _ := m.isUserWhitelisted(realname)
-
-			if m.player == nil {
-				event.Connection.Privmsgf(channel, "%sError: MusicPlayer has not been configured", INVERSE_CHARACTER)
-				return
-			}
-
-			if m.config.IRC.Master == realname || isWhiteListed {
-				arguments := strings.Split(message, " ")[1:]
-				if len(arguments) > 0 {
-					commandName := strings.ToLower(arguments[0])
-					arguments = arguments[1:]
-					if command, exist := m.getCommand(commandName); exist {
-						command.execute(m, event, arguments)
-						return
-					}
-				}
-				event.Connection.Privmsg(channel, "Unknown command. Use !music help to list all the commands available")
-				return
-			}
-			// Unauthorised user
-			event.Connection.Privmsgf(channel, "I will not obey you, %s", realname)
+		if !strings.HasPrefix(message, "!music") {
+			return
 		}
+		isWhiteListed, _ := m.isUserWhitelisted(realname)
+
+		if m.player == nil {
+			event.Connection.Privmsgf(channel, "%sError: MusicPlayer has not been configured", INVERSE_CHARACTER)
+			return
+		}
+
+		if m.config.IRC.Master != realname && !isWhiteListed {
+			// Unauthorised user
+			event.Connection.Privmsgf(channel, italicText("I will not obey you, %s"), realname)
+			return
+		}
+
+		arguments := strings.Split(message, " ")[1:]
+		if len(arguments) == 0 {
+			event.Connection.Privmsg(channel, boldText("No command given. Use !music help to list all available commands"))
+			return
+		}
+
+		commandName := strings.ToLower(arguments[0])
+		arguments = arguments[1:]
+
+		cmd, exist := m.getCommand(commandName)
+		if !exist {
+			event.Connection.Privmsg(channel, boldText("Unknown command. Use !music help to list all available commands"))
+			return
+		}
+		cmd.execute(m, event, arguments)
+		return
 	})
 
 	m.ircConn.Privmsgf(m.config.IRC.Channel, "%s %s connected", GetMusicBotStringFormatted(), util.VersionTag)
