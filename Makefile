@@ -6,6 +6,7 @@ BUILD_DATE=`date +%Y-%m-%d_%H:%M:%S`
 BUILD_HOST=`hostname`
 GO_VERSION=`go version | awk '{print $$3}'`
 GIT_VERSION_TAG=`git describe --tags --long`
+PACKAGE_VERSION=`git describe --tags --long | cut -c 2-`
 LDFLAGS=-X github.com/svenwiltink/go-musicbot/util.GitCommit=${GIT_COMMIT_HASH} \
         -X github.com/svenwiltink/go-musicbot/util.BuildHost=${BUILD_HOST} \
         -X github.com/svenwiltink/go-musicbot/util.BuildDate=${BUILD_DATE} \
@@ -24,6 +25,7 @@ deps:
 	go get -u github.com/golang/lint/golint
 	go get github.com/mitchellh/gox
 	go get -u github.com/Masterminds/glide
+	glide install
 
 verify: fmt lint
 
@@ -37,3 +39,12 @@ build:
 	gox $(BUILD_PLATFORMS) \
 	        -ldflags="${LDFLAGS}" \
             -output="out/binaries/$(NAME)-{{.OS}}-{{.Arch}}"
+
+deb:
+	mkdir -p out/deb
+	cp out/binaries/MusicBot-linux-amd64 out/deb/go-musicbot
+	fpm -f \
+		-s dir -t deb \
+		-n go-musicbot \
+		-v "${PACKAGE_VERSION}" \
+		 --config-files /etc/go-musicbot/conf.json out/deb/=/usr/bin/ conf.json.example=/etc/go-musicbot/conf.json \
