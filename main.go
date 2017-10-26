@@ -12,6 +12,12 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"flag"
+)
+
+var (
+	configFileFlag string
+	logLevelFlag   string
 )
 
 type LogFileHook struct {
@@ -33,6 +39,10 @@ func (h *LogFileHook) Fire(e *logrus.Entry) (err error) {
 }
 
 func main() {
+	flag.StringVar(&configFileFlag, "configfile", "/etc/go-musicbot/config.json", "configfile=/etc/go-musicbot/config.json")
+	flag.StringVar(&logLevelFlag, "loglevel", "info", "loglevel=debug")
+	flag.Parse()
+
 	// Set logrus to be the standard logger
 	logger := logrus.New()
 	logger.Formatter = &logrus.TextFormatter{
@@ -40,7 +50,7 @@ func main() {
 		FullTimestamp:    true,
 	}
 
-	conf, err := config.ReadConfig("conf.json")
+	conf, err := config.ReadConfig(configFileFlag)
 	if err != nil {
 		logrus.Fatalf("main: Error reading musicbot config: %v", err)
 		return
@@ -62,10 +72,15 @@ func main() {
 			})
 		}
 	}
-	if conf.LogLevel != "" {
-		lvl, err := logrus.ParseLevel(conf.LogLevel)
+
+	logLevel := logLevelFlag
+	if logLevel == "" {
+		logLevel = conf.LogLevel
+	}
+	if logLevel != "" {
+		lvl, err := logrus.ParseLevel(logLevel)
 		if err != nil {
-			logrus.Errorf("main: Error reading loglevel [%s] %v", conf.LogLevel, err)
+			logrus.Errorf("main: Error reading loglevel [%s] %v", logLevel, err)
 		} else {
 			logrus.Infof("main: Setting loglevel to %s", lvl.String())
 			logrus.SetLevel(lvl)
