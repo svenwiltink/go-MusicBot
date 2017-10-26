@@ -47,4 +47,4 @@ deb:
 		-s dir -t deb \
 		-n go-musicbot \
 		-v "${PACKAGE_VERSION}" \
-		 --config-files /etc/go-musicbot/conf.json out/deb/=/usr/bin/ conf.json.example=/etc/go-musicbot/conf.json \
+		 --config-files /etc/go-musicbot/config.json out/deb/=/usr/bin/ conf.json.example=/etc/go-musicbot/config.json \
