@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/Sirupsen/logrus"
 	"github.com/svenwiltink/go-musicbot/api"
 	"github.com/svenwiltink/go-musicbot/bot"
@@ -12,7 +13,6 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
-	"flag"
 )
 
 var (
@@ -39,7 +39,8 @@ func (h *LogFileHook) Fire(e *logrus.Entry) (err error) {
 }
 
 func main() {
-	flag.StringVar(&configFileFlag, "configfile", "/etc/go-musicbot/config.json", "configfile=/etc/go-musicbot/config.json")
+	defaultConfigPath := config.GetDefaultOSConfigPath()
+	flag.StringVar(&configFileFlag, "configfile", defaultConfigPath, "configfile="+defaultConfigPath)
 	flag.StringVar(&logLevelFlag, "loglevel", "info", "loglevel=debug")
 	flag.Parse()
 

@@ -3,6 +3,8 @@ package config
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
+	"runtime"
 )
 
 const (
@@ -11,6 +13,22 @@ const (
 	DEFAULT_QUEUE_PATH   = "queue.txt"
 	DEFAULT_STATS_PATH   = "musicbot-stats.json"
 )
+
+func GetDefaultOSConfigPath() (path string) {
+	path = "/etc/go-musicbot/config.json"
+
+	//android darwin dragonfly freebsd linux nacl netbsd openbsd plan9 solaris windows zos
+	goos := runtime.GOOS
+	switch goos {
+	case "darwin":
+		path = filepath.Join(os.Getenv("HOME") + "Library/Application Support/go-musicbot/config.json")
+	case "freebsd":
+		path = "/usr/local/etc/go-musicbot/config.json"
+	case "win":
+		path = filepath.Join(os.Getenv("programdata") + "go-musicbot/config.json")
+	}
+	return
+}
 
 type MusicBot struct {
 	LogFile   string
