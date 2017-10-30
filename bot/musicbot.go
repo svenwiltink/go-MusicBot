@@ -8,6 +8,7 @@ import (
 	"github.com/svenwiltink/go-musicbot/songplayer"
 	"github.com/svenwiltink/go-musicbot/util"
 	"github.com/thoj/go-ircevent"
+	"os"
 	"strings"
 )
 
@@ -22,6 +23,14 @@ type MusicBot struct {
 func NewMusicBot(conf *config.MusicBot) (mb *MusicBot, err error) {
 	whitelist, err := config.ReadWhitelist(conf.IRC.WhiteListPath)
 	if err != nil {
+		if os.IsNotExist(err) {
+			logrus.Infof("MusicBot: Whitelist file does not exist, creating empty whitelist file [%s]", conf.IRC.WhiteListPath)
+			err = config.WriteWhitelist(conf.IRC.WhiteListPath, whitelist)
+			if err != nil {
+				logrus.Errorf("MusicBot: Error writing new whitelist file [%s] %v", conf.IRC.WhiteListPath, err)
+				return
+			}
+		}
 		return
 	}
 
