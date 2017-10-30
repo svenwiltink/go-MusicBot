@@ -386,10 +386,19 @@ func (p *SpotifyPlayer) Stop() (err error) {
 		return
 	}
 
-	err = p.client.Pause()
+	cur, err := p.client.PlayerCurrentlyPlaying()
 	if err != nil {
-		p.logger.Errorf("SpotifyPlayer.Stop: Error stopping: %v", err)
-		return
+		p.logger.Errorf("SpotifyPlayer.Stop: Error getting current song: %v", err)
+	}
+
+	if cur == nil || cur.Playing {
+		p.logger.Infof("SpotifyPlayer.Stop: Currently playing, stopping")
+
+		err = p.client.Pause()
+		if err != nil {
+			p.logger.Errorf("SpotifyPlayer.Stop: Error stopping: %v", err)
+			return
+		}
 	}
 	return
 }
