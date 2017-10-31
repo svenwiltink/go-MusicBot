@@ -9,6 +9,7 @@ import (
 	"google.golang.org/api/youtube/v3"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 const (
@@ -58,9 +59,14 @@ func (yt *YouTubeAPI) GetPlayableForURL(source string) (playable Playable, err e
 
 	identifier := ytURL.Query().Get("v")
 	if identifier == "" {
-		logrus.Errorf("YoutubeAPI.GetPlayableForURL: Empty identifier for: %s", source)
-		err = fmt.Errorf("empty identifier for: %s", source)
-		return
+		// Assume format like: https://youtu.be/n1dpZy5Jx4o, in which the path is the identifier
+		identifier = ytURL.Path
+
+		if strings.ToLower(identifier) == "watch" || identifier == "" {
+			logrus.Errorf("YoutubeAPI.GetPlayableForURL: Empty identifier for: %s", source)
+			err = fmt.Errorf("empty identifier for: %s", source)
+			return
+		}
 	}
 
 	playable, err = yt.GetPlayableForIdentifier(identifier)
