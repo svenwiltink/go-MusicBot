@@ -19,30 +19,61 @@ const (
 	pongWait       = 60 * time.Second
 	pingPeriod     = (pongWait * 9) / 10
 	maxMessageSize = 128
+
+	commandStatus = "status"
 )
 
 type ControlWebsocket struct {
-	ws        *websocket.Conn
-	readOnly  bool
-	hasClosed bool
-	player    player.MusicPlayer
-	capturer  *eventemitter.Capturer
-	writeLock sync.Mutex
-	user      string
+	ws            *websocket.Conn
+	authenticated bool
+	hasClosed     bool
+	player        player.MusicPlayer
+	capturer      *eventemitter.Capturer
+	writeLock     sync.Mutex
+	user          string
+	commands      map[string]*SocketCommand
+	cmds          map[string]func(*Command)
 }
 
-func NewControlWebsocket(ws *websocket.Conn, readOnly bool, player player.MusicPlayer, user string) (cws *ControlWebsocket) {
+func NewControlWebsocket(ws *websocket.Conn, authenticated bool, player player.MusicPlayer, user string) (cws *ControlWebsocket) {
 	cws = &ControlWebsocket{
-		ws:       ws,
-		readOnly: readOnly,
-		player:   player,
-		user:     user,
+		ws:            ws,
+		authenticated: authenticated,
+		player:        player,
+		user:          user,
+		commands:      make(map[string]*SocketCommand),
 	}
 	return
 }
 
+func (cws *ControlWebsocket) Initialize() {
+	cws.commands["status"] = NewSocketCommand(cws, false, func(cmd *Command) {
+		song, remaining := cws.player.GetCurrent()
+		resp := getCommandResponse(cmd, nil)
+		resp.Data = &Status{
+			Status:  cws.player.GetStatus(),
+			Current: getAPISong(song, remaining),
+			List:    getAPISongs(cws.player.GetQueue()),
+		}
+		cws.write(resp)
+	})
+
+	cws.cmds[commandStatus] = func(cmd *Command) {
+		song, remaining := cws.player.GetCurrent()
+		resp := getCommandResponse(cmd, nil)
+		resp.Data = &Status{
+			Status:  cws.player.GetStatus(),
+			Current: getAPISong(song, remaining),
+			List:    getAPISongs(cws.player.GetQueue()),
+		}
+		cws.write(resp)
+	}
+}
+
 func (cws *ControlWebsocket) Start() {
 	cws.capturer = cws.player.AddCapturer(cws.onEvent)
+
+	cws.Initialize()
 
 	go cws.socketWriter()
 	cws.socketReader()
@@ -74,9 +105,12 @@ func (cws *ControlWebsocket) onEvent(event string, args ...interface{}) {
 			continue
 		}
 	}
-	evt := Event{
-		Event:     event,
-		Arguments: apiArgs,
+	evt := EventResponse{
+		Event: event,
+		Response: Response{
+			Type: "event",
+			Data: apiArgs,
+		},
 	}
 	cws.write(evt)
 }
@@ -114,11 +148,7 @@ func (cws *ControlWebsocket) socketReader() {
 	// then the application should start a goroutine to read and discard messages from the peer
 	// (From the documentation)
 	for {
-		if tp, reader, err := cws.ws.NextReader(); err != nil {
-			if cws.readOnly {
-				// Ignore everything :)
-				break
-			}
+		if tp, reader, err := cws.ws.NextReader(); err == nil {
 			if tp != websocket.TextMessage {
 				break
 			}
@@ -144,6 +174,17 @@ func (cws *ControlWebsocket) socketReader() {
 }
 
 func (cws *ControlWebsocket) executeCommand(cmd *Command) {
+
+	command, found := cws.commands[cmd.Command]
+	if !found {
+		err := errors.New("Unknown command")
+		cws.write(getCommandResponse(cmd, err))
+		return
+	}
+
+	command.execute(cmd)
+	return
+
 	switch cmd.Command {
 	case "add":
 		if len(cmd.Arguments) < 1 {
@@ -170,7 +211,7 @@ func (cws *ControlWebsocket) executeCommand(cmd *Command) {
 	case "status":
 		song, remaining := cws.player.GetCurrent()
 		resp := getCommandResponse(cmd, nil)
-		resp.Status = &Status{
+		resp.Data = &Status{
 			Status:  cws.player.GetStatus(),
 			Current: getAPISong(song, remaining),
 			List:    getAPISongs(cws.player.GetQueue()),

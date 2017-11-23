@@ -331,7 +331,7 @@ func (api *API) OpenHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) SocketHandler(w http.ResponseWriter, r *http.Request) {
-	readOnly := !r.Context().Value(CONTEXT_AUTHENTICATED).(bool)
+	authenticated := r.Context().Value(CONTEXT_AUTHENTICATED).(bool)
 
 	ws, err := api.wsUpgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -340,7 +340,7 @@ func (api *API) SocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, _, _ := r.BasicAuth()
-	logrus.Infof("API.SocketHandler: Opening new socket [ReadOnly: %v | User: %s]", readOnly, user)
-	cws := NewControlWebsocket(ws, readOnly, api.player, fmt.Sprintf("WebAPI_%s", user))
+	logrus.Infof("API.SocketHandler: Opening new socket [Authenticated: %v | User: %s]", authenticated, user)
+	cws := NewControlWebsocket(ws, authenticated, api.player, fmt.Sprintf("WebAPI_%s", user))
 	cws.Start()
 }
