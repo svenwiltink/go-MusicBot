@@ -10,6 +10,7 @@ import (
 	"github.com/thoj/go-ircevent"
 	"os"
 	"strings"
+	"time"
 )
 
 type MusicBot struct {
@@ -141,6 +142,20 @@ func (m *MusicBot) Start() (err error) {
 	m.registerCommand(VersionCommand)
 	m.registerCommand(LogCommand)
 
+	err = m.connect()
+	if err != nil {
+		return
+	}
+
+	if m.config.IRC.AutoReconnect {
+		go m.autoReconnect()
+	}
+	return
+}
+
+func (m *MusicBot) connect() (err error) {
+	logrus.Infof("MusicBot.connect: Connecting to IRC server [%s]", m.config.IRC.Server)
+
 	m.ircConn = irc.IRC(m.config.IRC.Nick, m.config.IRC.Realname)
 	m.ircConn.Password = m.config.IRC.Password
 	m.ircConn.UseTLS = m.config.IRC.Ssl
@@ -148,14 +163,19 @@ func (m *MusicBot) Start() (err error) {
 
 	err = m.ircConn.Connect(m.config.IRC.Server)
 	if err != nil {
-		logrus.Errorf("MusicBot.Start: Error connecting to IRC server [%s] %v", m.config.IRC.Server, err)
+		logrus.Errorf("MusicBot.connect: Error connecting to IRC server [%s] %v", m.config.IRC.Server, err)
 		return
 	}
 
-	m.ircConn.AddCallback("001", func(event *irc.Event) {
+	m.onConnection(m.ircConn)
+	return
+}
+
+func (m *MusicBot) onConnection(connection *irc.Connection) {
+	connection.AddCallback("001", func(event *irc.Event) {
 		event.Connection.Join(m.config.IRC.Channel)
 	})
-	m.ircConn.AddCallback("PRIVMSG", func(event *irc.Event) {
+	connection.AddCallback("PRIVMSG", func(event *irc.Event) {
 		channel := event.Arguments[0]
 		message := event.Arguments[len(event.Arguments)-1]
 		realname := event.User
@@ -194,8 +214,21 @@ func (m *MusicBot) Start() (err error) {
 		return
 	})
 
-	m.ircConn.Privmsgf(m.config.IRC.Channel, "%s %s connected", GetMusicBotStringFormatted(), util.VersionTag)
-	return
+	connection.Privmsgf(m.config.IRC.Channel, "%s %s connected", GetMusicBotStringFormatted(), util.VersionTag)
+}
+
+func (m *MusicBot) autoReconnect() {
+	for {
+		if !m.ircConn.Connected() {
+			logrus.Warnf("MusicBot.autoReconnect: Disconnected, attempting auto reconnect [%s]", m.config.IRC.Server)
+			err := m.connect()
+			if err != nil {
+				logrus.Errorf("MusicBot.autoReconnect: Error auto reconnecting to IRC server [%s] %v", m.config.IRC.Server, err)
+			}
+		}
+
+		time.Sleep(5 * time.Second)
+	}
 }
 
 func (m *MusicBot) Stop() (err error) {

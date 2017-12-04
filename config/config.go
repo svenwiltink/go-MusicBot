@@ -27,6 +27,7 @@ type MusicBot struct {
 type IRC struct {
 	Server        string
 	Ssl           bool
+	AutoReconnect bool
 	Channel       string
 	Realname      string
 	Nick          string
@@ -35,7 +36,10 @@ type IRC struct {
 	WhiteListPath string
 }
 
-const DEFAULT_WHITELIST_PATH = "whitelist.txt"
+const (
+	DEFAULT_WHITELIST_PATH = "whitelist.txt"
+	DEFAULT_AUTORECONNECT  = true
+)
 
 type API struct {
 	Host string
@@ -95,6 +99,7 @@ func (c *MusicBot) ApplyDefaults() {
 	c.StatsPath = DEFAULT_STATS_PATH
 
 	c.IRC.WhiteListPath = DEFAULT_WHITELIST_PATH
+	c.IRC.AutoReconnect = DEFAULT_AUTORECONNECT
 
 	c.API.Port = DEFAULT_API_PORT
 
