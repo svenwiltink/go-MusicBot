@@ -147,7 +147,7 @@ func (m *MusicBot) Start() (err error) {
 		return
 	}
 
-	if config.IRC.AutoReconnect {
+	if m.config.IRC.AutoReconnect {
 		go m.autoReconnect()
 	}
 	return
