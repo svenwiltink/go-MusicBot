@@ -27,6 +27,7 @@ type MusicBot struct {
 type IRC struct {
 	Server        string
 	Ssl           bool
+	AutoReconnect bool
 	Channel       string
 	Realname      string
 	Nick          string

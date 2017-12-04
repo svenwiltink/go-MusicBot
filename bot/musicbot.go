@@ -10,6 +10,7 @@ import (
 	"github.com/thoj/go-ircevent"
 	"os"
 	"strings"
+	"time"
 )
 
 type MusicBot struct {
@@ -195,7 +196,25 @@ func (m *MusicBot) Start() (err error) {
 	})
 
 	m.ircConn.Privmsgf(m.config.IRC.Channel, "%s %s connected", GetMusicBotStringFormatted(), util.VersionTag)
+
+	if config.IRC.AutoReconnect {
+		go m.autoReconnect()
+	}
 	return
+}
+
+func (m *MusicBot) autoReconnect() {
+	for {
+		if !m.ircConn.Connected() {
+			logrus.Warnf("MusicBot.autoReconnect: Disconnected, attempting auto reconnect [%s]", m.config.IRC.Server)
+			err := m.ircConn.Connect(m.config.IRC.Server)
+			if err != nil {
+				logrus.Errorf("MusicBot.autoReconnect: Error auto reconnecting to IRC server [%s] %v", m.config.IRC.Server, err)
+			}
+		}
+
+		time.Sleep(5 * time.Second)
+	}
 }
 
 func (m *MusicBot) Stop() (err error) {
