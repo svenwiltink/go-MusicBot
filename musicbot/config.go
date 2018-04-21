@@ -23,7 +23,7 @@ type IRCConfig struct {
 	Channel  string `json:"channel"`
 	Nick     string `json:"nick"`
 	RealName string `json:"realname"`
-	Pass 	 string `json:"pass"`
+	Pass     string `json:"pass"`
 	Ssl      bool   `json:"ssl"`
 }
 

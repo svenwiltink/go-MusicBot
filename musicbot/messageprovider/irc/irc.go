@@ -1,11 +1,11 @@
 package irc
 
 import (
+	"crypto/tls"
 	"fmt"
 	ircclient "github.com/fluffle/goirc/client"
 	"github.com/svenwiltink/go-musicbot/musicbot"
 	"log"
-	"crypto/tls"
 	"strings"
 )
 
@@ -26,7 +26,6 @@ func (irc *MessageProvider) Start() error {
 		ircConfig.SSL = true
 		ircConfig.SSLConfig = &tls.Config{ServerName: strings.Split(irc.Config.Irc.Server, ":")[0]}
 	}
-
 
 	irc.IrcConnection = ircclient.Client(ircConfig)
 	irc.IrcConnection.HandleFunc(ircclient.CONNECTED, func(conn *ircclient.Conn, line *ircclient.Line) {
@@ -73,6 +72,6 @@ func (irc *MessageProvider) GetMessageChannel() chan musicbot.Message {
 func New(config *musicbot.Config) *MessageProvider {
 	return &MessageProvider{
 		MessageChannel: make(chan musicbot.Message),
-		Config: config,
+		Config:         config,
 	}
 }
