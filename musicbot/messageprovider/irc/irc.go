@@ -4,9 +4,11 @@ import (
 	"crypto/tls"
 	"fmt"
 	ircclient "github.com/fluffle/goirc/client"
+	"github.com/fluffle/goirc/logging/glog"
 	"github.com/svenwiltink/go-musicbot/musicbot"
 	"log"
 	"strings"
+	"time"
 )
 
 type MessageProvider struct {
@@ -19,13 +21,15 @@ func (irc *MessageProvider) Start() error {
 	ircConfig := ircclient.NewConfig(irc.Config.Irc.Nick, irc.Config.Irc.RealName)
 	ircConfig.Server = irc.Config.Irc.Server
 	ircConfig.Pass = irc.Config.Irc.Pass
+	ircConfig.Timeout = time.Second * 5
 
 	log.Printf("%+v", irc.Config.Irc)
 	if irc.Config.Irc.Ssl {
-		log.Println("enabling ssl")
 		ircConfig.SSL = true
 		ircConfig.SSLConfig = &tls.Config{ServerName: strings.Split(irc.Config.Irc.Server, ":")[0]}
 	}
+
+	glog.Init()
 
 	irc.IrcConnection = ircclient.Client(ircConfig)
 	irc.IrcConnection.HandleFunc(ircclient.CONNECTED, func(conn *ircclient.Conn, line *ircclient.Line) {
@@ -45,6 +49,10 @@ func (irc *MessageProvider) Start() error {
 				NickName: line.Nick,
 			},
 		}
+	})
+
+	irc.IrcConnection.HandleFunc(ircclient.ERROR, func(conn *ircclient.Conn, line *ircclient.Line) {
+		log.Printf("IRC error %v", line)
 	})
 
 	log.Printf("Trying to connect to server %s", irc.Config.Irc.Server)

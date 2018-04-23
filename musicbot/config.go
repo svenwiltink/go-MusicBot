@@ -10,12 +10,15 @@ const (
 	DefaultConfigFileLocation = "config.json"
 	DefaultWhiteListFile      = "whitelist.txt"
 	DefauultMaster            = "swiltink"
+	DefaultCommandPrefix      = "!music"
 )
 
 type Config struct {
 	WhiteListFile string    `json:"whitelistFile"`
 	Master        string    `json:"master"`
 	Irc           IRCConfig `json:"irc"`
+	MessagePlugin string    `json:"messageplugin"`
+	CommandPrefix string    `json:"commandprefix"`
 }
 
 type IRCConfig struct {
@@ -30,6 +33,7 @@ type IRCConfig struct {
 func (config *Config) applyDefaults() {
 	config.WhiteListFile = DefaultWhiteListFile
 	config.Master = DefauultMaster
+	config.CommandPrefix = DefaultCommandPrefix
 }
 
 func LoadConfig(fileLocation string) (*Config, error) {
