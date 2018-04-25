@@ -1,9 +1,10 @@
 package dummy
 
 import (
-	"github.com/svenwiltink/go-musicbot/musicbot"
 	"log"
 	"time"
+
+	"github.com/svenwiltink/go-musicbot/musicbot"
 )
 
 type MessageProvider struct {

@@ -1,9 +1,11 @@
 package musicplayer
 
 import (
-	"github.com/svenwiltink/go-musicbot/musicplayer/musicprovider/dummy"
-	"github.com/svenwiltink/go-musicbot/musicplayer/musicprovider"
 	"fmt"
+	"log"
+
+	"github.com/svenwiltink/go-musicbot/musicplayer/musicprovider"
+	"github.com/svenwiltink/go-musicbot/musicplayer/musicprovider/dummy"
 )
 
 type MusicProvider interface {
@@ -15,9 +17,17 @@ type MusicProvider interface {
 	Wait()
 }
 
-type MusicPlayer struct {
-	Queue []*musicprovider.Song
+// The possible statuses of the musicplayer
+const (
+	StatusPlaying = "playing"
+	StatusPaused  = "pause"
+	StatusStopped = "stopped"
+)
 
+// MusicPlayer is responsible for playing music
+type MusicPlayer struct {
+	Queue          *Queue
+	Status         string
 	musicProviders []MusicProvider
 }
 
@@ -25,6 +35,7 @@ func (player *MusicPlayer) addMusicProvider(provider MusicProvider) {
 	player.musicProviders = append(player.musicProviders, provider)
 }
 
+// AddSong tries to add the song to the Queue
 func (player *MusicPlayer) AddSong(s string) error {
 	song := &musicprovider.Song{
 		Name: s,
@@ -36,7 +47,8 @@ func (player *MusicPlayer) AddSong(s string) error {
 		return fmt.Errorf("no suitable player found for %s", s)
 	}
 
-	return suitablePlayer.PlaySong(song)
+	player.Queue.append(song)
+	return nil
 }
 
 func (player *MusicPlayer) getSuitablePlayer(song *musicprovider.Song) MusicProvider {
@@ -49,9 +61,26 @@ func (player *MusicPlayer) getSuitablePlayer(song *musicprovider.Song) MusicProv
 	return nil
 }
 
+// Start the MusicPlayer
+func (player *MusicPlayer) Start() {
+	log.Println("Starting music player")
+	go player.playLoop()
+}
+
+func (player *MusicPlayer) playLoop() {
+	for {
+		song := player.Queue.WaitForNext()
+		player := player.getSuitablePlayer(song)
+		player.PlaySong(song)
+		player.Wait()
+		log.Println("Song ended")
+	}
+}
+
+// NewMusicPlayer creates a new MusicPlayer instance
 func NewMusicPlayer() *MusicPlayer {
 	instance := &MusicPlayer{
-		Queue:          make([]*musicprovider.Song, 0),
+		Queue:          NewQueue(),
 		musicProviders: make([]MusicProvider, 0),
 	}
 

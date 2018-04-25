@@ -5,7 +5,6 @@
   branch = "master"
   name = "github.com/fluffle/goirc"
   packages = [
-    ".",
     "client",
     "logging",
     "logging/glog",
@@ -38,6 +37,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "be52f2e3d3ff83e370821baf3a2e4fcedc8c3ae201f3ed9a104142fd1c8830b7"
+  inputs-digest = "676673e719ac7ae0e9bda9293da50092230ff252b7bb34f30b4f25664574b0b9"
   solver-name = "gps-cdcl"
   solver-version = 1

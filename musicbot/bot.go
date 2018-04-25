@@ -3,6 +3,7 @@ package musicbot
 import (
 	"fmt"
 	"strings"
+
 	"github.com/svenwiltink/go-musicbot/musicplayer"
 )
 
@@ -25,6 +26,7 @@ func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
 }
 
 func (bot *MusicBot) Start() {
+	bot.musicPlayer.Start()
 	bot.registerCommands()
 
 	for message := range bot.messageProvider.GetMessageChannel() {
