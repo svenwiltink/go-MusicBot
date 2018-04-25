@@ -1,21 +1,11 @@
-package musicplayer
+package player
 
 import (
 	"fmt"
 	"log"
 
-	"github.com/svenwiltink/go-musicbot/musicplayer/musicprovider"
-	"github.com/svenwiltink/go-musicbot/musicplayer/musicprovider/dummy"
+	"github.com/svenwiltink/go-musicbot/music"
 )
-
-type MusicProvider interface {
-	CanPlay(song *musicprovider.Song) bool
-	PlaySong(song *musicprovider.Song) error
-	Play() error
-	Pause() error
-	// wait for the current song to end
-	Wait()
-}
 
 // The possible statuses of the musicplayer
 const (
@@ -28,30 +18,26 @@ const (
 type MusicPlayer struct {
 	Queue          *Queue
 	Status         string
-	musicProviders []MusicProvider
+	musicProviders []music.MusicProvider
 }
 
-func (player *MusicPlayer) addMusicProvider(provider MusicProvider) {
+func (player *MusicPlayer) addMusicProvider(provider music.MusicProvider) {
 	player.musicProviders = append(player.musicProviders, provider)
 }
 
 // AddSong tries to add the song to the Queue
-func (player *MusicPlayer) AddSong(s string) error {
-	song := &musicprovider.Song{
-		Name: s,
-		Path: s,
-	}
+func (player *MusicPlayer) AddSong(song *music.Song) error {
 
 	suitablePlayer := player.getSuitablePlayer(song)
 	if suitablePlayer == nil {
-		return fmt.Errorf("no suitable player found for %s", s)
+		return fmt.Errorf("no suitable player found for %+v", song)
 	}
 
 	player.Queue.append(song)
 	return nil
 }
 
-func (player *MusicPlayer) getSuitablePlayer(song *musicprovider.Song) MusicProvider {
+func (player *MusicPlayer) getSuitablePlayer(song *music.Song) music.MusicProvider {
 	for _, provider := range player.musicProviders {
 		if provider.CanPlay(song) {
 			return provider
@@ -78,12 +64,12 @@ func (player *MusicPlayer) playLoop() {
 }
 
 // NewMusicPlayer creates a new MusicPlayer instance
-func NewMusicPlayer() *MusicPlayer {
+func NewMusicPlayer(provider music.MusicProvider) *MusicPlayer {
 	instance := &MusicPlayer{
 		Queue:          NewQueue(),
-		musicProviders: make([]MusicProvider, 0),
+		musicProviders: make([]music.MusicProvider, 0),
 	}
 
-	instance.addMusicProvider(dummy.NewSongPlayer())
+	instance.addMusicProvider(provider)
 	return instance
 }

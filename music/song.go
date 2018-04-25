@@ -1,4 +1,4 @@
-package musicprovider
+package music
 
 type Song struct {
 	Name string

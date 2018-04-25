@@ -1,20 +1,20 @@
-package musicplayer
+package player
 
 import (
 	"log"
 	"sync"
 
-	"github.com/svenwiltink/go-musicbot/musicplayer/musicprovider"
+	"github.com/svenwiltink/go-musicbot/music"
 )
 
 // Queue holds an array of songs
 type Queue struct {
-	songs         []*musicprovider.Song
+	songs         []*music.Song
 	lock          sync.Mutex
 	songAddedChan chan bool
 }
 
-func (queue *Queue) append(songs ...*musicprovider.Song) {
+func (queue *Queue) append(songs ...*music.Song) {
 	queue.lock.Lock()
 	defer queue.lock.Unlock()
 
@@ -34,7 +34,7 @@ func (queue *Queue) notifyWaiting() {
 }
 
 // GetNext returns the next item in the queue if it exists
-func (queue *Queue) GetNext() *musicprovider.Song {
+func (queue *Queue) GetNext() *music.Song {
 	queue.lock.Lock()
 	defer queue.lock.Unlock()
 
@@ -51,7 +51,7 @@ func (queue *Queue) GetNext() *musicprovider.Song {
 // WaitForNext is a blocking call that returns the next song in the queue and wait for one to be added
 // if there is no song available. The only caveat of this is that this method can only really be used by one process
 // because it uses a single signal
-func (queue *Queue) WaitForNext() *musicprovider.Song {
+func (queue *Queue) WaitForNext() *music.Song {
 	next := queue.GetNext()
 
 	if next != nil {
@@ -66,7 +66,7 @@ func (queue *Queue) WaitForNext() *musicprovider.Song {
 // NewQueue creates a new instance of Queue
 func NewQueue() *Queue {
 	return &Queue{
-		songs:         make([]*musicprovider.Song, 0),
+		songs:         make([]*music.Song, 0),
 		songAddedChan: make(chan bool),
 	}
 }

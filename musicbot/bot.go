@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/svenwiltink/go-musicbot/musicplayer"
+	"github.com/svenwiltink/go-musicbot/music"
+	"github.com/svenwiltink/go-musicbot/music/player"
+	"github.com/svenwiltink/go-musicbot/music/provider/dummy"
 )
 
 type MusicBot struct {
 	messageProvider MessageProvider
-	musicPlayer     *musicplayer.MusicPlayer
+	musicPlayer     music.MusicPlayer
 	config          *Config
 	commands        map[string]*Command
 }
@@ -18,7 +20,7 @@ func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
 	instance := &MusicBot{
 		config:          config,
 		messageProvider: messageProvider,
-		musicPlayer:     musicplayer.NewMusicPlayer(),
+		musicPlayer:     player.NewMusicPlayer(dummy.NewSongPlayer()),
 		commands:        make(map[string]*Command),
 	}
 

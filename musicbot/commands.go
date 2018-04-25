@@ -1,6 +1,10 @@
 package musicbot
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/svenwiltink/go-musicbot/music"
+)
 
 type Command struct {
 	Name     string
@@ -23,7 +27,12 @@ var AddCommand = &Command{
 			return
 		}
 
-		err := bot.musicPlayer.AddSong(words[2])
+		song := &music.Song{
+			Name: words[2],
+			Path: words[2],
+		}
+
+		err := bot.musicPlayer.AddSong(song)
 		if err != nil {
 			bot.ReplyToMessage(message, err.Error())
 		} else {
