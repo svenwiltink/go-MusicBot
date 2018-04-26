@@ -1,4 +1,4 @@
-package musicbot
+package bot
 
 type MessageProvider interface {
 	GetMessageChannel() chan Message

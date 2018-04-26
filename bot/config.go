@@ -1,4 +1,4 @@
-package musicbot
+package bot
 
 import (
 	"encoding/json"

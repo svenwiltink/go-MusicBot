@@ -1,17 +1,15 @@
 package main
 
 import (
-	"flag"
 	"log"
 
-	"github.com/svenwiltink/go-musicbot/musicbot"
-	"github.com/svenwiltink/go-musicbot/musicbot/messageprovider/irc"
-	"github.com/svenwiltink/go-musicbot/musicbot/messageprovider/terminal"
+	"github.com/svenwiltink/go-musicbot/bot"
+	"github.com/svenwiltink/go-musicbot/bot/messageprovider/irc"
+	"github.com/svenwiltink/go-musicbot/bot/messageprovider/terminal"
 )
 
 func main() {
-	flag.Parse()
-	config, err := musicbot.LoadConfig("config.json")
+	config, err := bot.LoadConfig("config.json")
 
 	log.Println("loaded config")
 	log.Println(config.MpvPath)
@@ -20,7 +18,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var messageProvider musicbot.MessageProvider
+	var messageProvider bot.MessageProvider
 	switch config.MessagePlugin {
 	case "irc":
 		messageProvider = irc.New(config)
@@ -36,6 +34,6 @@ func main() {
 
 	messageProvider.Start()
 
-	bot := musicbot.NewMusicBot(config, messageProvider)
+	bot := bot.NewMusicBot(config, messageProvider)
 	bot.Start()
 }

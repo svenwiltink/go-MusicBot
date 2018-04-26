@@ -1,4 +1,4 @@
-package musicbot
+package bot
 
 type Sender struct {
 	Name     string

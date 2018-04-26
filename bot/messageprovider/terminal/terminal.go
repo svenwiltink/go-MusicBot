@@ -2,20 +2,21 @@ package terminal
 
 import (
 	"bufio"
-	"github.com/svenwiltink/go-musicbot/musicbot"
 	"log"
 	"os"
+
+	"github.com/svenwiltink/go-musicbot/bot"
 )
 
 type MessageProvider struct {
-	channel chan musicbot.Message
+	channel chan bot.Message
 }
 
-func (messageProvider *MessageProvider) GetMessageChannel() chan musicbot.Message {
+func (messageProvider *MessageProvider) GetMessageChannel() chan bot.Message {
 	return messageProvider.channel
 }
 
-func (messageProvider *MessageProvider) SendReplyToMessage(message musicbot.Message, reply string) error {
+func (messageProvider *MessageProvider) SendReplyToMessage(message bot.Message, reply string) error {
 	log.Printf(reply)
 	return nil
 }
@@ -30,10 +31,10 @@ func (messageProvider *MessageProvider) start() {
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		text, _ := reader.ReadString('\n')
-		messageProvider.channel <- musicbot.Message{
+		messageProvider.channel <- bot.Message{
 			Message: text,
 			Target:  "#test",
-			Sender: musicbot.Sender{
+			Sender: bot.Sender{
 				Name:     "terminal",
 				NickName: "terminal",
 			},
@@ -43,6 +44,6 @@ func (messageProvider *MessageProvider) start() {
 
 func New() *MessageProvider {
 	return &MessageProvider{
-		channel: make(chan musicbot.Message),
+		channel: make(chan bot.Message),
 	}
 }
