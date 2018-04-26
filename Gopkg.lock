@@ -3,26 +3,31 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/dexterlb/mpvipc"
+  packages = ["."]
+  revision = "642a40c6e5c6fc3fb28bf37cf723f95a2033baac"
+
+[[projects]]
+  branch = "master"
   name = "github.com/fluffle/goirc"
   packages = [
     "client",
     "logging",
-    "logging/glog",
     "state"
   ]
   revision = "fc1dfa1ceb8897bcaa5231b560b9319591d4ab0a"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/golang/glog"
-  packages = ["."]
-  revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 
 [[projects]]
   name = "github.com/golang/mock"
   packages = ["gomock"]
   revision = "c34cdb4725f4c3844d095133c6e40e448b86589b"
   version = "v1.1.1"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/vansante/go-event-emitter"
+  packages = ["."]
+  revision = "ea73e03613173060f12a82ab1e720202390d0cc5"
 
 [[projects]]
   branch = "master"
@@ -37,6 +42,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "676673e719ac7ae0e9bda9293da50092230ff252b7bb34f30b4f25664574b0b9"
+  inputs-digest = "d15730d2c9a67d38d10976fd8576230e68806a9d5bf4d3910c9bf63251bcbd21"
   solver-name = "gps-cdcl"
   solver-version = 1

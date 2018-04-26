@@ -20,6 +20,7 @@ type Config struct {
 	MessagePlugin string    `json:"messageplugin"`
 	CommandPrefix string    `json:"commandprefix"`
 	MpvPath       string    `json:"mpvpath"`
+	MpvSocket     string    `json:"mpvsocket"`
 }
 
 type IRCConfig struct {

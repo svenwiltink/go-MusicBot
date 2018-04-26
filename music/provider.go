@@ -1,7 +1,7 @@
 package music
 
-// MusicProvider is the interface for an implementation that can actually play songs
-type MusicProvider interface {
+// Provider is the interface for an implementation that can actually play songs
+type Provider interface {
 	CanPlay(song *Song) bool
 	PlaySong(song *Song) error
 	Play() error

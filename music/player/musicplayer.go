@@ -18,10 +18,10 @@ const (
 type MusicPlayer struct {
 	Queue          *Queue
 	Status         string
-	musicProviders []music.MusicProvider
+	musicProviders []music.Provider
 }
 
-func (player *MusicPlayer) addMusicProvider(provider music.MusicProvider) {
+func (player *MusicPlayer) addMusicProvider(provider music.Provider) {
 	player.musicProviders = append(player.musicProviders, provider)
 }
 
@@ -37,7 +37,7 @@ func (player *MusicPlayer) AddSong(song *music.Song) error {
 	return nil
 }
 
-func (player *MusicPlayer) getSuitablePlayer(song *music.Song) music.MusicProvider {
+func (player *MusicPlayer) getSuitablePlayer(song *music.Song) music.Provider {
 	for _, provider := range player.musicProviders {
 		if provider.CanPlay(song) {
 			return provider
@@ -64,10 +64,10 @@ func (player *MusicPlayer) playLoop() {
 }
 
 // NewMusicPlayer creates a new MusicPlayer instance
-func NewMusicPlayer(provider music.MusicProvider) *MusicPlayer {
+func NewMusicPlayer(provider music.Provider) *MusicPlayer {
 	instance := &MusicPlayer{
 		Queue:          NewQueue(),
-		musicProviders: make([]music.MusicProvider, 0),
+		musicProviders: make([]music.Provider, 0),
 	}
 
 	instance.addMusicProvider(provider)

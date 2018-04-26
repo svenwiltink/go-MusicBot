@@ -2,25 +2,35 @@ package bot
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/svenwiltink/go-musicbot/music"
 	"github.com/svenwiltink/go-musicbot/music/player"
-	"github.com/svenwiltink/go-musicbot/music/provider/dummy"
+	"github.com/svenwiltink/go-musicbot/music/provider/mpv"
 )
 
 type MusicBot struct {
 	messageProvider MessageProvider
-	musicPlayer     music.MusicPlayer
+	musicPlayer     music.Player
 	config          *Config
 	commands        map[string]*Command
 }
 
 func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
+
+	mpvPlayer := mpv.NewPlayer(config.MpvPath, config.MpvSocket)
+	err := mpvPlayer.Start()
+
+	if err != nil {
+		log.Printf("unable to start music player: %v", err)
+		return nil
+	}
+
 	instance := &MusicBot{
 		config:          config,
 		messageProvider: messageProvider,
-		musicPlayer:     player.NewMusicPlayer(dummy.NewSongPlayer()),
+		musicPlayer:     player.NewMusicPlayer(mpvPlayer),
 		commands:        make(map[string]*Command),
 	}
 
@@ -31,6 +41,10 @@ func (bot *MusicBot) Start() {
 	bot.musicPlayer.Start()
 	bot.registerCommands()
 
+	go bot.messageLoop()
+}
+
+func (bot *MusicBot) messageLoop() {
 	for message := range bot.messageProvider.GetMessageChannel() {
 		if strings.HasPrefix(message.Message, bot.config.CommandPrefix) {
 			words := strings.SplitN(message.Message, " ", 3)

@@ -32,3 +32,11 @@
 [[constraint]]
   branch = "master"
   name = "github.com/fluffle/goirc"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/dexterlb/mpvipc"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/vansante/go-event-emitter"

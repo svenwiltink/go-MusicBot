@@ -2,6 +2,9 @@ package main
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/svenwiltink/go-musicbot/bot"
 	"github.com/svenwiltink/go-musicbot/bot/messageprovider/irc"
@@ -36,4 +39,11 @@ func main() {
 
 	bot := bot.NewMusicBot(config, messageProvider)
 	bot.Start()
+
+	// Wait for a terminate signal
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	<-sigs
+	log.Println("shutting down")
 }
