@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dexterlb/mpvipc"
+	"github.com/DexterLB/mpvipc"
 	"github.com/svenwiltink/go-musicbot/music"
 	eventemitter "github.com/vansante/go-event-emitter"
 )
@@ -34,8 +34,10 @@ type MpvPlayer struct {
 // NewPlayer creates an instance of MpvPlayer
 func NewPlayer(mpvPath string, socketPath string) *MpvPlayer {
 	return &MpvPlayer{
-		mpvPath:    mpvPath,
-		socketPath: socketPath,
+		mpvPath:      mpvPath,
+		socketPath:   socketPath,
+		mpvIsRunning: false,
+		mpvEvents:    eventemitter.NewEmitter(false),
 	}
 }
 
@@ -67,6 +69,7 @@ func (mpvPlayer *MpvPlayer) Start() error {
 		log.Printf("MpvControl.initMpv: Attempting to open ipc connection to mpv [%s]", mpvPlayer.socketPath)
 		mpvPlayer.mpvConn = mpvipc.NewConnection(mpvPlayer.socketPath)
 		err = mpvPlayer.mpvConn.Open()
+
 		if err != nil {
 			if attempts >= mpvRetryAttempts {
 				return fmt.Errorf("MpvControl.initMpv: Error opening ipc connection to mpv [%s] %v", mpvPlayer.socketPath, err)
@@ -78,12 +81,15 @@ func (mpvPlayer *MpvPlayer) Start() error {
 		attempts++
 	}
 
-	log.Printf("MpvControl.initMpv: Connected to mpv ipc [%s]", mpvPlayer.socketPath)
-
-	// Turn on all events.
 	mpvPlayer.mpvConn.Call("enable_event", "all")
 
+	log.Printf("MpvControl.initMpv: Connected to mpv ipc [%s]", mpvPlayer.socketPath)
+
 	mpvPlayer.mpvEvents.AddCapturer(func(eventName eventemitter.EventType, arguments ...interface{}) {
+		if len(eventName) == 0 {
+			return
+		}
+
 		var strArgs []string
 		for _, arg := range arguments {
 			strArgs = append(strArgs, fmt.Sprintf("%#v", arg))
@@ -94,12 +100,31 @@ func (mpvPlayer *MpvPlayer) Start() error {
 	go func() {
 		events, stopListening := mpvPlayer.mpvConn.NewEventListener()
 		for event := range events {
-			mpvPlayer.mpvEvents.EmitEvent("event", event)
+			mpvPlayer.mpvEvents.EmitEvent(mpvPlayer.getEmitterEventType(event), event)
 		}
 		stopListening <- struct{}{}
 	}()
 
 	return nil
+}
+
+func (mpvPlayer *MpvPlayer) Skip() error {
+	mpvPlayer.mpvMutex.Lock()
+	defer mpvPlayer.mpvMutex.Unlock()
+
+	_, err := mpvPlayer.mpvConn.Call("stop")
+
+	return err
+}
+func (mpvPlayer *MpvPlayer) getEmitterEventType(mpvEvent *mpvipc.Event) eventemitter.EventType {
+	switch mpvEvent.Name {
+	case "file-loaded":
+		return "file-loaded"
+	case "end-file":
+		return "end-file"
+	}
+
+	return ""
 }
 
 func (mpvPlayer *MpvPlayer) startProcess() error {
@@ -175,6 +200,18 @@ func (mpvPlayer *MpvPlayer) Pause() error {
 	panic("not implemented")
 }
 
+func (mpvPlayer *MpvPlayer) Stop() {
+	if mpvPlayer.mpvIsRunning {
+		mpvPlayer.mpvProcess.Process.Kill()
+	}
+}
+
 func (mpvPlayer *MpvPlayer) Wait() {
-	panic("not implemented")
+
+	done := make(chan bool)
+	mpvPlayer.mpvEvents.ListenOnce("end-file", func(arguments ...interface{}) {
+		done <- true
+	})
+
+	<-done
 }

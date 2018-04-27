@@ -35,8 +35,8 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/dexterlb/mpvipc"
+  name = "github.com/vansante/go-event-emitter"
 
 [[constraint]]
   branch = "master"
-  name = "github.com/vansante/go-event-emitter"
+  name = "github.com/DexterLB/mpvipc"

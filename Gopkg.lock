@@ -3,9 +3,9 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/dexterlb/mpvipc"
+  name = "github.com/DexterLB/mpvipc"
   packages = ["."]
-  revision = "642a40c6e5c6fc3fb28bf37cf723f95a2033baac"
+  revision = "de7ee55dde1ed7b51a09252c9539635e60a30dd6"
 
 [[projects]]
   branch = "master"
@@ -39,9 +39,15 @@
   ]
   revision = "5f9ae10d9af5b1c89ae6904293b14b064d4ada23"
 
+[[projects]]
+  branch = "v2"
+  name = "gopkg.in/natefinch/npipe.v2"
+  packages = ["."]
+  revision = "c1b8fa8bdccecb0b8db834ee0b92fdbcfa606dd6"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d15730d2c9a67d38d10976fd8576230e68806a9d5bf4d3910c9bf63251bcbd21"
+  inputs-digest = "02505e331bfe5a17cdf6d36c79dbb58ceadcb22a02bb762ddb78a113ea3131af"
   solver-name = "gps-cdcl"
   solver-version = 1

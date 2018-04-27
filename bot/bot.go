@@ -64,6 +64,7 @@ func (bot *MusicBot) messageLoop() {
 func (bot *MusicBot) registerCommands() {
 	bot.registerCommand(HelpCommand)
 	bot.registerCommand(AddCommand)
+	bot.registerCommand(NextCommand)
 }
 
 func (bot *MusicBot) registerCommand(command *Command) {
@@ -77,4 +78,8 @@ func (bot *MusicBot) getCommand(name string) *Command {
 
 func (bot *MusicBot) ReplyToMessage(message Message, reply string) {
 	bot.messageProvider.SendReplyToMessage(message, reply)
+}
+
+func (bot *MusicBot) Stop() {
+	bot.musicPlayer.Stop()
 }

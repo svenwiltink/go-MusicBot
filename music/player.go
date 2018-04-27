@@ -5,4 +5,6 @@ package music
 type Player interface {
 	Start()
 	AddSong(song *Song) error
+	Next() error
+	Stop()
 }

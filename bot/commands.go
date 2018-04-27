@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/svenwiltink/go-musicbot/music"
@@ -37,6 +38,18 @@ var AddCommand = &Command{
 			bot.ReplyToMessage(message, err.Error())
 		} else {
 			bot.ReplyToMessage(message, "song added")
+		}
+	},
+}
+
+var NextCommand = &Command{
+	Name: "next",
+	Function: func(bot *MusicBot, message Message) {
+		err := bot.musicPlayer.Next()
+		if err != nil {
+			bot.ReplyToMessage(message, fmt.Sprintf("Could not skip song: %v", err))
+		} else {
+			bot.ReplyToMessage(message, "Skipping song")
 		}
 	},
 }

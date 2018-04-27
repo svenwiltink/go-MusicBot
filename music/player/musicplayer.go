@@ -19,6 +19,8 @@ type MusicPlayer struct {
 	Queue          *Queue
 	Status         string
 	musicProviders []music.Provider
+	activeProvider music.Provider
+	shouldStop     bool
 }
 
 func (player *MusicPlayer) addMusicProvider(provider music.Provider) {
@@ -54,12 +56,37 @@ func (player *MusicPlayer) Start() {
 }
 
 func (player *MusicPlayer) playLoop() {
-	for {
+	for !player.shouldStop {
+		player.Status = StatusStopped
+
 		song := player.Queue.WaitForNext()
-		player := player.getSuitablePlayer(song)
-		player.PlaySong(song)
-		player.Wait()
+		provider := player.getSuitablePlayer(song)
+		player.activeProvider = provider
+		err := provider.PlaySong(song)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		player.Status = StatusPlaying
+		provider.Wait()
+
 		log.Println("Song ended")
+	}
+}
+
+func (player *MusicPlayer) Next() error {
+	if player.Status == StatusPlaying {
+		return player.activeProvider.Skip()
+	}
+
+	return fmt.Errorf("Nothing is playing")
+}
+
+func (player *MusicPlayer) Stop() {
+	player.shouldStop = true
+	for _, provider := range player.musicProviders {
+		provider.Stop()
 	}
 }
 
@@ -68,6 +95,7 @@ func NewMusicPlayer(provider music.Provider) *MusicPlayer {
 	instance := &MusicPlayer{
 		Queue:          NewQueue(),
 		musicProviders: make([]music.Provider, 0),
+		shouldStop:     false,
 	}
 
 	instance.addMusicProvider(provider)

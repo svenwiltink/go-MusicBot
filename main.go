@@ -46,4 +46,5 @@ func main() {
 
 	<-sigs
 	log.Println("shutting down")
+	bot.Stop()
 }

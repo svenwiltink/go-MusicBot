@@ -6,6 +6,10 @@ type Provider interface {
 	PlaySong(song *Song) error
 	Play() error
 	Pause() error
+	Skip() error
 	// wait for the current song to end
 	Wait()
+
+	// stop the player.
+	Stop()
 }
