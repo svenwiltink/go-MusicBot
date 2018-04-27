@@ -8,6 +8,8 @@ import (
 	"github.com/svenwiltink/go-musicbot/music"
 	"github.com/svenwiltink/go-musicbot/music/player"
 	"github.com/svenwiltink/go-musicbot/music/provider/mpv"
+	"github.com/svenwiltink/go-musicbot/music/dataprovider/nts"
+	"github.com/svenwiltink/go-musicbot/music/dataprovider/soundcloud"
 )
 
 type MusicBot struct {
@@ -30,7 +32,13 @@ func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
 	instance := &MusicBot{
 		config:          config,
 		messageProvider: messageProvider,
-		musicPlayer:     player.NewMusicPlayer(mpvPlayer),
+		musicPlayer:     player.NewMusicPlayer(
+			[]music.Provider{mpvPlayer},
+			[]music.DataProvider{
+				nts.DataProvider{},
+				soundcloud.DataProvider{},
+			},
+		),
 		commands:        make(map[string]*Command),
 	}
 
@@ -40,6 +48,11 @@ func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
 func (bot *MusicBot) Start() {
 	bot.musicPlayer.Start()
 	bot.registerCommands()
+
+	bot.musicPlayer.AddListener(music.EventSongStarted, func(arguments ...interface{}) {
+		song := arguments[0].(*music.Song)
+		bot.BroadcastMessage(fmt.Sprintf("Started playing %v", song.Name))
+	})
 
 	go bot.messageLoop()
 }
@@ -78,6 +91,10 @@ func (bot *MusicBot) getCommand(name string) *Command {
 
 func (bot *MusicBot) ReplyToMessage(message Message, reply string) {
 	bot.messageProvider.SendReplyToMessage(message, reply)
+}
+
+func (bot *MusicBot) BroadcastMessage(message string) {
+	bot.messageProvider.BroadcastMessage(message)
 }
 
 func (bot *MusicBot) Stop() {

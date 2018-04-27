@@ -21,6 +21,11 @@ func (messageProvider *MessageProvider) SendReplyToMessage(message bot.Message, 
 	return nil
 }
 
+func (messageProvider *MessageProvider) BroadcastMessage(message string) error {
+	log.Printf(message)
+	return nil
+}
+
 func (messageProvider *MessageProvider) Start() error {
 	go messageProvider.start()
 
@@ -32,8 +37,9 @@ func (messageProvider *MessageProvider) start() {
 	for {
 		text, _ := reader.ReadString('\n')
 		messageProvider.channel <- bot.Message{
-			Message: text,
-			Target:  "#test",
+			Message:   text,
+			IsPrivate: false,
+			Target:    "#test",
 			Sender: bot.Sender{
 				Name:     "terminal",
 				NickName: "terminal",

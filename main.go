@@ -14,6 +14,11 @@ import (
 func main() {
 	config, err := bot.LoadConfig("config.json")
 
+	if err != nil {
+		log.Printf("could not load config: %v", err)
+		return
+	}
+
 	log.Println("loaded config")
 	log.Println(config.MpvPath)
 
@@ -21,20 +26,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var messageProvider bot.MessageProvider
-	switch config.MessagePlugin {
-	case "irc":
-		messageProvider = irc.New(config)
-		log.Println("loaded the irc message provider")
-		break
-	case "terminal":
-		messageProvider = terminal.New()
-		log.Println("loaded the terminal message provider")
-		break
-	default:
-		log.Fatalf("unsupported message plugin: %s", config.MessagePlugin)
-	}
-
+	messageProvider := chooseMessageProvider(config)
 	messageProvider.Start()
 
 	bot := bot.NewMusicBot(config, messageProvider)
@@ -45,6 +37,22 @@ func main() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	<-sigs
+
 	log.Println("shutting down")
 	bot.Stop()
+}
+
+func chooseMessageProvider(config *bot.Config) bot.MessageProvider {
+	switch config.MessagePlugin {
+	case "irc":
+		log.Println("loading the irc message provider")
+		return irc.New(config)
+	case "terminal":
+		log.Println("loading the terminal message provider")
+		return terminal.New()
+	default:
+		log.Fatalf("unsupported message plugin: %s", config.MessagePlugin)
+	}
+
+	return nil
 }

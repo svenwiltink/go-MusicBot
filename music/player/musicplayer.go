@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/svenwiltink/go-musicbot/music"
+	"github.com/vansante/go-event-emitter"
 )
 
 // The possible statuses of the musicplayer
@@ -16,8 +17,10 @@ const (
 
 // MusicPlayer is responsible for playing music
 type MusicPlayer struct {
+	*eventemitter.Emitter
 	Queue          *Queue
 	Status         string
+	dataProviders  []music.DataProvider
 	musicProviders []music.Provider
 	activeProvider music.Provider
 	shouldStop     bool
@@ -29,13 +32,40 @@ func (player *MusicPlayer) addMusicProvider(provider music.Provider) {
 
 // AddSong tries to add the song to the Queue
 func (player *MusicPlayer) AddSong(song *music.Song) error {
+	// assume it is a song unless the dataprovider changes it to a stream
+	song.SongType = music.SongTypeSong
+
+	dataProvider := player.getSuitableDataProvider(song)
+
+	if dataProvider == nil {
+		return fmt.Errorf("no dataprovider found for %+v", song)
+	}
+
+	err := dataProvider.ProvideData(song)
+
+	log.Printf("provided song data: %+v", song)
+
+	if err != nil {
+		return fmt.Errorf("could not get data for song: %v", err)
+	}
 
 	suitablePlayer := player.getSuitablePlayer(song)
+	
 	if suitablePlayer == nil {
 		return fmt.Errorf("no suitable player found for %+v", song)
 	}
 
 	player.Queue.append(song)
+	return nil
+}
+
+func (player *MusicPlayer) getSuitableDataProvider(song *music.Song) music.DataProvider {
+	for _, provider := range player.dataProviders {
+		if provider.CanProvideData(song) {
+			return provider
+		}
+	}
+
 	return nil
 }
 
@@ -68,6 +98,8 @@ func (player *MusicPlayer) playLoop() {
 			continue
 		}
 
+		player.EmitEvent(music.EventSongStarted, song)
+
 		player.Status = StatusPlaying
 		provider.Wait()
 
@@ -80,9 +112,8 @@ func (player *MusicPlayer) Next() error {
 		return player.activeProvider.Skip()
 	}
 
-	return fmt.Errorf("Nothing is playing")
+	return fmt.Errorf("nothing is playing")
 }
-
 func (player *MusicPlayer) Stop() {
 	player.shouldStop = true
 	for _, provider := range player.musicProviders {
@@ -91,13 +122,14 @@ func (player *MusicPlayer) Stop() {
 }
 
 // NewMusicPlayer creates a new MusicPlayer instance
-func NewMusicPlayer(provider music.Provider) *MusicPlayer {
+func NewMusicPlayer(providers []music.Provider, dataProviders []music.DataProvider) *MusicPlayer {
 	instance := &MusicPlayer{
+		Emitter:        eventemitter.NewEmitter(false),
 		Queue:          NewQueue(),
-		musicProviders: make([]music.Provider, 0),
+		musicProviders: providers,
+		dataProviders:  dataProviders,
 		shouldStop:     false,
 	}
 
-	instance.addMusicProvider(provider)
 	return instance
 }

@@ -40,8 +40,9 @@ func (irc *MessageProvider) Start() error {
 		log.Printf("message: %s", line.Text())
 
 		irc.MessageChannel <- bot.Message{
-			Message: line.Text(),
-			Target:  line.Target(),
+			Message:   line.Text(),
+			Target:    line.Target(),
+			IsPrivate: line.Target() != irc.Config.Irc.Channel,
 			Sender: bot.Sender{
 				Name:     line.Ident,
 				NickName: line.Nick,
@@ -68,6 +69,11 @@ func (irc *MessageProvider) Start() error {
 
 func (irc *MessageProvider) SendReplyToMessage(message bot.Message, reply string) error {
 	irc.IrcConnection.Privmsg(message.Target, reply)
+	return nil
+}
+
+func (irc *MessageProvider) BroadcastMessage(message string) error {
+	irc.IrcConnection.Privmsg(irc.Config.Irc.Channel, message)
 	return nil
 }
 

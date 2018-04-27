@@ -6,7 +6,8 @@ type Sender struct {
 }
 
 type Message struct {
-	Message string
-	Sender  Sender
-	Target  string
+	Message   string
+	Sender    Sender
+	Target    string
+	IsPrivate bool
 }

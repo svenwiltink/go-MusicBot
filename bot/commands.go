@@ -29,7 +29,6 @@ var AddCommand = &Command{
 		}
 
 		song := &music.Song{
-			Name: words[2],
 			Path: words[2],
 		}
 
