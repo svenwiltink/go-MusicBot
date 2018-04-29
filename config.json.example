@@ -12,5 +12,6 @@
   },
   "mpvpath": "C:\\Program Files (x86)\\mpv\\mpv.exe",
   "mpvsocket": "\\\\.\\pipe\\mpvsocket",
-  "messageplugin": "terminal"
+  "messageplugin": "terminal",
+  "master": "terminal"
 }

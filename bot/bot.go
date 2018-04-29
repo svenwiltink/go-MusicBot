@@ -18,6 +18,7 @@ type MusicBot struct {
 	musicPlayer     music.Player
 	config          *Config
 	commands        map[string]*Command
+	whitelist       *WhiteList
 }
 
 func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
@@ -54,6 +55,8 @@ func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
 }
 
 func (bot *MusicBot) Start() {
+
+	bot.loadWhitelist()
 	bot.musicPlayer.Start()
 	bot.registerCommands()
 
@@ -65,16 +68,42 @@ func (bot *MusicBot) Start() {
 	go bot.messageLoop()
 }
 
+func (bot *MusicBot) loadWhitelist() {
+	whitelist, err := LoadWhiteList(bot.config.WhiteListFile)
+
+	if err != nil {
+		log.Println()
+		bot.whitelist = &WhiteList{
+			names: make(map[string]struct{}, 0),
+		}
+
+		return
+	}
+
+	bot.whitelist = whitelist
+}
+
 func (bot *MusicBot) messageLoop() {
 	for message := range bot.messageProvider.GetMessageChannel() {
 		if strings.HasPrefix(message.Message, bot.config.CommandPrefix) {
+			if !(bot.config.Master == message.Sender.Name || bot.whitelist.Contains(message.Sender.Name)) {
+				bot.ReplyToMessage(message, fmt.Sprintf("You're not on the whitelist %s", message.Sender.Name))
+				continue
+			}
+
 			words := strings.SplitN(message.Message, " ", 3)
 			if len(words) >= 2 {
 				word := strings.TrimSpace(words[1])
 				command := bot.getCommand(word)
-				if command != nil {
-					command.Function(bot, message)
+				if command == nil {
+					continue
 				}
+
+				if command.MasterOnly && bot.config.Master != message.Sender.Name {
+					bot.ReplyToMessage(message, "this command is for masters only")
+					continue
+				}
+				command.Function(bot, message)
 			} else {
 				bot.ReplyToMessage(message, fmt.Sprintf("Use %s help to list all the commands", bot.config.CommandPrefix))
 			}
@@ -87,6 +116,7 @@ func (bot *MusicBot) registerCommands() {
 	bot.registerCommand(AddCommand)
 	bot.registerCommand(SearchAddCommand)
 	bot.registerCommand(NextCommand)
+	bot.registerCommand(WhiteListCommand)
 }
 
 func (bot *MusicBot) registerCommand(command *Command) {

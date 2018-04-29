@@ -8,8 +8,9 @@ import (
 )
 
 type Command struct {
-	Name     string
-	Function func(bot *MusicBot, message Message)
+	Name       string
+	MasterOnly bool
+	Function   func(bot *MusicBot, message Message)
 }
 
 var HelpCommand = &Command{
@@ -85,6 +86,44 @@ var NextCommand = &Command{
 				bot.BroadcastMessage("Skipping song")
 			}
 			bot.ReplyToMessage(message, "Skipping song")
+		}
+	},
+}
+
+var WhiteListCommand = &Command{
+	Name:       "whitelist",
+	MasterOnly: true,
+	Function: func(bot *MusicBot, message Message) {
+		words := strings.SplitN(message.Message, " ", 4)
+		if len(words) <= 3 {
+			bot.ReplyToMessage(message, "whitelist <add|remove> <name>")
+			return
+		}
+
+		name := strings.TrimSpace(words[3])
+		if len(name) == 0 {
+			bot.ReplyToMessage(message, "whitelist <add|remove> <name>")
+			return
+		}
+
+		if words[2] == "add" {
+			err := bot.whitelist.Add(name)
+			if err == nil {
+				bot.ReplyToMessage(message, fmt.Sprintf("added %s to the whitelist", name))
+			} else {
+				bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
+			}
+
+		} else if words[2] == "remove" {
+			err := bot.whitelist.Remove(name)
+			if err == nil {
+				bot.ReplyToMessage(message, fmt.Sprintf("added %s to the whitelist", name))
+			} else {
+				bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
+			}
+		} else {
+			bot.ReplyToMessage(message, "whitelist <add|remove> <name>")
+			return
 		}
 	},
 }
