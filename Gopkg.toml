@@ -40,3 +40,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/DexterLB/mpvipc"
+
+[[constraint]]
+  branch = "master"
+  name = "google.golang.org/api"

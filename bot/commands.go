@@ -29,14 +29,47 @@ var AddCommand = &Command{
 		}
 
 		song := &music.Song{
-			Path: words[2],
+			Path: strings.TrimSpace(words[2]),
 		}
 
 		err := bot.musicPlayer.AddSong(song)
 		if err != nil {
 			bot.ReplyToMessage(message, err.Error())
 		} else {
-			bot.ReplyToMessage(message, "song added")
+			if message.IsPrivate {
+				bot.BroadcastMessage(fmt.Sprintf("%s added", song.Name))
+			}
+			bot.ReplyToMessage(message, fmt.Sprintf("%s added", song.Name))
+		}
+	},
+}
+
+var SearchAddCommand = &Command{
+	Name: "search-add",
+	Function: func(bot *MusicBot, message Message) {
+		words := strings.SplitN(message.Message, " ", 3)
+		if len(words) <= 2 {
+			bot.ReplyToMessage(message, "No song provided")
+			return
+		}
+
+		songs, _ := bot.musicPlayer.Search(words[2])
+
+		if len(songs) == 0 {
+			bot.ReplyToMessage(message, "No song found")
+			return
+		}
+
+		song := songs[0]
+		err := bot.musicPlayer.AddSong(song)
+
+		if err != nil {
+			bot.ReplyToMessage(message, fmt.Sprintf("Error: %v", err))
+		} else {
+			if message.IsPrivate {
+				bot.BroadcastMessage(fmt.Sprintf("%s added", song.Name))
+			}
+			bot.ReplyToMessage(message, fmt.Sprintf("%s added", song.Name))
 		}
 	},
 }
@@ -48,6 +81,9 @@ var NextCommand = &Command{
 		if err != nil {
 			bot.ReplyToMessage(message, fmt.Sprintf("Could not skip song: %v", err))
 		} else {
+			if message.IsPrivate {
+				bot.BroadcastMessage("Skipping song")
+			}
 			bot.ReplyToMessage(message, "Skipping song")
 		}
 	},

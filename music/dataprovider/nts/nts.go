@@ -1,11 +1,11 @@
 package nts
 
 import (
-	"github.com/svenwiltink/go-musicbot/music"
 	"regexp"
 	"strings"
-)
 
+	"github.com/svenwiltink/go-musicbot/music"
+)
 
 var ntsRegex = regexp.MustCompile(`^nts[12]$`)
 
@@ -13,7 +13,7 @@ const (
 	ntsStreamLink = "https://stream-relay-geo.ntslive.net/stream"
 )
 
-type DataProvider struct {}
+type DataProvider struct{}
 
 func (DataProvider) CanProvideData(song *music.Song) bool {
 	return ntsRegex.MatchString(song.Path)
@@ -34,3 +34,6 @@ func (DataProvider) ProvideData(song *music.Song) error {
 	return nil
 }
 
+func (DataProvider) Search(name string) ([]*music.Song, error) {
+	return nil, nil
+}

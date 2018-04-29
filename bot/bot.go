@@ -6,10 +6,11 @@ import (
 	"strings"
 
 	"github.com/svenwiltink/go-musicbot/music"
-	"github.com/svenwiltink/go-musicbot/music/player"
-	"github.com/svenwiltink/go-musicbot/music/provider/mpv"
 	"github.com/svenwiltink/go-musicbot/music/dataprovider/nts"
 	"github.com/svenwiltink/go-musicbot/music/dataprovider/soundcloud"
+	"github.com/svenwiltink/go-musicbot/music/dataprovider/youtube"
+	"github.com/svenwiltink/go-musicbot/music/player"
+	"github.com/svenwiltink/go-musicbot/music/provider/mpv"
 )
 
 type MusicBot struct {
@@ -29,17 +30,24 @@ func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
 		return nil
 	}
 
+	youtubeProvider, err := youtube.NewDataProvider(config.Youtube.ApiKey)
+
+	if err != nil {
+		log.Printf("unable to start youtube provider: %v", err)
+		return nil
+	}
 	instance := &MusicBot{
 		config:          config,
 		messageProvider: messageProvider,
-		musicPlayer:     player.NewMusicPlayer(
+		musicPlayer: player.NewMusicPlayer(
 			[]music.Provider{mpvPlayer},
 			[]music.DataProvider{
 				nts.DataProvider{},
 				soundcloud.DataProvider{},
+				youtubeProvider,
 			},
 		),
-		commands:        make(map[string]*Command),
+		commands: make(map[string]*Command),
 	}
 
 	return instance
@@ -77,6 +85,7 @@ func (bot *MusicBot) messageLoop() {
 func (bot *MusicBot) registerCommands() {
 	bot.registerCommand(HelpCommand)
 	bot.registerCommand(AddCommand)
+	bot.registerCommand(SearchAddCommand)
 	bot.registerCommand(NextCommand)
 }
 

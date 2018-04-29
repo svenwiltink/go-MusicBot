@@ -19,73 +19,99 @@ const (
 	mpvMaxLoadTimeout = time.Duration(time.Second * 20)
 )
 
-// MpvPlayer control MPV
-type MpvPlayer struct {
-	mpvMutex     sync.Mutex
-	mpvProcess   *exec.Cmd
-	mpvConn      *mpvipc.Connection
-	mpvEvents    *eventemitter.Emitter
-	mpvIsRunning bool
+// MPV events
+const (
+	EventFileLoaded eventemitter.EventType = "file-loaded"
+	EventFileEnded  eventemitter.EventType = "end-file"
+)
+
+// Player control MPV
+type Player struct {
+	mutex        sync.Mutex
+	process      *exec.Cmd
+	connection   *mpvipc.Connection
+	eventEmitter *eventemitter.Emitter
+	isRunning    bool
 
 	mpvPath    string
 	socketPath string
 }
 
-// NewPlayer creates an instance of MpvPlayer
-func NewPlayer(mpvPath string, socketPath string) *MpvPlayer {
-	return &MpvPlayer{
+// NewPlayer creates an instance of player
+func NewPlayer(mpvPath string, socketPath string) *Player {
+	return &Player{
 		mpvPath:      mpvPath,
 		socketPath:   socketPath,
-		mpvIsRunning: false,
-		mpvEvents:    eventemitter.NewEmitter(false),
+		isRunning:    false,
+		eventEmitter: eventemitter.NewEmitter(false),
 	}
 }
 
-func (mpvPlayer *MpvPlayer) Start() error {
-	mpvPlayer.mpvMutex.Lock()
-	defer mpvPlayer.mpvMutex.Unlock()
+// Start the mpv player
+func (player *Player) Start() error {
+	player.mutex.Lock()
+	defer player.mutex.Unlock()
 
-	fi, err := os.Stat(mpvPlayer.socketPath)
+	err := player.removeExistingFile()
+	if err != nil {
+		log.Printf("Mpv: Error starting mpv [%s] %v", player.mpvPath, err)
+		return err
+	}
+
+	err = player.startProcess()
+	if err != nil {
+		log.Printf("Mpv: Error starting mpv [%s] %v", player.mpvPath, err)
+		return err
+	}
+
+	err = player.waitForMpv()
+	if err != nil {
+		return err
+	}
+
+	player.startEventListeners()
+
+	return nil
+}
+
+func (player *Player) removeExistingFile() error {
+	fi, err := os.Stat(player.socketPath)
 	if err == nil && !fi.IsDir() {
-		log.Printf("MpvControl.initMpv: Removing existing mpv input on: %s", mpvPlayer.socketPath)
-		err = os.Remove(mpvPlayer.socketPath)
+		log.Printf("Mpv: Removing existing mpv input on: %s", player.socketPath)
+		err = os.Remove(player.socketPath)
 		if err != nil {
-			log.Printf("MpvControl.initMpv: Error removing existing mpv input [%s] %v", mpvPlayer.socketPath, err)
+			log.Printf("Mpv: Error removing existing mpv input [%s] %v", player.socketPath, err)
 			return err
 		}
 	}
 
-	err = mpvPlayer.startProcess()
-	if err != nil {
-		log.Printf("MpvControl.initMpv: Error starting mpv [%s] %v", mpvPlayer.mpvPath, err)
-		return err
-	}
+	return nil
+}
 
+func (player *Player) waitForMpv() error {
 	attempts := 0
 	for {
 		// Give MPV a second or so to start and create the input socket
 		time.Sleep(500 * time.Millisecond)
 
-		log.Printf("MpvControl.initMpv: Attempting to open ipc connection to mpv [%s]", mpvPlayer.socketPath)
-		mpvPlayer.mpvConn = mpvipc.NewConnection(mpvPlayer.socketPath)
-		err = mpvPlayer.mpvConn.Open()
+		log.Printf("Mpv: Attempting to open ipc connection to mpv [%s]", player.socketPath)
+		player.connection = mpvipc.NewConnection(player.socketPath)
+		err := player.connection.Open()
 
-		if err != nil {
-			if attempts >= mpvRetryAttempts {
-				return fmt.Errorf("MpvControl.initMpv: Error opening ipc connection to mpv [%s] %v", mpvPlayer.socketPath, err)
-			}
-		} else {
-			err = nil
-			break
+		if err == nil {
+			return nil
 		}
+
+		if attempts >= mpvRetryAttempts {
+			return fmt.Errorf("Mpv: Error opening ipc connection to mpv [%s] %v", player.socketPath, err)
+		}
+
 		attempts++
 	}
+}
 
-	mpvPlayer.mpvConn.Call("enable_event", "all")
-
-	log.Printf("MpvControl.initMpv: Connected to mpv ipc [%s]", mpvPlayer.socketPath)
-
-	mpvPlayer.mpvEvents.AddCapturer(func(eventName eventemitter.EventType, arguments ...interface{}) {
+func (player *Player) startEventListeners() {
+	player.eventEmitter.AddCapturer(func(eventName eventemitter.EventType, arguments ...interface{}) {
 		if len(eventName) == 0 {
 			return
 		}
@@ -98,77 +124,77 @@ func (mpvPlayer *MpvPlayer) Start() error {
 	})
 
 	go func() {
-		events, stopListening := mpvPlayer.mpvConn.NewEventListener()
+		events, stopListening := player.connection.NewEventListener()
 		for event := range events {
-			mpvPlayer.mpvEvents.EmitEvent(mpvPlayer.getEmitterEventType(event), event)
+			player.eventEmitter.EmitEvent(player.getEmitterEventType(event), event)
 		}
 		stopListening <- struct{}{}
 	}()
-
-	return nil
 }
 
-func (mpvPlayer *MpvPlayer) Skip() error {
-	mpvPlayer.mpvMutex.Lock()
-	defer mpvPlayer.mpvMutex.Unlock()
+// Skip the current song
+func (player *Player) Skip() error {
+	player.mutex.Lock()
+	defer player.mutex.Unlock()
 
-	_, err := mpvPlayer.mpvConn.Call("stop")
+	_, err := player.connection.Call("stop")
 
 	return err
 }
-func (mpvPlayer *MpvPlayer) getEmitterEventType(mpvEvent *mpvipc.Event) eventemitter.EventType {
+
+func (player *Player) getEmitterEventType(mpvEvent *mpvipc.Event) eventemitter.EventType {
 	switch mpvEvent.Name {
 	case "file-loaded":
-		return "file-loaded"
+		return EventFileLoaded
 	case "end-file":
-		return "end-file"
+		return EventFileEnded
 	}
 
 	return ""
 }
 
-func (mpvPlayer *MpvPlayer) startProcess() error {
-	command := exec.Command(mpvPlayer.mpvPath, "--no-video", "--idle", "--input-ipc-server="+mpvPlayer.socketPath)
-	mpvPlayer.mpvProcess = command
+func (player *Player) startProcess() error {
+	command := exec.Command(player.mpvPath, "--no-video", "--idle", "--input-ipc-server="+player.socketPath)
+	player.process = command
 
 	err := command.Start()
-	mpvPlayer.mpvIsRunning = err == nil
+	player.isRunning = err == nil
 
 	if err != nil {
-		return fmt.Errorf("MpvControl.startMpv: Error starting mpv [%s | %s] %v", mpvPlayer.mpvPath, mpvPlayer.socketPath, err)
+		return fmt.Errorf("MpvControl.startMpv: Error starting mpv [%s | %s] %v", player.mpvPath, player.socketPath, err)
 	}
 
 	go func() {
 		err := command.Wait()
 
-		mpvPlayer.mpvMutex.Lock()
+		player.mutex.Lock()
 
-		mpvPlayer.mpvIsRunning = false
-		mpvPlayer.mpvProcess = nil
+		player.isRunning = false
+		player.process = nil
 
-		mpvPlayer.mpvMutex.Unlock()
+		player.mutex.Unlock()
 
-		log.Printf("MpvControl.startMpv: mpv has exited [%s | %s] %v", mpvPlayer.mpvPath, mpvPlayer.socketPath, err)
+		log.Printf("MpvControl.startMpv: mpv has exited [%s | %s] %v", player.mpvPath, player.socketPath, err)
 	}()
 
 	return nil
 }
 
-func (mpvPlayer *MpvPlayer) CanPlay(song *music.Song) bool {
+func (player *Player) CanPlay(song *music.Song) bool {
 	return true
 }
 
-func (mpvPlayer *MpvPlayer) PlaySong(song *music.Song) error {
-	mpvPlayer.mpvMutex.Lock()
-	defer mpvPlayer.mpvMutex.Unlock()
+func (player *Player) PlaySong(song *music.Song) error {
+	player.mutex.Lock()
+	defer player.mutex.Unlock()
 
 	waitForLoad := make(chan bool)
-	mpvPlayer.mpvEvents.ListenOnce("file-loaded", func(arguments ...interface{}) {
+	player.eventEmitter.ListenOnce("file-loaded", func(arguments ...interface{}) {
 		waitForLoad <- true
 	})
 
 	// Start an event listener to wait for the file to load.
-	_, err := mpvPlayer.mpvConn.Call("loadfile", song.Path, "replace")
+	_, err := player.connection.Call("loadfile", song.Path, "replace")
 	if err != nil {
 		log.Printf("MpvControl.LoadFile: Error sending loadfile command [%s] %v", song.Path, err)
 		return err
@@ -180,7 +206,7 @@ func (mpvPlayer *MpvPlayer) PlaySong(song *music.Song) error {
 		return nil
 	case <-timeoutChan:
 		log.Printf("MpvControl.LoadFile: Load file timeout, did not receive file-loaded event in %d", mpvMaxLoadTimeout)
-		_, err = mpvPlayer.mpvConn.Call("stop")
+		_, err = player.connection.Call("stop")
 		if err != nil {
 			log.Printf("MpvControl.LoadFile: Error calling stop after timeout: %v", err)
 			// TODO check if mpv is running
@@ -192,24 +218,24 @@ func (mpvPlayer *MpvPlayer) PlaySong(song *music.Song) error {
 	return nil
 }
 
-func (mpvPlayer *MpvPlayer) Play() error {
+func (player *Player) Play() error {
 	panic("not implemented")
 }
 
-func (mpvPlayer *MpvPlayer) Pause() error {
+func (player *Player) Pause() error {
 	panic("not implemented")
 }
 
-func (mpvPlayer *MpvPlayer) Stop() {
-	if mpvPlayer.mpvIsRunning {
-		mpvPlayer.mpvProcess.Process.Kill()
+func (player *Player) Stop() {
+	if player.isRunning {
+		player.process.Process.Kill()
 	}
 }
 
-func (mpvPlayer *MpvPlayer) Wait() {
+func (player *Player) Wait() {
 
 	done := make(chan bool)
-	mpvPlayer.mpvEvents.ListenOnce("end-file", func(arguments ...interface{}) {
+	player.eventEmitter.ListenOnce("end-file", func(arguments ...interface{}) {
 		done <- true
 	})
 

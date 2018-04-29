@@ -6,5 +6,11 @@
     "realname": "swiltink",
     "pass": "",
     "ssl": false
-  }
+  },
+  "youtube" {
+    "apikey": "api key"
+  },
+  "mpvpath": "C:\\Program Files (x86)\\mpv\\mpv.exe",
+  "mpvsocket": "\\\\.\\pipe\\mpvsocket",
+  "messageplugin": "terminal"
 }

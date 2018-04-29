@@ -30,6 +30,20 @@ func (player *MusicPlayer) addMusicProvider(provider music.Provider) {
 	player.musicProviders = append(player.musicProviders, provider)
 }
 
+func (player *MusicPlayer) Search(searchString string) ([]*music.Song, error) {
+	songs := make([]*music.Song, 0)
+
+	for _, provider := range player.dataProviders {
+		results, _ := provider.Search(searchString)
+
+		if results != nil {
+			songs = append(songs, results...)
+		}
+	}
+
+	return songs, nil
+}
+
 // AddSong tries to add the song to the Queue
 func (player *MusicPlayer) AddSong(song *music.Song) error {
 	// assume it is a song unless the dataprovider changes it to a stream
@@ -50,7 +64,7 @@ func (player *MusicPlayer) AddSong(song *music.Song) error {
 	}
 
 	suitablePlayer := player.getSuitablePlayer(song)
-	
+
 	if suitablePlayer == nil {
 		return fmt.Errorf("no suitable player found for %+v", song)
 	}

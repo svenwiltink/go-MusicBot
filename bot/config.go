@@ -14,13 +14,14 @@ const (
 )
 
 type Config struct {
-	WhiteListFile string    `json:"whitelistFile"`
-	Master        string    `json:"master"`
-	Irc           IRCConfig `json:"irc"`
-	MessagePlugin string    `json:"messageplugin"`
-	CommandPrefix string    `json:"commandprefix"`
-	MpvPath       string    `json:"mpvpath"`
-	MpvSocket     string    `json:"mpvsocket"`
+	WhiteListFile string        `json:"whitelistFile"`
+	Master        string        `json:"master"`
+	Irc           IRCConfig     `json:"irc"`
+	Youtube       YoutubeConfig `json:"youtube"`
+	MessagePlugin string        `json:"messageplugin"`
+	CommandPrefix string        `json:"commandprefix"`
+	MpvPath       string        `json:"mpvpath"`
+	MpvSocket     string        `json:"mpvsocket"`
 }
 
 type IRCConfig struct {
@@ -30,6 +31,10 @@ type IRCConfig struct {
 	RealName string `json:"realname"`
 	Pass     string `json:"pass"`
 	Ssl      bool   `json:"ssl"`
+}
+
+type YoutubeConfig struct {
+	ApiKey string `json:"apiKey"`
 }
 
 func (config *Config) applyDefaults() {

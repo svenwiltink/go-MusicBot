@@ -11,6 +11,7 @@ const (
 type Player interface {
 	eventemitter.Observable
 	Start()
+	Search(string) ([]*Song, error)
 	AddSong(song *Song) error
 	Next() error
 	Stop()
