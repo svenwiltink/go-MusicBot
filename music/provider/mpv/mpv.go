@@ -36,8 +36,7 @@ type Player struct {
 	mpvPath    string
 	socketPath string
 }
-
-// NewPlayer creates an instance of player
+// NewPlayer creates an instance of MpvPlayer
 func NewPlayer(mpvPath string, socketPath string) *Player {
 	return &Player{
 		mpvPath:      mpvPath,
@@ -45,6 +44,13 @@ func NewPlayer(mpvPath string, socketPath string) *Player {
 		isRunning:    false,
 		eventEmitter: eventemitter.NewEmitter(false),
 	}
+}
+
+func (player *Player) SetVolume(percentage int) {
+	player.mutex.Lock()
+	defer player.mutex.Unlock()
+
+	player.connection.Call("set_property", "volume", percentage)
 }
 
 // Start the mpv player

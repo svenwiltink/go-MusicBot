@@ -12,6 +12,7 @@ type Player interface {
 	eventemitter.Observable
 	Start()
 	Search(string) ([]*Song, error)
+	SetVolume(percentage int)
 	AddSong(song *Song) error
 	Next() error
 	Stop()

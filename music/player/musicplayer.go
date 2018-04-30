@@ -26,6 +26,12 @@ type MusicPlayer struct {
 	shouldStop     bool
 }
 
+func (player *MusicPlayer) SetVolume(percentage int) {
+	for _, provider := range player.musicProviders {
+		provider.SetVolume(percentage)
+	}
+}
+
 func (player *MusicPlayer) addMusicProvider(provider music.Provider) {
 	player.musicProviders = append(player.musicProviders, provider)
 }

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/svenwiltink/go-musicbot/music"
+	"strconv"
 )
 
 type Command struct {
@@ -90,6 +91,7 @@ var NextCommand = &Command{
 	},
 }
 
+
 var WhiteListCommand = &Command{
 	Name:       "whitelist",
 	MasterOnly: true,
@@ -124,6 +126,29 @@ var WhiteListCommand = &Command{
 		} else {
 			bot.ReplyToMessage(message, "whitelist <add|remove> <name>")
 			return
+		}
+	},
+}
+
+var VolCommand = &Command{
+	Name: "vol",
+	Function: func(bot *MusicBot, message Message) {
+		words := strings.SplitN(message.Message, " ", 3)
+		if len(words) <= 2 {
+			bot.ReplyToMessage(message, "vol <volume>")
+			return
+		}
+
+		volume, err := strconv.Atoi(words[2])
+
+		if err != nil {
+			bot.ReplyToMessage(message, fmt.Sprintf("%s is not a valid number", words[2]))
+		}
+
+		if volume >= 0 && volume <= 100 {
+			bot.musicPlayer.SetVolume(volume)
+		} else {
+			bot.ReplyToMessage(message, fmt.Sprintf("%s is not a valid volume", words[2]))
 		}
 	},
 }
