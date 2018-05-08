@@ -16,12 +16,12 @@ import (
 
 const (
 	mpvRetryAttempts  = 5
-	mpvMaxLoadTimeout = time.Duration(time.Second * 20)
+	mpvMaxLoadTimeout = time.Duration(time.Second * 5)
 )
 
 // MPV events
 const (
-	EventFileLoaded eventemitter.EventType = "file-loaded"
+	EventFileLoaded = "file-loaded"
 	EventFileEnded  eventemitter.EventType = "end-file"
 )
 
@@ -132,7 +132,7 @@ func (player *Player) startEventListeners() {
 	go func() {
 		events, stopListening := player.connection.NewEventListener()
 		for event := range events {
-			player.eventEmitter.EmitEvent(player.getEmitterEventType(event), event)
+			player.eventEmitter.EmitEvent(eventemitter.EventType(event.Name), event)
 		}
 		stopListening <- struct{}{}
 	}()
@@ -146,17 +146,6 @@ func (player *Player) Skip() error {
 	_, err := player.connection.Call("stop")
 
 	return err
-}
-
-func (player *Player) getEmitterEventType(mpvEvent *mpvipc.Event) eventemitter.EventType {
-	switch mpvEvent.Name {
-	case "file-loaded":
-		return EventFileLoaded
-	case "end-file":
-		return EventFileEnded
-	}
-
-	return ""
 }
 
 func (player *Player) startProcess() error {
