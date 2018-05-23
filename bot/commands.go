@@ -91,6 +91,17 @@ var NextCommand = &Command{
 	},
 }
 
+var CurrentCommand = &Command{
+	Name: "current",
+	Function: func(bot *MusicBot, message Message) {
+		song := bot.musicPlayer.GetCurrentSong()
+		if song == nil {
+			bot.ReplyToMessage(message, "Nothing currently playing")
+			return
+		}
+		bot.ReplyToMessage(message, fmt.Sprintf("Current song: %s %s", song.Artist, song.Name))
+	},
+}
 
 var WhiteListCommand = &Command{
 	Name:       "whitelist",
@@ -139,7 +150,7 @@ var VolCommand = &Command{
 			return
 		}
 
-		volume, err := strconv.Atoi(words[2])
+		volume, err := strconv.Atoi(strings.TrimSpace(words[2]))
 
 		if err != nil {
 			bot.ReplyToMessage(message, fmt.Sprintf("%s is not a valid number", words[2]))
@@ -150,5 +161,11 @@ var VolCommand = &Command{
 		} else {
 			bot.ReplyToMessage(message, fmt.Sprintf("%s is not a valid volume", words[2]))
 		}
+
+		if message.IsPrivate {
+			bot.BroadcastMessage(fmt.Sprintf("Volume set to %d by %s", volume, message.Sender.NickName))
+		}
+
+		bot.ReplyToMessage(message, fmt.Sprintf("Volume set to %d", volume))
 	},
 }

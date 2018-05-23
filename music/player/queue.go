@@ -6,6 +6,7 @@ import (
 
 	"github.com/svenwiltink/go-musicbot/music"
 	"github.com/vansante/go-event-emitter"
+	"fmt"
 )
 
 
@@ -73,6 +74,6 @@ func NewQueue() *Queue {
 	return &Queue{
 		songs:         make([]*music.Song, 0),
 		songAddedChan: make(chan bool),
-		Emitter: eventemitter.NewEmitter(false),
+		Emitter: eventemitter.NewEmitter(true),
 	}
 }

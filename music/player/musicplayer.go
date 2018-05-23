@@ -17,11 +17,16 @@ type MusicPlayer struct {
 	dataProviders  []music.DataProvider
 	musicProviders []music.Provider
 	activeProvider music.Provider
+	currentSong    *music.Song
 	shouldStop     bool
 }
 
 func (player *MusicPlayer) GetStatus() music.PlayerStatus {
 	return player.Status
+}
+
+func (player *MusicPlayer) GetCurrentSong() *music.Song {
+	return player.currentSong
 }
 
 func (player *MusicPlayer) SetVolume(percentage int) {
@@ -106,7 +111,9 @@ func (player *MusicPlayer) Start() {
 func (player *MusicPlayer) playLoop() {
 	for !player.shouldStop {
 		player.Status = music.PlayerStatusWaiting
+		log.Println("Waiting for song")
 		song := player.Queue.WaitForNext()
+		player.currentSong = song
 
 		provider := player.getSuitablePlayer(song)
 		player.activeProvider = provider

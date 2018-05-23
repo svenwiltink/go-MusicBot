@@ -22,7 +22,7 @@ const (
 
 // MPV events
 const (
-	EventFileLoaded = "file-loaded"
+	EventFileLoaded eventemitter.EventType = "file-loaded"
 	EventFileEnded  eventemitter.EventType = "end-file"
 )
 
@@ -43,7 +43,7 @@ func NewPlayer(mpvPath string, socketPath string) *Player {
 		mpvPath:      mpvPath,
 		socketPath:   socketPath,
 		isRunning:    false,
-		eventEmitter: eventemitter.NewEmitter(false),
+		eventEmitter: eventemitter.NewEmitter(true),
 	}
 }
 
@@ -185,7 +185,7 @@ func (player *Player) PlaySong(song *music.Song) error {
 	defer player.mutex.Unlock()
 
 	waitForLoad := make(chan bool)
-	player.eventEmitter.ListenOnce("file-loaded", func(arguments ...interface{}) {
+	player.eventEmitter.ListenOnce(EventFileLoaded, func(arguments ...interface{}) {
 		waitForLoad <- true
 	})
 
@@ -234,7 +234,7 @@ func (player *Player) Stop() {
 func (player *Player) Wait() {
 
 	done := make(chan bool)
-	player.eventEmitter.ListenOnce("end-file", func(arguments ...interface{}) {
+	player.eventEmitter.ListenOnce(EventFileEnded, func(arguments ...interface{}) {
 		done <- true
 	})
 

@@ -26,7 +26,6 @@ func (DataProvider) ProvideData(song *music.Song) error {
 		link = link + `2`
 	}
 
-	song.Name = song.Path
 	song.Artist = song.Path
 	song.Path = link
 	song.SongType = music.SongTypeStream

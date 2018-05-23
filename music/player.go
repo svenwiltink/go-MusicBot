@@ -17,6 +17,7 @@ type Player interface {
 	Next() error
 	Stop()
 	GetStatus() PlayerStatus
+	GetCurrentSong() *Song
 }
 
 type PlayerStatus string
