@@ -34,7 +34,7 @@ type IRCConfig struct {
 }
 
 type YoutubeConfig struct {
-	ApiKey string `json:"apiKey"`
+	APIKey string `json:"apiKey"`
 }
 
 func (config *Config) applyDefaults() {

@@ -16,4 +16,23 @@ type Player interface {
 	AddSong(song *Song) error
 	Next() error
 	Stop()
+	GetStatus() PlayerStatus
+}
+
+type PlayerStatus string
+
+const (
+	PlayerStatusStarting PlayerStatus = "starting"
+	PlayerStatusWaiting  PlayerStatus = "waiting"
+	PlayerStatusLoading  PlayerStatus = "loading"
+	PlayerStatusPlaying  PlayerStatus = "playing"
+	PlayerStatusPaused   PlayerStatus = "paused"
+)
+
+func (s PlayerStatus) CanBeSkipped() bool {
+	if s == PlayerStatusPlaying || s == PlayerStatusPaused {
+		return true
+	}
+
+	return false
 }

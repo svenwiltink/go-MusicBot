@@ -5,10 +5,17 @@ import (
 	"sync"
 
 	"github.com/svenwiltink/go-musicbot/music"
+	"github.com/vansante/go-event-emitter"
+)
+
+
+const (
+	songAdded eventemitter.EventType = "song-added"
 )
 
 // Queue holds an array of songs
 type Queue struct {
+	*eventemitter.Emitter
 	songs         []*music.Song
 	lock          sync.Mutex
 	songAddedChan chan bool
@@ -20,17 +27,7 @@ func (queue *Queue) append(songs ...*music.Song) {
 
 	queue.songs = append(queue.songs, songs...)
 	log.Println("Song added to the queue")
-	queue.notifyWaiting()
-}
-
-func (queue *Queue) notifyWaiting() {
-	select {
-	case queue.songAddedChan <- true:
-		log.Println("Notified a waiting queue listener")
-		break
-	default:
-		break
-	}
+	queue.EmitEvent(songAdded)
 }
 
 // GetNext returns the next item in the queue if it exists
@@ -38,6 +35,10 @@ func (queue *Queue) GetNext() *music.Song {
 	queue.lock.Lock()
 	defer queue.lock.Unlock()
 
+	return queue.getNext()
+}
+
+func (queue *Queue) getNext() *music.Song {
 	if len(queue.songs) == 0 {
 		return nil
 	}
@@ -58,8 +59,12 @@ func (queue *Queue) WaitForNext() *music.Song {
 		return next
 	}
 
-	log.Println("Waiting for a song to be added")
-	<-queue.songAddedChan
+	done := make(chan struct{})
+	queue.ListenOnce(songAdded, func(args ...interface{}) {
+		done <- struct{}{}
+	})
+
+	<- done
 	return queue.GetNext()
 }
 
@@ -68,5 +73,6 @@ func NewQueue() *Queue {
 	return &Queue{
 		songs:         make([]*music.Song, 0),
 		songAddedChan: make(chan bool),
+		Emitter: eventemitter.NewEmitter(false),
 	}
 }

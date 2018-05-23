@@ -32,7 +32,7 @@ func NewDataProvider(apiKey string) (*DataProvider, error) {
 		apiKey: apiKey,
 	}
 
-	err := instance.initApiClient()
+	err := instance.initAPIClient()
 	if err != nil {
 		err = fmt.Errorf("could not start youtube api client: %v", err)
 		return nil, err
@@ -41,7 +41,7 @@ func NewDataProvider(apiKey string) (*DataProvider, error) {
 	return instance, nil
 }
 
-func (provider *DataProvider) initApiClient() error {
+func (provider *DataProvider) initAPIClient() error {
 	client := &http.Client{
 		Transport: &transport.APIKey{Key: provider.apiKey},
 	}
@@ -73,7 +73,7 @@ func (provider *DataProvider) provideDataForIdentifier(identifier string, song *
 	call := provider.service.Videos.List("snippet,contentDetails").Id(identifier)
 	response, err := call.Do()
 	if err != nil {
-		return fmt.Errorf("Could not get data for url: %v", err)
+		return fmt.Errorf("could not get data for url: %v", err)
 	}
 
 	for _, item := range response.Items {
@@ -131,7 +131,7 @@ func (provider *DataProvider) Search(searchString string) ([]*music.Song, error)
 			song := &music.Song{}
 			err = provider.provideDataForIdentifier(item.Id.VideoId, song)
 			if err != nil {
-				return nil, fmt.Errorf("Error finding data: %v", err)
+				return nil, fmt.Errorf("error finding data: %v", err)
 			}
 
 			songs = append(songs, song)

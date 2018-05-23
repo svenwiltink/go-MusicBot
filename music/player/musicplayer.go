@@ -8,22 +8,20 @@ import (
 	"github.com/vansante/go-event-emitter"
 )
 
-// The possible statuses of the musicplayer
-const (
-	StatusPlaying = "playing"
-	StatusPaused  = "pause"
-	StatusStopped = "stopped"
-)
 
 // MusicPlayer is responsible for playing music
 type MusicPlayer struct {
 	*eventemitter.Emitter
 	Queue          *Queue
-	Status         string
+	Status         music.PlayerStatus
 	dataProviders  []music.DataProvider
 	musicProviders []music.Provider
 	activeProvider music.Provider
 	shouldStop     bool
+}
+
+func (player *MusicPlayer) GetStatus() music.PlayerStatus {
+	return player.Status
 }
 
 func (player *MusicPlayer) SetVolume(percentage int) {
@@ -107,20 +105,22 @@ func (player *MusicPlayer) Start() {
 
 func (player *MusicPlayer) playLoop() {
 	for !player.shouldStop {
-		player.Status = StatusStopped
-
+		player.Status = music.PlayerStatusWaiting
 		song := player.Queue.WaitForNext()
+
 		provider := player.getSuitablePlayer(song)
 		player.activeProvider = provider
+
+		player.Status = music.PlayerStatusLoading
 		err := provider.PlaySong(song)
+
 		if err != nil {
 			log.Println(err)
 			continue
 		}
 
 		player.EmitEvent(music.EventSongStarted, song)
-
-		player.Status = StatusPlaying
+		player.Status = music.PlayerStatusPlaying
 		provider.Wait()
 
 		log.Println("Song ended")
@@ -128,12 +128,15 @@ func (player *MusicPlayer) playLoop() {
 }
 
 func (player *MusicPlayer) Next() error {
-	if player.Status == StatusPlaying {
+	fmt.Printf("current player status: %v", player.Status)
+
+	if player.Status.CanBeSkipped() {
 		return player.activeProvider.Skip()
 	}
 
 	return fmt.Errorf("nothing is playing")
 }
+
 func (player *MusicPlayer) Stop() {
 	player.shouldStop = true
 	for _, provider := range player.musicProviders {

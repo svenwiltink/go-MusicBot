@@ -31,7 +31,7 @@ func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
 		return nil
 	}
 
-	youtubeProvider, err := youtube.NewDataProvider(config.Youtube.ApiKey)
+	youtubeProvider, err := youtube.NewDataProvider(config.Youtube.APIKey)
 
 	if err != nil {
 		log.Printf("unable to start youtube provider: %v", err)
@@ -85,29 +85,7 @@ func (bot *MusicBot) loadWhitelist() {
 
 func (bot *MusicBot) messageLoop() {
 	for message := range bot.messageProvider.GetMessageChannel() {
-		if strings.HasPrefix(message.Message, bot.config.CommandPrefix) {
-			if !(bot.config.Master == message.Sender.Name || bot.whitelist.Contains(message.Sender.Name)) {
-				bot.ReplyToMessage(message, fmt.Sprintf("You're not on the whitelist %s", message.Sender.Name))
-				continue
-			}
-
-			words := strings.SplitN(message.Message, " ", 3)
-			if len(words) >= 2 {
-				word := strings.TrimSpace(words[1])
-				command := bot.getCommand(word)
-				if command == nil {
-					continue
-				}
-
-				if command.MasterOnly && bot.config.Master != message.Sender.Name {
-					bot.ReplyToMessage(message, "this command is for masters only")
-					continue
-				}
-				command.Function(bot, message)
-			} else {
-				bot.ReplyToMessage(message, fmt.Sprintf("Use %s help to list all the commands", bot.config.CommandPrefix))
-			}
-		}
+		bot.handleMessage(message)
 	}
 }
 
@@ -139,4 +117,30 @@ func (bot *MusicBot) BroadcastMessage(message string) {
 
 func (bot *MusicBot) Stop() {
 	bot.musicPlayer.Stop()
+}
+
+func (bot *MusicBot) handleMessage(message Message) {
+	if strings.HasPrefix(message.Message, bot.config.CommandPrefix) {
+		if !(bot.config.Master == message.Sender.Name || bot.whitelist.Contains(message.Sender.Name)) {
+			bot.ReplyToMessage(message, fmt.Sprintf("You're not on the whitelist %s", message.Sender.Name))
+			return
+		}
+
+		words := strings.SplitN(message.Message, " ", 3)
+		if len(words) >= 2 {
+			word := strings.TrimSpace(words[1])
+			command := bot.getCommand(word)
+			if command == nil {
+				return
+			}
+
+			if command.MasterOnly && bot.config.Master != message.Sender.Name {
+				bot.ReplyToMessage(message, "this command is for masters only")
+				return
+			}
+			command.Function(bot, message)
+		} else {
+			bot.ReplyToMessage(message, fmt.Sprintf("Use %s help to list all the commands", bot.config.CommandPrefix))
+		}
+	}
 }

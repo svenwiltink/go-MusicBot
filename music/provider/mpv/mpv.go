@@ -12,6 +12,7 @@ import (
 	"github.com/DexterLB/mpvipc"
 	"github.com/svenwiltink/go-musicbot/music"
 	eventemitter "github.com/vansante/go-event-emitter"
+	"context"
 )
 
 const (
@@ -195,16 +196,17 @@ func (player *Player) PlaySong(song *music.Song) error {
 		return err
 	}
 
-	timeoutChan := time.NewTimer(mpvMaxLoadTimeout).C
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), mpvMaxLoadTimeout)
+	defer cancel()
+
 	select {
 	case <-waitForLoad:
 		return nil
-	case <-timeoutChan:
+	case <-timeoutCtx.Done():
 		log.Printf("MpvControl.LoadFile: Load file timeout, did not receive file-loaded event in %d", mpvMaxLoadTimeout)
 		_, err = player.connection.Call("stop")
 		if err != nil {
 			log.Printf("MpvControl.LoadFile: Error calling stop after timeout: %v", err)
-			// TODO check if mpv is running
 			return err
 		}
 		return fmt.Errorf("error loading file, mpv did not respond in time")
@@ -225,6 +227,8 @@ func (player *Player) Stop() {
 	if player.isRunning {
 		player.process.Process.Kill()
 	}
+
+	os.Remove(player.socketPath)
 }
 
 func (player *Player) Wait() {
