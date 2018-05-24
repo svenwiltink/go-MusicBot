@@ -67,12 +67,14 @@ var SearchAddCommand = &Command{
 
 		if err != nil {
 			bot.ReplyToMessage(message, fmt.Sprintf("Error: %v", err))
-		} else {
-			if message.IsPrivate {
-				bot.BroadcastMessage(fmt.Sprintf("%s added", song.Name))
-			}
-			bot.ReplyToMessage(message, fmt.Sprintf("%s added", song.Name))
+			return
 		}
+
+		if message.IsPrivate {
+			bot.BroadcastMessage(fmt.Sprintf("%s added", song.Name))
+		}
+
+		bot.ReplyToMessage(message, fmt.Sprintf("%s added", song.Name))
 	},
 }
 
