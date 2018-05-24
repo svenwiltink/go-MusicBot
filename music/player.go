@@ -3,7 +3,8 @@ package music
 import "github.com/vansante/go-event-emitter"
 
 const (
-	EventSongStarted = "song-started"
+	EventSongStarted    = "song-started"
+	EventSongStartError = "song-start-error"
 )
 
 // Player is the wrapper around MusicProviders. This should keep track of the queue and control

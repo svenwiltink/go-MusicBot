@@ -9,15 +9,15 @@ import (
 	"sync"
 	"time"
 
+	"context"
 	"github.com/DexterLB/mpvipc"
 	"github.com/svenwiltink/go-musicbot/music"
 	eventemitter "github.com/vansante/go-event-emitter"
-	"context"
 )
 
 const (
 	mpvRetryAttempts  = 5
-	mpvMaxLoadTimeout = time.Duration(time.Second * 5)
+	mpvMaxLoadTimeout = time.Duration(time.Second * 10)
 )
 
 // MPV events
@@ -37,6 +37,7 @@ type Player struct {
 	mpvPath    string
 	socketPath string
 }
+
 // NewPlayer creates an instance of MpvPlayer
 func NewPlayer(mpvPath string, socketPath string) *Player {
 	return &Player{

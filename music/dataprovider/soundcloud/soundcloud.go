@@ -6,7 +6,7 @@ import (
 	"github.com/svenwiltink/go-musicbot/music"
 )
 
-var soundCloudRegex = regexp.MustCompile(`^https://soundcloud.com/([a-zA-Z0-9\-]+)/([a-zA-Z0-9\-]+)`)
+var soundCloudRegex = regexp.MustCompile(`^https://soundcloud.com/([a-zA-Z0-9\-_]+)/([a-zA-Z0-9\-_]+)`)
 
 type DataProvider struct{}
 

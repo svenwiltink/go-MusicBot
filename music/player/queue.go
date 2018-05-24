@@ -6,9 +6,7 @@ import (
 
 	"github.com/svenwiltink/go-musicbot/music"
 	"github.com/vansante/go-event-emitter"
-	"fmt"
 )
-
 
 const (
 	songAdded eventemitter.EventType = "song-added"
@@ -65,7 +63,7 @@ func (queue *Queue) WaitForNext() *music.Song {
 		done <- struct{}{}
 	})
 
-	<- done
+	<-done
 	return queue.GetNext()
 }
 
@@ -74,6 +72,6 @@ func NewQueue() *Queue {
 	return &Queue{
 		songs:         make([]*music.Song, 0),
 		songAddedChan: make(chan bool),
-		Emitter: eventemitter.NewEmitter(true),
+		Emitter:       eventemitter.NewEmitter(true),
 	}
 }

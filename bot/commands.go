@@ -126,7 +126,6 @@ var WhiteListCommand = &Command{
 			} else {
 				bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
 			}
-
 		} else if words[2] == "remove" {
 			err := bot.whitelist.Remove(name)
 			if err == nil {
@@ -154,12 +153,14 @@ var VolCommand = &Command{
 
 		if err != nil {
 			bot.ReplyToMessage(message, fmt.Sprintf("%s is not a valid number", words[2]))
+			return
 		}
 
 		if volume >= 0 && volume <= 100 {
 			bot.musicPlayer.SetVolume(volume)
 		} else {
 			bot.ReplyToMessage(message, fmt.Sprintf("%s is not a valid volume", words[2]))
+			return
 		}
 
 		if message.IsPrivate {

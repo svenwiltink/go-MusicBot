@@ -8,7 +8,6 @@ import (
 	"github.com/vansante/go-event-emitter"
 )
 
-
 // MusicPlayer is responsible for playing music
 type MusicPlayer struct {
 	*eventemitter.Emitter
@@ -123,6 +122,7 @@ func (player *MusicPlayer) playLoop() {
 
 		if err != nil {
 			log.Println(err)
+			player.EmitEvent(music.EventSongStartError, song)
 			continue
 		}
 
