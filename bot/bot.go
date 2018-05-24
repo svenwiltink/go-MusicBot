@@ -67,7 +67,7 @@ func (bot *MusicBot) Start() {
 
 	bot.musicPlayer.AddListener(music.EventSongStartError, func(arguments ...interface{}) {
 		song := arguments[0].(*music.Song)
-		bot.BroadcastMessage(fmt.Sprintf("Error starting %v, skipping", song.Name))
+		bot.BroadcastMessage(fmt.Sprintf("Error starting %v %v, skipping", song.Artist, song.Name))
 	})
 
 	go bot.messageLoop()
@@ -95,13 +95,15 @@ func (bot *MusicBot) messageLoop() {
 }
 
 func (bot *MusicBot) registerCommands() {
-	bot.registerCommand(HelpCommand)
-	bot.registerCommand(AddCommand)
-	bot.registerCommand(SearchAddCommand)
-	bot.registerCommand(NextCommand)
-	bot.registerCommand(CurrentCommand)
-	bot.registerCommand(WhiteListCommand)
-	bot.registerCommand(VolCommand)
+	bot.registerCommand(helpCommand)
+	bot.registerCommand(addCommand)
+	bot.registerCommand(searchAddCommand)
+	bot.registerCommand(nextCommand)
+	bot.registerCommand(pausedCommand)
+	bot.registerCommand(playCommand)
+	bot.registerCommand(currentCommand)
+	bot.registerCommand(whiteListCommand)
+	bot.registerCommand(volCommand)
 }
 
 func (bot *MusicBot) registerCommand(command *Command) {

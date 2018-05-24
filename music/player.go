@@ -14,8 +14,11 @@ type Player interface {
 	Start()
 	Search(string) ([]*Song, error)
 	SetVolume(percentage int)
+	GetVolume() (int, error)
 	AddSong(song *Song) error
 	Next() error
+	Pause() error
+	Play() error
 	Stop()
 	GetStatus() PlayerStatus
 	GetCurrentSong() *Song

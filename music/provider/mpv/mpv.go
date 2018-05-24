@@ -48,6 +48,21 @@ func NewPlayer(mpvPath string, socketPath string) *Player {
 	}
 }
 
+func (player *Player) GetVolume() (int, error) {
+	player.mutex.Lock()
+	defer player.mutex.Unlock()
+
+	data, err := player.connection.Call("get_property", "volume")
+
+	if err != nil {
+		return 0, err
+	}
+
+	floatVol := data.(float64)
+
+	return int(floatVol), nil
+}
+
 func (player *Player) SetVolume(percentage int) {
 	player.mutex.Lock()
 	defer player.mutex.Unlock()
@@ -217,11 +232,21 @@ func (player *Player) PlaySong(song *music.Song) error {
 }
 
 func (player *Player) Play() error {
-	panic("not implemented")
+	player.mutex.Lock()
+	defer player.mutex.Unlock()
+
+	_, err := player.connection.Call("set_property", "pause", false)
+
+	return err
 }
 
 func (player *Player) Pause() error {
-	panic("not implemented")
+	player.mutex.Lock()
+	defer player.mutex.Unlock()
+
+	_, err := player.connection.Call("set_property", "pause", true)
+
+	return err
 }
 
 func (player *Player) Stop() {

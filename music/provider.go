@@ -4,6 +4,7 @@ package music
 type Provider interface {
 	CanPlay(song *Song) bool
 	SetVolume(percentage int)
+	GetVolume() (int, error)
 	PlaySong(song *Song) error
 	Play() error
 	Pause() error

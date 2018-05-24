@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"errors"
 	"github.com/svenwiltink/go-musicbot/music"
 	"github.com/vansante/go-event-emitter"
 )
@@ -20,6 +21,35 @@ type MusicPlayer struct {
 	shouldStop     bool
 }
 
+func (player *MusicPlayer) Pause() error {
+	if player.Status != music.PlayerStatusPlaying {
+		return errors.New("cannot pause, nothing is playing")
+	}
+
+	err := player.activeProvider.Pause()
+
+	if err == nil {
+		player.Status = music.PlayerStatusPaused
+	}
+
+	return err
+
+}
+
+func (player *MusicPlayer) Play() error {
+	if player.Status != music.PlayerStatusPaused {
+		return errors.New("cannot resume, music is not paused")
+	}
+
+	err := player.activeProvider.Play()
+
+	if err == nil {
+		player.Status = music.PlayerStatusPlaying
+	}
+
+	return err
+}
+
 func (player *MusicPlayer) GetStatus() music.PlayerStatus {
 	return player.Status
 }
@@ -32,6 +62,14 @@ func (player *MusicPlayer) SetVolume(percentage int) {
 	for _, provider := range player.musicProviders {
 		provider.SetVolume(percentage)
 	}
+}
+
+func (player *MusicPlayer) GetVolume() (int, error) {
+	if player.activeProvider != nil {
+		return player.activeProvider.GetVolume()
+	}
+
+	return 0, errors.New("nothing is playing")
 }
 
 func (player *MusicPlayer) addMusicProvider(provider music.Provider) {
@@ -138,7 +176,15 @@ func (player *MusicPlayer) Next() error {
 	fmt.Printf("current player status: %v", player.Status)
 
 	if player.Status.CanBeSkipped() {
-		return player.activeProvider.Skip()
+		err := player.activeProvider.Skip()
+		if err != nil {
+			return err
+		}
+
+		if player.Status == music.PlayerStatusPaused {
+			err = player.activeProvider.Play()
+			return err
+		}
 	}
 
 	return fmt.Errorf("nothing is playing")
