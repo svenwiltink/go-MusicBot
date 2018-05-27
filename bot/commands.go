@@ -17,7 +17,12 @@ type Command struct {
 var helpCommand = &Command{
 	Name: "help",
 	Function: func(bot *MusicBot, message Message) {
-		bot.ReplyToMessage(message, "this is a help command")
+		helpString := "Available commands: "
+		for _, command := range bot.commands {
+			helpString += command.Name + " "
+		}
+
+		bot.ReplyToMessage(message, helpString)
 	},
 }
 
@@ -241,5 +246,12 @@ var volCommand = &Command{
 		}
 
 		bot.ReplyToMessage(message, fmt.Sprintf("Volume set to %d", volume))
+	},
+}
+
+var aboutCommand = &Command{
+	Name: "about",
+	Function: func(bot *MusicBot, message Message) {
+		bot.ReplyToMessage(message, "go-MusicBot by Sven Wiltink: https://github.com/svenwiltink/go-MusicBot")
 	},
 }
