@@ -2,5 +2,4 @@
 vendor
 config.json
 whitelist.txt
-MusicBot
-
+out
