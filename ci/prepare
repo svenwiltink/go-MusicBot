@@ -1,3 +1,4 @@
+rm -rf $GOPATH/src/github.com/svenwiltink/go-MusicBot
 GODIR=$GOPATH/src/github.com/svenwiltink/go-musicbot
 mkdir -p "$(dirname "$GODIR")"
 ln -sfv "$(pwd -P)" "$GODIR"

@@ -17,8 +17,9 @@ all: deps verify build
 help:
 
 deps:
-	go get github.com/golang/dep
-	go get github.com/mitchellh/gox
+	go get -u github.com/golang/lint/golint
+	go get -u github.com/golang/dep/cmd/dep
+	go get -u github.com/mitchellh/gox
 	dep ensure
 
 verify: fmt lint
