@@ -63,11 +63,12 @@ func (player *Player) GetVolume() (int, error) {
 	return int(floatVol), nil
 }
 
-func (player *Player) SetVolume(percentage int) {
+func (player *Player) SetVolume(percentage int) error {
 	player.mutex.Lock()
 	defer player.mutex.Unlock()
 
-	player.connection.Call("set_property", "volume", percentage)
+	_, err := player.connection.Call("set_property", "volume", percentage)
+	return err
 }
 
 // Start the mpv player

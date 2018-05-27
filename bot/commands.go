@@ -182,10 +182,6 @@ var volCommand = &Command{
 	Name: "vol",
 	Function: func(bot *MusicBot, message Message) {
 		words := strings.SplitN(message.Message, " ", 3)
-		if len(words) <= 1 {
-			bot.ReplyToMessage(message, "vol (volume)")
-			return
-		}
 
 		if len(words) == 2 {
 			volume, err := bot.musicPlayer.GetVolume()
@@ -199,19 +195,46 @@ var volCommand = &Command{
 			return
 		}
 
-		volume, err := strconv.Atoi(strings.TrimSpace(words[2]))
+		// init vars here so we can use them after the switch statement
+		volumeString := strings.TrimSpace(words[2])
+		var volume int
+		var err error
 
-		if err != nil {
-			bot.ReplyToMessage(message, fmt.Sprintf("%s is not a valid number", words[2]))
-			return
+		switch volumeString {
+		case "++":
+			{
+				volume, err = bot.musicPlayer.IncreaseVolume(10)
+				if err != nil {
+					bot.ReplyToMessage(message, fmt.Sprintf("unable to increase volume: %s", err))
+					return
+				}
+			}
+		case "--":
+			{
+				volume, err = bot.musicPlayer.DecreaseVolume(10)
+				if err != nil {
+					bot.ReplyToMessage(message, fmt.Sprintf("unable to decrease volume: %s", err))
+					return
+				}
+			}
+		default:
+			{
+				volume, err := strconv.Atoi(strings.TrimSpace(volumeString))
+
+				if err != nil {
+					bot.ReplyToMessage(message, fmt.Sprintf("%s is not a valid number", volumeString))
+					return
+				}
+
+				if volume >= 0 && volume <= 100 {
+					bot.musicPlayer.SetVolume(volume)
+				} else {
+					bot.ReplyToMessage(message, fmt.Sprintf("%s is not a valid volume", volumeString))
+					return
+				}
+			}
 		}
 
-		if volume >= 0 && volume <= 100 {
-			bot.musicPlayer.SetVolume(volume)
-		} else {
-			bot.ReplyToMessage(message, fmt.Sprintf("%s is not a valid volume", words[2]))
-			return
-		}
 
 		if message.IsPrivate {
 			bot.BroadcastMessage(fmt.Sprintf("Volume set to %d by %s", volume, message.Sender.NickName))

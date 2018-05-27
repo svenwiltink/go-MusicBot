@@ -58,10 +58,44 @@ func (player *MusicPlayer) GetCurrentSong() *music.Song {
 	return player.currentSong
 }
 
-func (player *MusicPlayer) SetVolume(percentage int) {
+func (player *MusicPlayer) SetVolume(percentage int) error {
 	for _, provider := range player.musicProviders {
-		provider.SetVolume(percentage)
+		if err := provider.SetVolume(percentage); err != nil {
+			return err
+		}
 	}
+
+	return nil
+}
+
+func (player *MusicPlayer) IncreaseVolume(percentage int) (newVolume int, err error) {
+	for _, provider := range player.musicProviders {
+		newVolume, err = provider.GetVolume()
+		if err != nil {
+			return 0, err
+		}
+
+		newVolume = newVolume + percentage
+
+		if newVolume > 100 {
+			newVolume = 100
+		}
+
+		if newVolume < 0 {
+			newVolume = 0
+		}
+
+		err = provider.SetVolume(newVolume)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return newVolume, nil
+}
+
+func (player *MusicPlayer) DecreaseVolume(percentage int) (newVolume int, err error) {
+	return player.IncreaseVolume(-percentage)
 }
 
 func (player *MusicPlayer) GetVolume() (int, error) {

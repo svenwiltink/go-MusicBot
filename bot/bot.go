@@ -37,6 +37,7 @@ func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
 		log.Printf("unable to start youtube provider: %v", err)
 		return nil
 	}
+
 	instance := &MusicBot{
 		config:          config,
 		messageProvider: messageProvider,
@@ -139,6 +140,7 @@ func (bot *MusicBot) handleMessage(message Message) {
 			word := strings.TrimSpace(words[1])
 			command := bot.getCommand(word)
 			if command == nil {
+				bot.ReplyToMessage(message, fmt.Sprintf("Unknown command. Use %s help for help", bot.config.CommandPrefix))
 				return
 			}
 
@@ -146,6 +148,7 @@ func (bot *MusicBot) handleMessage(message Message) {
 				bot.ReplyToMessage(message, "this command is for masters only")
 				return
 			}
+
 			command.Function(bot, message)
 		} else {
 			bot.ReplyToMessage(message, fmt.Sprintf("Use %s help to list all the commands", bot.config.CommandPrefix))
