@@ -19,8 +19,7 @@ help:
 deps:
 	go get github.com/golang/dep
 	go get github.com/mitchellh/gox
-	go install github.com/golang/dep
-	go install github.com/mitchellh/gox
+	ls -lahtrR $GOPATH
 	dep ensure
 
 verify: fmt lint
