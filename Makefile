@@ -3,6 +3,7 @@ default: verify build ;
 
 ME ?= MusicBot
 PACKAGE_NAME ?= $(NAME)
+NAME ?= MusicBot
 
 GIT_COMMIT_HASH=`git log | head -n1 | awk '{print $$2}'`
 BUILD_DATE=`date +%Y-%m-%d_%H:%M:%S`
