@@ -224,7 +224,7 @@ var volCommand = &Command{
 			}
 		default:
 			{
-				volume, err := strconv.Atoi(strings.TrimSpace(volumeString))
+				volume, err = strconv.Atoi(strings.TrimSpace(volumeString))
 
 				if err != nil {
 					bot.ReplyToMessage(message, fmt.Sprintf("%s is not a valid number", volumeString))
