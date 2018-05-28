@@ -1,629 +1,257 @@
 package bot
 
 import (
-	"bufio"
 	"fmt"
-	"github.com/Sirupsen/logrus"
-	"github.com/svenwiltink/go-musicbot/config"
-	"github.com/svenwiltink/go-musicbot/player"
-	"github.com/svenwiltink/go-musicbot/util"
-	"github.com/svenwiltink/volumecontrol"
-	"github.com/thoj/go-ircevent"
-	"os"
-	"sort"
-	"strconv"
 	"strings"
-	"time"
-	"unicode/utf8"
+
+	"github.com/svenwiltink/go-musicbot/music"
+	"strconv"
 )
 
 type Command struct {
-	Name     string
-	Function func(bot *MusicBot, event *irc.Event, parameters []string)
+	Name       string
+	MasterOnly bool
+	Function   func(bot *MusicBot, message Message)
 }
 
-func (c *Command) execute(bot *MusicBot, event *irc.Event, parameters []string) {
-	c.Function(bot, event, parameters)
-}
-
-var HelpCommand = Command{
+var helpCommand = &Command{
 	Name: "help",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		var names []string
-		for commandName := range bot.commands {
-			names = append(names, boldText(commandName))
+	Function: func(bot *MusicBot, message Message) {
+		helpString := "Available commands: "
+		for _, command := range bot.commands {
+			helpString += command.Name + " "
 		}
-		sort.Strings(names)
-		event.Connection.Privmsgf(target, "Available commands: %s", strings.Join(names, ", "))
+
+		bot.ReplyToMessage(message, helpString)
 	},
 }
 
-var WhitelistCommand = Command{
-	Name: "whitelist",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		realname := event.User
-		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, boldText("Usage: !music whitelist <show|add|remove> [user]"))
-			return
-		}
-
-		subcommand := parameters[0]
-		switch subcommand {
-		case "show":
-			message := "Current whitelist: "
-			for _, name := range bot.whitelist {
-				message += " " + underlineText(name)
-			}
-			event.Connection.Privmsg(target, message)
-		case "add":
-			if len(parameters) < 2 {
-				event.Connection.Privmsg(target, boldText("Usage: !music whitelist add [user]"))
-				return
-			}
-			user := parameters[1]
-			if realname != bot.config.IRC.Master {
-				event.Connection.Privmsgf(target, italicText("Only %s is allowed to edit the whitelist"), bot.config.IRC.Master)
-				return
-			}
-
-			isWhitelisted, _ := bot.isUserWhitelisted(user)
-			if isWhitelisted {
-				event.Connection.Privmsgf(target, italicText("User %s is already in the whitelist"), user)
-				return
-			}
-			bot.whitelist = append(bot.whitelist, user)
-
-			err := config.WriteWhitelist(bot.config.IRC.WhiteListPath, bot.whitelist)
-			if err != nil {
-				logrus.Errorf("Whitelist: Error writing whitelist [%s], %v", bot.config.IRC.WhiteListPath, err)
-				event.Connection.Privmsg(target, err.Error())
-				return
-			}
-			logrus.Infof("Whitelist: User %s added to whitelist by %s", user, event.Nick)
-			event.Connection.Privmsgf(target, italicText("User %s added to whitelist by %s"), user, event.Nick)
-		case "remove":
-			if len(parameters) < 2 {
-				event.Connection.Privmsg(target, boldText("Usage: !music whitelist remove [user]"))
-				return
-			}
-			user := parameters[1]
-			if realname != bot.config.IRC.Master {
-				event.Connection.Privmsgf(target, italicText("Only %s is allowed to edit the whitelist"), bot.config.IRC.Master)
-				return
-			}
-
-			isWhitelisted, index := bot.isUserWhitelisted(user)
-			if !isWhitelisted {
-				event.Connection.Privmsgf(target, italicText("User %s is not in the whitelist"), user)
-				return
-			}
-
-			bot.whitelist = append(bot.whitelist[:index], bot.whitelist[index+1:]...)
-			err := config.WriteWhitelist(bot.config.IRC.WhiteListPath, bot.whitelist)
-			if err != nil {
-				logrus.Errorf("Whitelist: Error writing whitelist [%s], %v", bot.config.IRC.WhiteListPath, err)
-				event.Connection.Privmsg(target, err.Error())
-				return
-			}
-			logrus.Infof("Whitelist: User %s removed from whitelist by %s", user, event.Nick)
-			event.Connection.Privmsgf(target, italicText("User %s removed from whitelist by %s"), user, event.Nick)
-		}
-	},
-}
-
-var NextCommand = Command{
-	Name: "next",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		_, err := bot.player.Next()
-		if err != nil {
-			event.Connection.Privmsg(target, inverseText(err.Error()))
-			return
-		}
-		bot.announceMessage(true, event, boldText(event.Nick)+" skipped to the next song")
-	},
-}
-
-var PreviousCommand = Command{
-	Name: "previous",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		_, err := bot.player.Previous()
-		if err != nil {
-			event.Connection.Privmsg(target, inverseText(err.Error()))
-			return
-		}
-		bot.announceMessage(true, event, boldText(event.Nick)+" skipped to the previous song")
-	},
-}
-
-var JumpCommand = Command{
-	Name: "jump",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, boldText("Usage: !music jump <deltaQueueIndex> (positive index for forwards, negative index for backwards)"))
-			return
-		}
-
-		index, err := strconv.ParseInt(parameters[0], 10, 32)
-		if err != nil {
-			event.Connection.Privmsg(target, inverseText("Error parsing jump index"))
-			return
-		}
-		_, err = bot.player.Jump(int(index))
-		if err != nil {
-			event.Connection.Privmsg(target, inverseText(err.Error()))
-			return
-		}
-		bot.announceMessagef(true, event, "%s jumped to song at index %d", boldText(event.Nick), index)
-	},
-}
-
-var PlayCommand = Command{
-	Name: "play",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		_, err := bot.player.Play()
-		if err != nil {
-			event.Connection.Privmsg(target, inverseText(err.Error()))
-			return
-		}
-		bot.announceMessage(true, event, boldText(event.Nick)+" started the player")
-	},
-}
-
-var SeekCommand = Command{
-	Name: "seek",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, boldText("Usage: !music seek <secondsInSong> Or: !music seek <percentage>%"))
-			return
-		}
-		seekStr := parameters[0]
-		var seekSeconds int64
-		if strings.HasSuffix(seekStr, "%") {
-			percentage, err := strconv.ParseInt(seekStr[:len(seekStr)-1], 10, 32)
-			if err != nil {
-				event.Connection.Privmsg(target, inverseText("Error parsing seek percentage"))
-				return
-			}
-			song, _ := bot.player.GetCurrent()
-			if song == nil {
-				event.Connection.Privmsg(target, inverseText("Nothing playing!"))
-				return
-			}
-			duration := song.GetDuration().Nanoseconds() / 100 * percentage
-			seekSeconds = duration / int64(time.Second)
-		} else {
-			var err error
-			seekSeconds, err = strconv.ParseInt(seekStr, 10, 32)
-			if err != nil {
-				event.Connection.Privmsg(target, inverseText("Error parsing seek seconds"))
-				return
-			}
-		}
-		err := bot.player.Seek(int(seekSeconds))
-		if err != nil {
-			event.Connection.Privmsg(target, inverseText(err.Error()))
-			return
-		}
-		song, remaining := bot.player.GetCurrent()
-		if song != nil {
-			bot.announceMessagef(false, event, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
-		}
-	},
-}
-
-var PauseCommand = Command{
-	Name: "pause",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		err := bot.player.Pause()
-		if err != nil {
-			event.Connection.Privmsg(target, inverseText(err.Error()))
-			return
-		}
-		song, remaining := bot.player.GetCurrent()
-		state := bot.player.GetStatus()
-		switch state {
-		case player.PAUSED:
-			bot.announceMessage(false, event, boldText(event.Nick)+" paused the player")
-		case player.PLAYING:
-			bot.announceMessage(false, event, boldText(event.Nick)+" unpaused the player")
-		}
-		if song != nil {
-			bot.announceMessagef(false, event, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
-		}
-	},
-}
-
-var StopCommand = Command{
-	Name: "stop",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		err := bot.player.Stop()
-		if err != nil {
-			event.Connection.Privmsg(target, inverseText(err.Error()))
-		}
-		bot.announceMessage(true, event, boldText(event.Nick)+" stopped the player")
-	},
-}
-
-var CurrentCommand = Command{
-	Name: "current",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		song, remaining := bot.player.GetCurrent()
-		if song != nil {
-			event.Connection.Privmsgf(target, "Current song: %s%s%s "+italicText("(%s remaining)"), BOLD_CHARACTER, formatSong(song), BOLD_CHARACTER, util.FormatDuration(remaining))
-			event.Connection.Privmsgf(target, "Progress: %s", boldText(progressString(song.GetDuration(), remaining)))
-		} else {
-			event.Connection.Privmsg(target, italicText("Nothing currently playing"))
-		}
-	},
-}
-
-var AddCommand = Command{
+var addCommand = &Command{
 	Name: "add",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, boldText("!music add <music link>"))
+	Function: func(bot *MusicBot, message Message) {
+		words := strings.SplitN(message.Message, " ", 3)
+		if len(words) <= 2 {
+			bot.ReplyToMessage(message, "No song provided")
 			return
 		}
-		url := parameters[0]
 
-		_, err := bot.player.Add(url, event.User)
+		song := &music.Song{
+			Path: strings.TrimSpace(words[2]),
+		}
+
+		err := bot.musicPlayer.AddSong(song)
 		if err != nil {
-			event.Connection.Privmsg(target, inverseText(err.Error()))
-			return
-		}
-
-		if bot.player.GetStatus() != player.PLAYING {
-			bot.player.Play()
+			bot.ReplyToMessage(message, err.Error())
+		} else {
+			if message.IsPrivate {
+				bot.BroadcastMessage(fmt.Sprintf("%s added by %s", song.Name, message.Sender.NickName))
+			}
+			bot.ReplyToMessage(message, fmt.Sprintf("%s added", song.Name))
 		}
 	},
 }
 
-var OpenCommand = Command{
-	Name: "open",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, boldText("Usage: !music open <music link>"))
+var searchAddCommand = &Command{
+	Name: "search-add",
+	Function: func(bot *MusicBot, message Message) {
+		words := strings.SplitN(message.Message, " ", 3)
+		if len(words) <= 2 {
+			bot.ReplyToMessage(message, "No song provided")
 			return
 		}
-		url := parameters[0]
 
-		_, err := bot.player.Insert(url, 0, event.User)
+		songs, _ := bot.musicPlayer.Search(words[2])
+
+		if len(songs) == 0 {
+			bot.ReplyToMessage(message, "No song found")
+			return
+		}
+
+		song := songs[0]
+		err := bot.musicPlayer.AddSong(song)
+
 		if err != nil {
-			event.Connection.Privmsg(target, inverseText(err.Error()))
+			bot.ReplyToMessage(message, fmt.Sprintf("Error: %v", err))
 			return
 		}
 
-		bot.player.Play()
+		if message.IsPrivate {
+			bot.BroadcastMessage(fmt.Sprintf("%s added", song.Name))
+		}
+
+		bot.ReplyToMessage(message, fmt.Sprintf("%s added", song.Name))
 	},
 }
 
-var InsertCommand = Command{
-	Name: "insert",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		if len(parameters) < 2 {
-			event.Connection.Privmsg(target, boldText("Usage: !music insert <queueIndex> <music link>"))
-			return
-		}
-		position, err := strconv.ParseInt(parameters[0], 10, 32)
+var nextCommand = &Command{
+	Name: "next",
+	Function: func(bot *MusicBot, message Message) {
+		err := bot.musicPlayer.Next()
 		if err != nil {
-			event.Connection.Privmsg(target, inverseText("Error parsing position"))
+			bot.ReplyToMessage(message, fmt.Sprintf("Could not skip song: %v", err))
+		} else {
+			if message.IsPrivate {
+				bot.BroadcastMessage("Skipping song")
+			}
+			bot.ReplyToMessage(message, "Skipping song")
+		}
+	},
+}
+
+var pausedCommand = &Command{
+	Name: "pause",
+	Function: func(bot *MusicBot, message Message) {
+		err := bot.musicPlayer.Pause()
+		if err != nil {
+			bot.ReplyToMessage(message, fmt.Sprintf("Error: %v", err))
 			return
 		}
 
-		_, err = bot.player.Insert(parameters[1], int(position), event.User)
+		if message.IsPrivate {
+			bot.BroadcastMessage(fmt.Sprintf("%s stopped the music", message.Sender.NickName))
+		}
+
+		bot.ReplyToMessage(message, "Music paused")
+
+	},
+}
+
+var playCommand = &Command{
+	Name: "play",
+	Function: func(bot *MusicBot, message Message) {
+		err := bot.musicPlayer.Play()
 		if err != nil {
-			event.Connection.Privmsg(target, inverseText(err.Error()))
+			bot.ReplyToMessage(message, fmt.Sprintf("Error: %v", err))
+			return
+		}
+
+		if message.IsPrivate {
+			bot.BroadcastMessage(fmt.Sprintf("%s resumed the music", message.Sender.NickName))
+		}
+
+		bot.ReplyToMessage(message, "Music resumed")
+
+	},
+}
+
+var currentCommand = &Command{
+	Name: "current",
+	Function: func(bot *MusicBot, message Message) {
+		song := bot.musicPlayer.GetCurrentSong()
+		if song == nil {
+			bot.ReplyToMessage(message, "Nothing currently playing")
+			return
+		}
+		bot.ReplyToMessage(message, fmt.Sprintf("Current song: %s %s", song.Artist, song.Name))
+	},
+}
+
+var whiteListCommand = &Command{
+	Name:       "whitelist",
+	MasterOnly: true,
+	Function: func(bot *MusicBot, message Message) {
+		words := strings.SplitN(message.Message, " ", 4)
+		if len(words) <= 3 {
+			bot.ReplyToMessage(message, "whitelist <add|remove> <name>")
+			return
+		}
+
+		name := strings.TrimSpace(words[3])
+		if len(name) == 0 {
+			bot.ReplyToMessage(message, "whitelist <add|remove> <name>")
+			return
+		}
+
+		if words[2] == "add" {
+			err := bot.whitelist.Add(name)
+			if err == nil {
+				bot.ReplyToMessage(message, fmt.Sprintf("added %s to the whitelist", name))
+			} else {
+				bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
+			}
+		} else if words[2] == "remove" {
+			err := bot.whitelist.Remove(name)
+			if err == nil {
+				bot.ReplyToMessage(message, fmt.Sprintf("added %s to the whitelist", name))
+			} else {
+				bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
+			}
+		} else {
+			bot.ReplyToMessage(message, "whitelist <add|remove> <name>")
 			return
 		}
 	},
 }
 
-var RemoveCommand = Command{
-	Name: "remove",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, boldText("Usage: !music remove <queueIndex> [<amountToRemove>]"))
-			return
-		}
-		position, err := strconv.ParseInt(parameters[0], 10, 32)
-		if err != nil {
-			event.Connection.Privmsg(target, inverseText("Error parsing queue index"))
-			return
-		}
+var volCommand = &Command{
+	Name: "vol",
+	Function: func(bot *MusicBot, message Message) {
+		words := strings.SplitN(message.Message, " ", 3)
 
-		amount := int64(1)
-		if len(parameters) > 1 {
-			amount, err = strconv.ParseInt(parameters[1], 10, 32)
+		if len(words) == 2 {
+			volume, err := bot.musicPlayer.GetVolume()
+
 			if err != nil {
-				event.Connection.Privmsg(target, inverseText("Error parsing amount"))
+				bot.ReplyToMessage(message, fmt.Sprintf("unable to get volume: %v", err))
 				return
 			}
-		}
 
-		err = bot.player.Remove(int(position), int(amount))
-		if err != nil {
-			event.Connection.Privmsg(target, inverseText(err.Error()))
+			bot.ReplyToMessage(message, fmt.Sprintf("Current volume: %d", volume))
 			return
 		}
 
-		bot.announceMessagef(true, event, "%s removed %d songs at queue index %d", boldText(event.Nick), amount, position)
-	},
-}
+		// init vars here so we can use them after the switch statement
+		volumeString := strings.TrimSpace(words[2])
+		var volume int
+		var err error
 
-var ShuffleCommand = Command{
-	Name: "shuffle",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		bot.player.ShuffleQueue()
-		bot.announceMessage(true, event, boldText(event.Nick)+" shuffled the playlist")
-	},
-}
-
-var QueueCommand = Command{
-	Name: "queue",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		items := bot.player.GetQueue()
-		if len(items) == 0 {
-			event.Connection.Privmsg(target, italicText("The queue is empty"))
-		}
-
-		dur := time.Duration(0)
-		for i, song := range items {
-			if i < 10 {
-				event.Connection.Privmsgf(target, "%d. %s", i+1, formatSong(song))
-			}
-			dur += song.GetDuration()
-		}
-
-		if len(items) > 10 {
-			event.Connection.Privmsgf(target, italicText("And %d more.."), len(items)-10)
-		}
-
-		event.Connection.Privmsgf(target, "Total duration: %s%s", BOLD_CHARACTER, util.FormatDuration(dur))
-	},
-}
-
-var HistoryCommand = Command{
-	Name: "history",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		items := bot.player.GetHistory()
-		if len(items) == 0 {
-			event.Connection.Privmsg(target, italicText("The history is empty"))
-		}
-
-		dur := time.Duration(0)
-		for i, song := range items {
-			if i < 10 {
-				event.Connection.Privmsgf(target, "%d. %s", i+1, formatSong(song))
-			}
-			dur += song.GetDuration()
-		}
-
-		if len(items) > 10 {
-			event.Connection.Privmsgf(target, italicText("And %d more.."), len(items)-10)
-		}
-
-		event.Connection.Privmsgf(target, "Total duration: %s%s", BOLD_CHARACTER, util.FormatDuration(dur))
-	},
-}
-
-var FlushCommand = Command{
-	Name: "flush",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		bot.player.EmptyQueue()
-		bot.announceMessage(true, event, boldText(event.Nick)+" emptied the playlist")
-	},
-}
-
-var SearchCommand = Command{
-	Name: "search",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		if len(parameters) < 1 {
-			event.Connection.Privmsgf(target, boldText("Usage: !music search [<track|album|playlist>] [<%s>] <search term>"), strings.ToLower(strings.Join(getPlayerNames(bot.player), "|")))
-			return
-		}
-
-		results, err := searchSongs(bot.player, parameters, 5)
-		if err != nil {
-			event.Connection.Privmsg(target, inverseText(err.Error()))
-			return
-		}
-		if len(results) == 0 {
-			event.Connection.Privmsg(target, italicText("Nothing found!"))
-			return
-		}
-		baseNameWidth := 80
-		for plyr, res := range results {
-			for i, item := range res {
-				resultName := formatSong(item)
-				paddingLength := baseNameWidth - utf8.RuneCountInString(resultName)
-				if paddingLength > 0 {
-					resultName += strings.Repeat(" ", paddingLength)
-				}
-
-				event.Connection.Privmsgf(target, "[%s #%d] %s | %s", plyr, i+1, boldText(resultName), item.GetURL())
-			}
-		}
-	},
-}
-
-var SearchAddCommand = Command{
-	Name: "search-add",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		if len(parameters) < 1 {
-			event.Connection.Privmsgf(target, boldText("Usage: !music search-add [<track|album|playlist>] [<%s>] <search term>"), strings.ToLower(strings.Join(getPlayerNames(bot.player), "|")))
-			return
-		}
-
-		results, err := searchSongs(bot.player, parameters, 1)
-		if err != nil {
-			event.Connection.Privmsg(target, inverseText(err.Error()))
-			return
-		}
-		if len(results) == 0 {
-			event.Connection.Privmsg(target, italicText("Nothing found!"))
-			return
-		}
-		for _, res := range results {
-			for _, item := range res {
-				_, err := bot.player.Add(item.GetURL(), event.User)
+		switch volumeString {
+		case "++":
+			{
+				volume, err = bot.musicPlayer.IncreaseVolume(10)
 				if err != nil {
-					event.Connection.Privmsg(target, inverseText(err.Error()))
+					bot.ReplyToMessage(message, fmt.Sprintf("unable to increase volume: %s", err))
 					return
 				}
-				if bot.player.GetStatus() != player.PLAYING {
-					bot.player.Play()
+			}
+		case "--":
+			{
+				volume, err = bot.musicPlayer.DecreaseVolume(10)
+				if err != nil {
+					bot.ReplyToMessage(message, fmt.Sprintf("unable to decrease volume: %s", err))
+					return
 				}
-				return
+			}
+		default:
+			{
+				volume, err := strconv.Atoi(strings.TrimSpace(volumeString))
+
+				if err != nil {
+					bot.ReplyToMessage(message, fmt.Sprintf("%s is not a valid number", volumeString))
+					return
+				}
+
+				if volume >= 0 && volume <= 100 {
+					bot.musicPlayer.SetVolume(volume)
+				} else {
+					bot.ReplyToMessage(message, fmt.Sprintf("%s is not a valid volume", volumeString))
+					return
+				}
 			}
 		}
+
+
+		if message.IsPrivate {
+			bot.BroadcastMessage(fmt.Sprintf("Volume set to %d by %s", volume, message.Sender.NickName))
+		}
+
+		bot.ReplyToMessage(message, fmt.Sprintf("Volume set to %d", volume))
 	},
 }
 
-var StatsCommand = Command{
-	Name: "stats",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		bot.ircConn.Privmsgf(target, "%s Statistics!", GetMusicBotStringFormatted())
-
-		stats := bot.player.GetStatistics()
-
-		var timeByPlayer []string
-		for player, time := range stats.TimeByPlayer {
-			timeByPlayer = append(timeByPlayer, fmt.Sprintf("%s: %s%s%s", player, BOLD_CHARACTER, util.FormatDuration(time), BOLD_CHARACTER))
-		}
-		bot.ircConn.Privmsgf(target, "Total play time: %s%v%s (%s)", BOLD_CHARACTER, util.FormatDuration(stats.TotalTimePlayed), BOLD_CHARACTER, strings.Join(timeByPlayer, " | "))
-
-		var playedByPlayer []string
-		for player, count := range stats.SongsPlayedByPlayer {
-			playedByPlayer = append(playedByPlayer, fmt.Sprintf("%s: %s%d%s", player, BOLD_CHARACTER, count, BOLD_CHARACTER))
-		}
-		bot.ircConn.Privmsgf(target, "Total songs played: %s%d%s (%s)", BOLD_CHARACTER, stats.TotalSongsPlayed, BOLD_CHARACTER, strings.Join(playedByPlayer, " | "))
-		bot.ircConn.Privmsgf(target, "Total songs queued: %s%d", BOLD_CHARACTER, stats.TotalSongsQueued)
-		bot.ircConn.Privmsgf(target, "Total times skipped: %s%d", BOLD_CHARACTER, stats.TotalTimesNext+stats.TotalTimesPrevious+stats.TotalTimesJump)
-		bot.ircConn.Privmsgf(target, "Total times paused: %s%d", BOLD_CHARACTER, stats.TotalTimesPaused)
-
-		var songQueuers []string
-		pairs := util.GetSortedStringIntMap(stats.SongsAddedByUser)
-		pos := 1
-		for i := len(pairs) - 1; i >= 0; i-- {
-			songQueuers = append(songQueuers, fmt.Sprintf("%d. %s: %s%d%s", pos, pairs[i].Key, BOLD_CHARACTER, pairs[i].Val, BOLD_CHARACTER))
-			pos++
-			if pos > 10 {
-				break
-			}
-		}
-		bot.ircConn.Privmsgf(target, "Top 10 song queuers: %s", strings.Join(songQueuers, " | "))
-	},
-}
-
-var VolUpCommand = Command{
-	Name: "vol++",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		err := volumecontrol.IncreaseVolume(10)
-		if err != nil {
-			target, _, _ := bot.getTarget(event)
-			event.Connection.Privmsgf(target, "%s%v", INVERSE_CHARACTER, err)
-		}
-	},
-}
-
-var VolDownCommand = Command{
-	Name: "vol--",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		err := volumecontrol.DecreaseVolume(10)
-		if err != nil {
-			target, _, _ := bot.getTarget(event)
-			event.Connection.Privmsgf(target, "%s%v", INVERSE_CHARACTER, err)
-		}
-	},
-}
-
-var VolCommand = Command{
-	Name: "vol",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-		if len(parameters) < 1 {
-			event.Connection.Privmsg(target, "!music vol <volume>")
-			return
-		}
-
-		vol, err := strconv.Atoi(parameters[0])
-		if err != nil {
-			event.Connection.Privmsgf(target, "%s%v", INVERSE_CHARACTER, err)
-			return
-		}
-
-		err = volumecontrol.SetVolume(vol)
-		if err != nil {
-			event.Connection.Privmsgf(target, "%s%v", INVERSE_CHARACTER, err)
-			return
-		}
-	},
-}
-
-var VersionCommand = Command{
-	Name: "version",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-
-		bot.ircConn.Privmsgf(target, "%s %s (%s)", GetMusicBotStringFormatted(), util.VersionTag, util.GitCommit)
-		bot.ircConn.Privmsgf(target, "Built: %s", util.BuildDate)
-		bot.ircConn.Privmsgf(target, "Built on: %s", util.BuildHost)
-		bot.ircConn.Privmsgf(target, "GO version: %s", util.GoVersion)
-	},
-}
-
-var LogCommand = Command{
-	Name: "log",
-	Function: func(bot *MusicBot, event *irc.Event, parameters []string) {
-		target, _, _ := bot.getTarget(event)
-
-		if bot.config.LogFile == "" {
-			event.Connection.Privmsgf(target, "%sCannot show log, no logfile configured", ITALIC_CHARACTER)
-			return
-		}
-
-		file, err := os.Open(bot.config.LogFile)
-		if err != nil {
-			logrus.Errorf("bot.LogCommand: Error opening file: [%s] %v", bot.config.LogFile, err)
-			return
-		}
-		defer file.Close()
-
-		var lines []string
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			lines = append(lines, scanner.Text())
-		}
-		err = scanner.Err()
-		if err != nil {
-			logrus.Errorf("bot.LogCommand: Error scanning file: [%s] %v", bot.config.LogFile, err)
-			return
-		}
-
-		for i := len(lines) - 11; i < len(lines); i++ {
-			if i < 0 {
-				continue
-			}
-			event.Connection.Privmsgf(target, "#%03d: %s", i+1, lines[i])
-		}
+var aboutCommand = &Command{
+	Name: "about",
+	Function: func(bot *MusicBot, message Message) {
+		bot.ReplyToMessage(message, "go-MusicBot by Sven Wiltink: https://github.com/svenwiltink/go-MusicBot")
 	},
 }

@@ -1,0 +1,17 @@
+{
+  "irc" : {
+    "server": "irc.freenode.net:6667",
+    "channel": "#banaan",
+    "nick": "iSlave",
+    "realname": "swiltink",
+    "pass": "",
+    "ssl": false
+  },
+  "youtube" {
+    "apikey": "api key"
+  },
+  "mpvpath": "C:\\Program Files (x86)\\mpv\\mpv.exe",
+  "mpvsocket": "\\\\.\\pipe\\mpvsocket",
+  "messageplugin": "terminal",
+  "master": "terminal"
+}

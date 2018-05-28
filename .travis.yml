@@ -1,6 +1,6 @@
 language: go
 go:
-- 1.9.x
+- 1.10.x
 install:
 - source ci/prepare
 jobs:
@@ -14,17 +14,15 @@ jobs:
   - stage: build
     script:
     - make deps
-    - glide install
     - make build
     on:
       tags: false
   - stage: release
     script:
       - make deps
-      - glide install
       - make build
       - mkdir out/archives
-      - ls -1 out/binaries | xargs -L 1 -I{}  tar --transform='flags=r;s|.*\(MusicBot\).*|\1|' --transform='flags=r;s|\(.*\)|MusicBot/\1|' -cf out/archives/{}.tar out/binaries/{} conf.json.example whitelist.txt
+      - ls -1 out/binaries | xargs -L 1 -I{}  tar --transform='flags=r;s|.*\(MusicBot\).*|\1|' --transform='flags=r;s|\(.*\)|MusicBot/\1|' -cf out/archives/{}.tar out/binaries/{} config.json.example
     deploy:
       provider: releases
       api_key:
@@ -34,4 +32,4 @@ jobs:
         - out/archives/*
       on:
         tags: true
-      skip_cleanup: true
+skip_cleanup: true
