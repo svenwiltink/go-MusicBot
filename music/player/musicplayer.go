@@ -209,19 +209,21 @@ func (player *MusicPlayer) playLoop() {
 func (player *MusicPlayer) Next() error {
 	fmt.Printf("current player status: %v", player.Status)
 
-	if player.Status.CanBeSkipped() {
-		err := player.activeProvider.Skip()
-		if err != nil {
-			return err
-		}
-
-		if player.Status == music.PlayerStatusPaused {
-			err = player.activeProvider.Play()
-			return err
-		}
+	if !player.Status.CanBeSkipped() {
+		return fmt.Errorf("nothing is playing")
 	}
 
-	return fmt.Errorf("nothing is playing")
+	err := player.activeProvider.Skip()
+	if err != nil {
+		return err
+	}
+
+	if player.Status == music.PlayerStatusPaused {
+		err = player.activeProvider.Play()
+		return err
+	}
+
+	return nil
 }
 
 func (player *MusicPlayer) Stop() {
