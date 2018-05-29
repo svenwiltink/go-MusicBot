@@ -76,7 +76,7 @@ var searchAddCommand = &Command{
 		}
 
 		if message.IsPrivate {
-			bot.BroadcastMessage(fmt.Sprintf("%s added", song.Name))
+			bot.BroadcastMessage(fmt.Sprintf("%s added by %s", song.Name, message.Sender.NickName))
 		}
 
 		bot.ReplyToMessage(message, fmt.Sprintf("%s added", song.Name))
