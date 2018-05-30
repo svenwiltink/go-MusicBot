@@ -7,18 +7,20 @@ import (
 	"errors"
 	"github.com/svenwiltink/go-musicbot/music"
 	"github.com/vansante/go-event-emitter"
+	"time"
 )
 
 // MusicPlayer is responsible for playing music
 type MusicPlayer struct {
 	*eventemitter.Emitter
-	Queue          *Queue
-	Status         music.PlayerStatus
-	dataProviders  []music.DataProvider
-	musicProviders []music.Provider
-	activeProvider music.Provider
-	currentSong    *music.Song
-	shouldStop     bool
+	Queue           *Queue
+	Status          music.PlayerStatus
+	dataProviders   []music.DataProvider
+	musicProviders  []music.Provider
+	activeProvider  music.Provider
+	currentSong     *music.Song
+	shouldStop      bool
+	currentSongEnds time.Time
 }
 
 func (player *MusicPlayer) Pause() error {
@@ -54,8 +56,12 @@ func (player *MusicPlayer) GetStatus() music.PlayerStatus {
 	return player.Status
 }
 
-func (player *MusicPlayer) GetCurrentSong() *music.Song {
-	return player.currentSong
+func (player *MusicPlayer) GetCurrentSong() (*music.Song, time.Duration) {
+	if player.currentSong != nil {
+		return player.currentSong, player.currentSongEnds.Sub(time.Now()).Round(time.Second)
+	}
+
+	return nil, time.Duration(0)
 }
 
 func (player *MusicPlayer) SetVolume(percentage int) error {
@@ -114,7 +120,10 @@ func (player *MusicPlayer) Search(searchString string) ([]*music.Song, error) {
 	songs := make([]*music.Song, 0)
 
 	for _, provider := range player.dataProviders {
-		results, _ := provider.Search(searchString)
+		results, err := provider.Search(searchString)
+		if err != nil {
+			return nil, err
+		}
 
 		if results != nil {
 			songs = append(songs, results...)
@@ -198,6 +207,7 @@ func (player *MusicPlayer) playLoop() {
 			continue
 		}
 
+		player.currentSongEnds = time.Now().Add(song.Duration)
 		player.EmitEvent(music.EventSongStarted, song)
 		player.Status = music.PlayerStatusPlaying
 		provider.Wait()

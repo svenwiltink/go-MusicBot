@@ -3,6 +3,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/ChannelMeter/iso8601duration"
+  packages = ["."]
+  revision = "8da3af7a2a61a4eb5ae9bddec06bf637fa9593da"
+
+[[projects]]
+  branch = "master"
   name = "github.com/DexterLB/mpvipc"
   packages = ["."]
   revision = "c65680788f718e847d0a9f04ca685ece8d026b85"
@@ -25,6 +31,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/svenwiltink/youtube-dl"
+  packages = ["."]
+  revision = "08954d006d6a7f3571639fd5480e8846128a562a"
+
+[[projects]]
+  branch = "master"
   name = "github.com/vansante/go-event-emitter"
   packages = ["."]
   revision = "ea73e03613173060f12a82ab1e720202390d0cc5"
@@ -38,7 +50,7 @@
     "internal/socks",
     "proxy"
   ]
-  revision = "5f9ae10d9af5b1c89ae6904293b14b064d4ada23"
+  revision = "75944861c7512f64725d687546cfbc757626151f"
 
 [[projects]]
   branch = "master"
@@ -50,7 +62,7 @@
     "googleapi/transport",
     "youtube/v3"
   ]
-  revision = "2b26f0d5dbe6eea8c0924349bb024673f8105fd9"
+  revision = "de943baf05a022a8f921b544b7827bacaba1aed5"
 
 [[projects]]
   branch = "v2"
@@ -61,6 +73,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "809bb27bbfa32e399f64c88964398d156f68e270d4f58c10927f2c2268ca0af3"
+  inputs-digest = "f3d3c945de3edf7a89b45e0e14f9a5a31ea393c5ee2ac5d9cecf77f002042c40"
   solver-name = "gps-cdcl"
   solver-version = 1

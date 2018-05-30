@@ -4,6 +4,8 @@ import (
 	"regexp"
 
 	"github.com/svenwiltink/go-musicbot/music"
+	"github.com/svenwiltink/youtube-dl"
+	"time"
 )
 
 var soundCloudRegex = regexp.MustCompile(`^https://soundcloud.com/([a-zA-Z0-9\-_]+)/([a-zA-Z0-9\-_]+)`)
@@ -15,10 +17,14 @@ func (DataProvider) CanProvideData(song *music.Song) bool {
 }
 
 func (DataProvider) ProvideData(song *music.Song) error {
-	matches := soundCloudRegex.FindStringSubmatch(song.Path)
+	data, err := youtubedl.GetMetaData(song.Path)
+	if err != nil {
+		return err
+	}
 
-	song.Artist = matches[1]
-	song.Name = matches[2]
+	song.Artist = data.Uploader
+	song.Name = data.Title
+	song.Duration = time.Second * time.Duration(data.Duration)
 
 	return nil
 }
