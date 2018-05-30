@@ -6,6 +6,7 @@ import (
 
 	"github.com/svenwiltink/go-musicbot/music"
 	"strconv"
+	"time"
 )
 
 type Command struct {
@@ -44,9 +45,9 @@ var addCommand = &Command{
 			bot.ReplyToMessage(message, err.Error())
 		} else {
 			if message.IsPrivate {
-				bot.BroadcastMessage(fmt.Sprintf("%s added by %s", song.Name, message.Sender.NickName))
+				bot.BroadcastMessage(fmt.Sprintf("%s - %s added by %s", song.Artist, song.Name, message.Sender.NickName))
 			}
-			bot.ReplyToMessage(message, fmt.Sprintf("%s added", song.Name))
+			bot.ReplyToMessage(message, fmt.Sprintf("%s - %s added", song.Artist, song.Name))
 		}
 	},
 }
@@ -60,7 +61,11 @@ var searchAddCommand = &Command{
 			return
 		}
 
-		songs, _ := bot.musicPlayer.Search(words[2])
+		songs, err := bot.musicPlayer.Search(words[2])
+
+		if err != nil {
+			bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
+		}
 
 		if len(songs) == 0 {
 			bot.ReplyToMessage(message, "No song found")
@@ -68,7 +73,7 @@ var searchAddCommand = &Command{
 		}
 
 		song := songs[0]
-		err := bot.musicPlayer.AddSong(song)
+		err = bot.musicPlayer.AddSong(song)
 
 		if err != nil {
 			bot.ReplyToMessage(message, fmt.Sprintf("Error: %v", err))
@@ -76,10 +81,10 @@ var searchAddCommand = &Command{
 		}
 
 		if message.IsPrivate {
-			bot.BroadcastMessage(fmt.Sprintf("%s added by %s", song.Name, message.Sender.NickName))
+			bot.BroadcastMessage(fmt.Sprintf("%s - %s added by %s", song.Artist, song.Name, message.Sender.NickName))
 		}
 
-		bot.ReplyToMessage(message, fmt.Sprintf("%s added", song.Name))
+		bot.ReplyToMessage(message, fmt.Sprintf("%s - %s added", song.Artist, song.Name))
 	},
 }
 
@@ -137,12 +142,21 @@ var playCommand = &Command{
 var currentCommand = &Command{
 	Name: "current",
 	Function: func(bot *MusicBot, message Message) {
-		song := bot.musicPlayer.GetCurrentSong()
+		song, durationLeft := bot.musicPlayer.GetCurrentSong()
 		if song == nil {
 			bot.ReplyToMessage(message, "Nothing currently playing")
 			return
 		}
-		bot.ReplyToMessage(message, fmt.Sprintf("Current song: %s %s", song.Artist, song.Name))
+
+		if song.SongType == music.SongTypeSong {
+			bot.ReplyToMessage(
+				message,
+				fmt.Sprintf("Current song: %s %s. %s remaining (%s)", song.Artist, song.Name, durationLeft.String(), song.Duration.Round(time.Second).String()))
+		} else {
+			bot.ReplyToMessage(
+				message,
+				fmt.Sprintf("Current song: %s %s. This is a livestream, use the next command to skip", song.Artist, song.Name))
+		}
 	},
 }
 
@@ -239,7 +253,6 @@ var volCommand = &Command{
 				}
 			}
 		}
-
 
 		if message.IsPrivate {
 			bot.BroadcastMessage(fmt.Sprintf("Volume set to %d by %s", volume, message.Sender.NickName))

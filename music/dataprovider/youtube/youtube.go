@@ -10,7 +10,8 @@ import (
 
 	"github.com/svenwiltink/go-musicbot/music"
 	"google.golang.org/api/googleapi/transport"
-	youtube "google.golang.org/api/youtube/v3"
+	"google.golang.org/api/youtube/v3"
+	isoduration "github.com/ChannelMeter/iso8601duration"
 )
 
 const (
@@ -83,6 +84,16 @@ func (provider *DataProvider) provideDataForIdentifier(identifier string, song *
 			}
 
 			song.Name = item.Snippet.Title
+			song.Artist = item.Snippet.ChannelTitle
+
+			duration, err := isoduration.FromString(item.ContentDetails.Duration)
+
+			if err != nil {
+				return err
+			}
+
+			song.Duration = duration.ToDuration()
+
 			song.Path = fmt.Sprintf(youTubeVideoURL, identifier)
 			return nil
 		}

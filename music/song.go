@@ -1,5 +1,7 @@
 package music
 
+import "time"
+
 type SongType string
 
 const (
@@ -12,4 +14,5 @@ type Song struct {
 	Artist   string
 	Path     string
 	SongType SongType
+	Duration time.Duration
 }

@@ -44,3 +44,11 @@
 [[constraint]]
   branch = "master"
   name = "google.golang.org/api"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/svenwiltink/youtube-dl"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/ChannelMeter/iso8601duration"
