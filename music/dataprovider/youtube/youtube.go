@@ -8,10 +8,10 @@ import (
 	"regexp"
 	"strings"
 
+	isoduration "github.com/ChannelMeter/iso8601duration"
 	"github.com/svenwiltink/go-musicbot/music"
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
-	isoduration "github.com/ChannelMeter/iso8601duration"
 )
 
 const (
