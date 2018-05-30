@@ -96,7 +96,7 @@ var nextCommand = &Command{
 			bot.ReplyToMessage(message, fmt.Sprintf("Could not skip song: %v", err))
 		} else {
 			if message.IsPrivate {
-				bot.BroadcastMessage("Skipping song")
+				bot.BroadcastMessage(fmt.Sprintf("%s skipped the song", message.Sender.NickName))
 			}
 			bot.ReplyToMessage(message, "Skipping song")
 		}
