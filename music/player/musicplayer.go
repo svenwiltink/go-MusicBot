@@ -13,7 +13,7 @@ import (
 // MusicPlayer is responsible for playing music
 type MusicPlayer struct {
 	*eventemitter.Emitter
-	Queue           *Queue
+	Queue           *music.Queue
 	Status          music.PlayerStatus
 	dataProviders   []music.DataProvider
 	musicProviders  []music.Provider
@@ -21,6 +21,10 @@ type MusicPlayer struct {
 	currentSong     *music.Song
 	shouldStop      bool
 	currentSongEnds time.Time
+}
+
+func (player *MusicPlayer) GetQueue() *music.Queue {
+	return player.Queue
 }
 
 func (player *MusicPlayer) Pause() error {
@@ -158,7 +162,7 @@ func (player *MusicPlayer) AddSong(song *music.Song) error {
 		return fmt.Errorf("no suitable player found for %+v", song)
 	}
 
-	player.Queue.append(song)
+	player.Queue.Append(song)
 	return nil
 }
 
@@ -247,7 +251,7 @@ func (player *MusicPlayer) Stop() {
 func NewMusicPlayer(providers []music.Provider, dataProviders []music.DataProvider) *MusicPlayer {
 	instance := &MusicPlayer{
 		Emitter:        eventemitter.NewEmitter(false),
-		Queue:          NewQueue(),
+		Queue:          music.NewQueue(),
 		musicProviders: providers,
 		dataProviders:  dataProviders,
 		shouldStop:     false,

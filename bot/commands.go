@@ -160,6 +160,13 @@ var currentCommand = &Command{
 	},
 }
 
+var queueCommand = &Command{
+	Name: "queue",
+	Function : func(bot *MusicBot, message Message) {
+		bot.GetMusicPlayer().GetQueue()
+	},
+}
+
 var whiteListCommand = &Command{
 	Name:       "whitelist",
 	MasterOnly: true,

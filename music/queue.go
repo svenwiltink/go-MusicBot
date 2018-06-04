@@ -1,11 +1,12 @@
-package player
+package music
 
 import (
 	"log"
 	"sync"
-
-	"github.com/svenwiltink/go-musicbot/music"
+	
 	"github.com/vansante/go-event-emitter"
+	"time"
+	"errors"
 )
 
 const (
@@ -15,12 +16,11 @@ const (
 // Queue holds an array of songs
 type Queue struct {
 	*eventemitter.Emitter
-	songs         []*music.Song
+	songs         []*Song
 	lock          sync.Mutex
-	songAddedChan chan bool
 }
 
-func (queue *Queue) append(songs ...*music.Song) {
+func (queue *Queue) Append(songs ...*Song) {
 	queue.lock.Lock()
 	defer queue.lock.Unlock()
 
@@ -30,14 +30,14 @@ func (queue *Queue) append(songs ...*music.Song) {
 }
 
 // GetNext returns the next item in the queue if it exists
-func (queue *Queue) GetNext() *music.Song {
+func (queue *Queue) GetNext() *Song {
 	queue.lock.Lock()
 	defer queue.lock.Unlock()
 
 	return queue.getNext()
 }
 
-func (queue *Queue) getNext() *music.Song {
+func (queue *Queue) getNext() *Song {
 	if len(queue.songs) == 0 {
 		return nil
 	}
@@ -48,10 +48,49 @@ func (queue *Queue) getNext() *music.Song {
 	return song
 }
 
+func (queue *Queue) GetLength() int{
+	queue.lock.Lock()
+	defer queue.lock.Unlock()
+
+	return len(queue.songs)
+}
+
+func (queue *Queue) GetTotalDuration() time.Duration {
+	queue.lock.Lock()
+	defer queue.lock.Unlock()
+
+	var duration time.Duration
+
+	for _, song := range queue.songs {
+		duration = duration + song.Duration
+	}
+
+	return duration
+}
+
+func (queue *Queue) GetNextN(limit int) ([]Song, error) {
+	if limit <= 0 {
+		return nil, errors.New("limit must be greater than 0")
+	}
+
+	queue.lock.Lock()
+	defer queue.lock.Unlock()
+
+	if len(queue.songs) < limit {
+		limit = len(queue.songs)
+	}
+
+	result := make([]Song, limit)
+	for i := 0; i < limit; i++ {
+		result[i] = *queue.songs[i]
+	}
+
+	return result, nil
+}
+
 // WaitForNext is a blocking call that returns the next song in the queue and wait for one to be added
-// if there is no song available. The only caveat of this is that this method can only really be used by one process
-// because it uses a single signal
-func (queue *Queue) WaitForNext() *music.Song {
+// if there is no song available.
+func (queue *Queue) WaitForNext() *Song {
 	next := queue.GetNext()
 
 	if next != nil {
@@ -70,8 +109,7 @@ func (queue *Queue) WaitForNext() *music.Song {
 // NewQueue creates a new instance of Queue
 func NewQueue() *Queue {
 	return &Queue{
-		songs:         make([]*music.Song, 0),
-		songAddedChan: make(chan bool),
+		songs:         make([]*Song, 0),
 		Emitter:       eventemitter.NewEmitter(true),
 	}
 }

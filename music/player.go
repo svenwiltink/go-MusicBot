@@ -3,7 +3,7 @@ package music
 import (
 	"github.com/vansante/go-event-emitter"
 	"time"
-)
+	)
 
 const (
 	EventSongStarted    = "song-started"
@@ -27,6 +27,7 @@ type Player interface {
 	Stop()
 	GetStatus() PlayerStatus
 	GetCurrentSong() (*Song, time.Duration)
+	GetQueue() *Queue
 }
 
 type PlayerStatus string

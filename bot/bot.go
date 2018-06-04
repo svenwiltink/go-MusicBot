@@ -156,3 +156,7 @@ func (bot *MusicBot) handleMessage(message Message) {
 		}
 	}
 }
+
+func (bot *MusicBot) GetMusicPlayer() music.Player {
+	return bot.musicPlayer
+}

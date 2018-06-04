@@ -14,6 +14,12 @@
   revision = "c65680788f718e847d0a9f04ca685ece8d026b85"
 
 [[projects]]
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
+  version = "v1.1.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/fluffle/goirc"
   packages = [
@@ -28,6 +34,18 @@
   packages = ["gomock"]
   revision = "c34cdb4725f4c3844d095133c6e40e448b86589b"
   version = "v1.1.1"
+
+[[projects]]
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/stretchr/testify"
+  packages = ["assert"]
+  revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
+  version = "v1.2.1"
 
 [[projects]]
   branch = "master"
@@ -73,6 +91,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f3d3c945de3edf7a89b45e0e14f9a5a31ea393c5ee2ac5d9cecf77f002042c40"
+  inputs-digest = "f641dde3acc90e80bb0f6773da12330587bf666be14f9690de916d1853797465"
   solver-name = "gps-cdcl"
   solver-version = 1
