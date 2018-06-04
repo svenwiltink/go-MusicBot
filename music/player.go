@@ -3,7 +3,7 @@ package music
 import (
 	"github.com/vansante/go-event-emitter"
 	"time"
-	)
+)
 
 const (
 	EventSongStarted    = "song-started"

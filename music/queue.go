@@ -3,10 +3,10 @@ package music
 import (
 	"log"
 	"sync"
-	
+
+	"errors"
 	"github.com/vansante/go-event-emitter"
 	"time"
-	"errors"
 )
 
 const (
@@ -16,8 +16,8 @@ const (
 // Queue holds an array of songs
 type Queue struct {
 	*eventemitter.Emitter
-	songs         []*Song
-	lock          sync.Mutex
+	songs []*Song
+	lock  sync.Mutex
 }
 
 func (queue *Queue) Append(songs ...*Song) {
@@ -48,7 +48,7 @@ func (queue *Queue) getNext() *Song {
 	return song
 }
 
-func (queue *Queue) GetLength() int{
+func (queue *Queue) GetLength() int {
 	queue.lock.Lock()
 	defer queue.lock.Unlock()
 
@@ -109,7 +109,7 @@ func (queue *Queue) WaitForNext() *Song {
 // NewQueue creates a new instance of Queue
 func NewQueue() *Queue {
 	return &Queue{
-		songs:         make([]*Song, 0),
-		Emitter:       eventemitter.NewEmitter(true),
+		songs:   make([]*Song, 0),
+		Emitter: eventemitter.NewEmitter(true),
 	}
 }

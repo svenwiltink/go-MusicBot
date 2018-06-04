@@ -1,12 +1,12 @@
 package music
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
-	"github.com/stretchr/testify/assert"
 )
 
-func TestQueue_GetLength (t *testing.T) {
+func TestQueue_GetLength(t *testing.T) {
 	t.Parallel()
 	queue := NewQueue()
 
@@ -14,7 +14,7 @@ func TestQueue_GetLength (t *testing.T) {
 
 	queue.Append(&Song{
 		Duration: time.Minute,
-		Name: "banaan",
+		Name:     "banaan",
 	})
 
 	assert.Equal(t, 1, queue.GetLength())
@@ -26,7 +26,7 @@ func TestQueue_Append(t *testing.T) {
 
 	song := &Song{
 		Duration: time.Minute,
-		Name: "banaan",
+		Name:     "banaan",
 	}
 
 	queue.Append(song)
@@ -49,7 +49,7 @@ func TestQueue_GetNext(t *testing.T) {
 	queue := NewQueue()
 	song := &Song{
 		Duration: time.Minute,
-		Name: "banaan",
+		Name:     "banaan",
 	}
 
 	queue.Append(song)
@@ -105,7 +105,7 @@ func TestQueue_GetNextN(t *testing.T) {
 func TestQueue_GetTotalDuration(t *testing.T) {
 	queue, _, _ := getTestQueue()
 
-	assert.Equal(t, 2 * time.Minute, queue.GetTotalDuration())
+	assert.Equal(t, 2*time.Minute, queue.GetTotalDuration())
 }
 
 func TestQueue_WaitForNext(t *testing.T) {

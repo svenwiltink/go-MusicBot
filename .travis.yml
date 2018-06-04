@@ -13,7 +13,6 @@ jobs:
     script:
     - make deps
     - make build
-    - make test  
     - mkdir out/archives
     - ls -1 out/binaries | xargs -L 1 -I{}  tar --transform='flags=r;s|.*\(MusicBot\).*|\1|' --transform='flags=r;s|\(.*\)|MusicBot/\1|' -cf out/archives/{}.tar out/binaries/{} config.json.example
     deploy:
