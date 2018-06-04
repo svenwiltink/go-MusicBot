@@ -52,3 +52,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/ChannelMeter/iso8601duration"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.2.1"

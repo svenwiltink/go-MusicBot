@@ -27,6 +27,7 @@ type Player interface {
 	Stop()
 	GetStatus() PlayerStatus
 	GetCurrentSong() (*Song, time.Duration)
+	GetQueue() *Queue
 }
 
 type PlayerStatus string

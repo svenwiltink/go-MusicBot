@@ -45,9 +45,9 @@ var addCommand = &Command{
 			bot.ReplyToMessage(message, err.Error())
 		} else {
 			if message.IsPrivate {
-				bot.BroadcastMessage(fmt.Sprintf("%s - %s added by %s", song.Artist, song.Name, message.Sender.NickName))
+				bot.BroadcastMessage(fmt.Sprintf("%s: %s added by %s", song.Artist, song.Name, message.Sender.NickName))
 			}
-			bot.ReplyToMessage(message, fmt.Sprintf("%s - %s added", song.Artist, song.Name))
+			bot.ReplyToMessage(message, fmt.Sprintf("%s: %s added", song.Artist, song.Name))
 		}
 	},
 }
@@ -81,10 +81,10 @@ var searchAddCommand = &Command{
 		}
 
 		if message.IsPrivate {
-			bot.BroadcastMessage(fmt.Sprintf("%s - %s added by %s", song.Artist, song.Name, message.Sender.NickName))
+			bot.BroadcastMessage(fmt.Sprintf("%s: %s added by %s", song.Artist, song.Name, message.Sender.NickName))
 		}
 
-		bot.ReplyToMessage(message, fmt.Sprintf("%s - %s added", song.Artist, song.Name))
+		bot.ReplyToMessage(message, fmt.Sprintf("%s: %s added", song.Artist, song.Name))
 	},
 }
 
@@ -157,6 +157,28 @@ var currentCommand = &Command{
 				message,
 				fmt.Sprintf("Current song: %s %s. This is a livestream, use the next command to skip", song.Artist, song.Name))
 		}
+	},
+}
+
+var queueCommand = &Command{
+	Name: "queue",
+	Function: func(bot *MusicBot, message Message) {
+		queue := bot.GetMusicPlayer().GetQueue()
+
+		queueLength := queue.GetLength()
+		nextSongs, _ := queue.GetNextN(5)
+		duration := queue.GetTotalDuration()
+
+		bot.ReplyToMessage(message, fmt.Sprintf("%d songs in the queue. Total duration %s", queueLength, duration.String()))
+
+		for index, song := range nextSongs {
+			bot.ReplyToMessage(message, fmt.Sprintf("#%d, %s: %s (%s)\n", index+1, song.Artist, song.Name, song.Duration.String()))
+		}
+
+		if queueLength > 5 {
+			bot.ReplyToMessage(message, fmt.Sprintf("and %d more", queueLength-5))
+		}
+
 	},
 }
 

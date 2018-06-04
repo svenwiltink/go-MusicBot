@@ -13,7 +13,7 @@ GIT_VERSION_TAG=`git describe --tags --long`
 
 BUILD_PLATFORMS ?= -os '!netbsd' -os '!openbsd' -os '!freebsd'
 
-all: deps verify build
+all: deps verify build test
 
 help:
 
@@ -35,3 +35,5 @@ build:
 		  @mkdir -p out/binaries
 	gox $(BUILD_PLATFORMS) \
 		  -output="out/binaries/$(NAME)-{{.OS}}-{{.Arch}}"
+test:
+	go test -v './...'
