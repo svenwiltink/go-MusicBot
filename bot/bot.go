@@ -63,7 +63,7 @@ func (bot *MusicBot) Start() {
 
 	bot.musicPlayer.AddListener(music.EventSongStarted, func(arguments ...interface{}) {
 		song := arguments[0].(*music.Song)
-		bot.BroadcastMessage(fmt.Sprintf("Started playing %v", song.Name))
+		bot.BroadcastMessage(fmt.Sprintf("Started playing %s: %s", song.Artist, song.Name))
 	})
 
 	bot.musicPlayer.AddListener(music.EventSongStartError, func(arguments ...interface{}) {
@@ -103,6 +103,7 @@ func (bot *MusicBot) registerCommands() {
 	bot.registerCommand(pausedCommand)
 	bot.registerCommand(playCommand)
 	bot.registerCommand(currentCommand)
+	bot.registerCommand(queueCommand)
 	bot.registerCommand(whiteListCommand)
 	bot.registerCommand(volCommand)
 	bot.registerCommand(aboutCommand)

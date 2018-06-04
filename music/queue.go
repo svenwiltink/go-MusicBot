@@ -65,7 +65,7 @@ func (queue *Queue) GetTotalDuration() time.Duration {
 		duration = duration + song.Duration
 	}
 
-	return duration
+	return duration.Round(time.Second)
 }
 
 func (queue *Queue) GetNextN(limit int) ([]Song, error) {
