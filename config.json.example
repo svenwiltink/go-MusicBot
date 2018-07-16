@@ -7,6 +7,13 @@
     "pass": "",
     "ssl": false
   },
+  "rocketchat" : {
+    "server": "chat.sveniltink.nl:443",
+    "channel": "#banaan",
+    "username": "musicbot",
+    "pass": "",
+    "ssl": true
+  },
   "youtube": {
     "apikey": "api key"
   },

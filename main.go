@@ -9,6 +9,7 @@ import (
 	"github.com/svenwiltink/go-musicbot/bot"
 	"github.com/svenwiltink/go-musicbot/bot/messageprovider/irc"
 	"github.com/svenwiltink/go-musicbot/bot/messageprovider/terminal"
+	"github.com/svenwiltink/go-musicbot/bot/messageprovider/rocketchat"
 )
 
 func main() {
@@ -27,7 +28,12 @@ func main() {
 	}
 
 	messageProvider := chooseMessageProvider(config)
-	messageProvider.Start()
+	err = messageProvider.Start()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 
 	bot := bot.NewMusicBot(config, messageProvider)
 	bot.Start()
@@ -50,6 +56,9 @@ func chooseMessageProvider(config *bot.Config) bot.MessageProvider {
 	case "terminal":
 		log.Println("loading the terminal message provider")
 		return terminal.New()
+	case "rocketchat":
+		log.Println("loading the rocketchat message provider")
+		return rocketchat.New(config)
 	default:
 		log.Fatalf("unsupported message plugin: %s", config.MessagePlugin)
 	}

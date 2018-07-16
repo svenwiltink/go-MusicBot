@@ -43,12 +43,14 @@ var addCommand = &Command{
 		err := bot.musicPlayer.AddSong(song)
 		if err != nil {
 			bot.ReplyToMessage(message, err.Error())
-		} else {
-			if message.IsPrivate {
-				bot.BroadcastMessage(fmt.Sprintf("%s: %s added by %s", song.Artist, song.Name, message.Sender.NickName))
-			}
-			bot.ReplyToMessage(message, fmt.Sprintf("%s: %s added", song.Artist, song.Name))
+			return
 		}
+
+		if message.IsPrivate {
+			bot.BroadcastMessage(fmt.Sprintf("%s: %s added by %s", song.Artist, song.Name, message.Sender.NickName))
+		}
+		bot.ReplyToMessage(message, fmt.Sprintf("%s: %s added", song.Artist, song.Name))
+
 	},
 }
 

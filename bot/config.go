@@ -14,14 +14,15 @@ const (
 )
 
 type Config struct {
-	WhiteListFile string        `json:"whitelistFile"`
-	Master        string        `json:"master"`
-	Irc           IRCConfig     `json:"irc"`
-	Youtube       YoutubeConfig `json:"youtube"`
-	MessagePlugin string        `json:"messageplugin"`
-	CommandPrefix string        `json:"commandprefix"`
-	MpvPath       string        `json:"mpvpath"`
-	MpvSocket     string        `json:"mpvsocket"`
+	WhiteListFile string           `json:"whitelistFile"`
+	Master        string           `json:"master"`
+	Irc           IRCConfig        `json:"irc"`
+	Rocketchat    RocketchatConfig `json:"rocketchat"`
+	Youtube       YoutubeConfig    `json:"youtube"`
+	MessagePlugin string           `json:"messageplugin"`
+	CommandPrefix string           `json:"commandprefix"`
+	MpvPath       string           `json:"mpvpath"`
+	MpvSocket     string           `json:"mpvsocket"`
 }
 
 type IRCConfig struct {
@@ -29,6 +30,14 @@ type IRCConfig struct {
 	Channel  string `json:"channel"`
 	Nick     string `json:"nick"`
 	RealName string `json:"realname"`
+	Pass     string `json:"pass"`
+	Ssl      bool   `json:"ssl"`
+}
+
+type RocketchatConfig struct {
+	Server   string `json:"server"`
+	Channel  string `json:"channel"`
+	Username string `json:"username"`
 	Pass     string `json:"pass"`
 	Ssl      bool   `json:"ssl"`
 }
