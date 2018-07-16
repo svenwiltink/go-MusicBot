@@ -8,8 +8,8 @@ import (
 
 	"github.com/svenwiltink/go-musicbot/bot"
 	"github.com/svenwiltink/go-musicbot/bot/messageprovider/irc"
-	"github.com/svenwiltink/go-musicbot/bot/messageprovider/terminal"
 	"github.com/svenwiltink/go-musicbot/bot/messageprovider/rocketchat"
+	"github.com/svenwiltink/go-musicbot/bot/messageprovider/terminal"
 )
 
 func main() {
@@ -33,7 +33,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 
 	bot := bot.NewMusicBot(config, messageProvider)
 	bot.Start()

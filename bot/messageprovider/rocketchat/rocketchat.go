@@ -1,9 +1,9 @@
 package rocketchat
 
 import (
+	"fmt"
 	"github.com/svenwiltink/go-musicbot/bot"
 	"github.com/svenwiltink/rocketchatgo"
-	"fmt"
 	"log"
 )
 
