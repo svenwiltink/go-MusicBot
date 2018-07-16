@@ -55,11 +55,6 @@ func (p *MessageProvider) onMessageCreate(session *rocketchatgo.Session, event *
 		return
 	}
 
-	log.Printf("%+v", event.Message)
-	if event.Message.SysMes {
-		return
-	}
-
 	channel := p.session.GetChannelById(event.Message.ChannelID)
 
 	if channel == nil {
@@ -76,8 +71,6 @@ func (p *MessageProvider) onMessageCreate(session *rocketchatgo.Session, event *
 			NickName: event.Message.Sender.Name,
 		},
 	}
-
-	log.Print(msg)
 
 	p.msgChannel <- msg
 

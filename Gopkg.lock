@@ -3,112 +3,152 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:767de091c3bc6e7b8683dfb6e09eee4bb70107c76a62f2d47c622e7a3c2a385c"
   name = "github.com/ChannelMeter/iso8601duration"
   packages = ["."]
+  pruneopts = "UT"
   revision = "8da3af7a2a61a4eb5ae9bddec06bf637fa9593da"
 
 [[projects]]
   branch = "master"
+  digest = "1:eb0dee5c3187098806708c7be4621968c4c5cebff1f2d661d9a25b9f9827eee5"
   name = "github.com/DexterLB/mpvipc"
   packages = ["."]
+  pruneopts = "UT"
   revision = "c65680788f718e847d0a9f04ca685ece8d026b85"
 
 [[projects]]
+  digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
+  pruneopts = "UT"
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:318d475ddf9c5c5137243a878775344dbec15e98c690fac1c309d99f7520700a"
   name = "github.com/fluffle/goirc"
   packages = [
     "client",
     "logging",
-    "state"
+    "state",
   ]
+  pruneopts = "UT"
   revision = "fc1dfa1ceb8897bcaa5231b560b9319591d4ab0a"
 
 [[projects]]
+  digest = "1:bc38c7c481812e178d85160472e231c5e1c9a7f5845d67e23ee4e706933c10d8"
   name = "github.com/golang/mock"
   packages = ["gomock"]
+  pruneopts = "UT"
   revision = "c34cdb4725f4c3844d095133c6e40e448b86589b"
   version = "v1.1.1"
 
 [[projects]]
+  digest = "1:43dd08a10854b2056e615d1b1d22ac94559d822e1f8b6fcc92c1a1057e85188e"
   name = "github.com/gorilla/websocket"
   packages = ["."]
+  pruneopts = "UT"
   revision = "ea4d1f681babbce9545c9c5f3d5194a789c89f5b"
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
+  pruneopts = "UT"
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:18752d0b95816a1b777505a97f71c7467a8445b8ffb55631a7bf779f6ba4fa83"
   name = "github.com/stretchr/testify"
   packages = ["assert"]
+  pruneopts = "UT"
   revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
   version = "v1.2.2"
 
 [[projects]]
   branch = "master"
+  digest = "1:2e5685d2f658cc4c277c8e65b06c30e96f16b5489ef4d3bf1df2639f113fbf94"
   name = "github.com/svenwiltink/ddpgo"
   packages = ["."]
+  pruneopts = "UT"
   revision = "6756e3cd59e06e47caf1d0f257f03a50745b3b97"
 
 [[projects]]
   branch = "master"
+  digest = "1:1bff419d966219433b5e35cd24de97d88cf7d84deb1125aa9f50be8515dfa570"
   name = "github.com/svenwiltink/rocketchatgo"
   packages = ["."]
+  pruneopts = "UT"
   revision = "507c4d5850bb17cbe646b948595a2f1338429efd"
 
 [[projects]]
   branch = "master"
+  digest = "1:32bb8118faec467ead4e413a1b87d06224022eba2d0524c9c2e23e39687a7611"
   name = "github.com/svenwiltink/youtube-dl"
   packages = ["."]
+  pruneopts = "UT"
   revision = "08954d006d6a7f3571639fd5480e8846128a562a"
 
 [[projects]]
+  branch = "master"
+  digest = "1:01d9a378e7b754986626d26341f7121f5d0c9837e5206261851c0b9d64e10177"
   name = "github.com/vansante/go-event-emitter"
   packages = ["."]
+  pruneopts = "UT"
   revision = "d1e9ab59df602aa56eccba69a8dafa3e9557328f"
-  version = "v2.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:6fa08649c5b3bd0f090898aff37a4bd024c7d599d61cc3c76fed66a322d8bf13"
   name = "golang.org/x/net"
   packages = [
     "context",
     "context/ctxhttp",
     "internal/socks",
-    "proxy"
+    "proxy",
   ]
+  pruneopts = "UT"
   revision = "d0887baf81f4598189d4e12a37c6da86f0bba4d0"
 
 [[projects]]
   branch = "master"
+  digest = "1:e236bf54fb9c476763d3d3e0f125aac6c64f98d90b65cf38fcc395e0eca5bc06"
   name = "google.golang.org/api"
   packages = [
     "gensupport",
     "googleapi",
     "googleapi/internal/uritemplates",
     "googleapi/transport",
-    "youtube/v3"
+    "youtube/v3",
   ]
-  revision = "781db45e5b94469718b0c615037e76333cd050e3"
+  pruneopts = "UT"
+  revision = "28dc565badee2b2dc1169cda0938e2eb1d295ba2"
 
 [[projects]]
   branch = "v2"
+  digest = "1:3d3f9391ab615be8655ae0d686a1564f3fec413979bb1aaf018bac1ec1bb1cc7"
   name = "gopkg.in/natefinch/npipe.v2"
   packages = ["."]
+  pruneopts = "UT"
   revision = "c1b8fa8bdccecb0b8db834ee0b92fdbcfa606dd6"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "bbce7da65dfa2830185365629bffe97d4c47a90babd5baf2467180edfee16f86"
+  input-imports = [
+    "github.com/ChannelMeter/iso8601duration",
+    "github.com/DexterLB/mpvipc",
+    "github.com/fluffle/goirc/client",
+    "github.com/stretchr/testify/assert",
+    "github.com/svenwiltink/rocketchatgo",
+    "github.com/svenwiltink/youtube-dl",
+    "github.com/vansante/go-event-emitter",
+    "google.golang.org/api/googleapi/transport",
+    "google.golang.org/api/youtube/v3",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
