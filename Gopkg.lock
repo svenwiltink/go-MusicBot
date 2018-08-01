@@ -27,7 +27,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:318d475ddf9c5c5137243a878775344dbec15e98c690fac1c309d99f7520700a"
+  digest = "1:0aa3883f8e21c66f799f69e736742bc33ca4ab2ec44f1fb8868c8a7d81a6e0ef"
   name = "github.com/fluffle/goirc"
   packages = [
     "client",
@@ -71,11 +71,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2e5685d2f658cc4c277c8e65b06c30e96f16b5489ef4d3bf1df2639f113fbf94"
+  digest = "1:89ee898518d8a5679d6ad7131a663392c77b877971db3e9c2f6b667f04fae56d"
   name = "github.com/svenwiltink/ddpgo"
   packages = ["."]
   pruneopts = "UT"
-  revision = "6756e3cd59e06e47caf1d0f257f03a50745b3b97"
+  revision = "d9238bf818c01afc51af660dc281781b18da3bc8"
 
 [[projects]]
   branch = "master"
@@ -103,7 +103,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6fa08649c5b3bd0f090898aff37a4bd024c7d599d61cc3c76fed66a322d8bf13"
+  digest = "1:58cb5fbdf85e1f468c749aa31773ff102866831106f52762b2823ae235ca11e7"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -112,11 +112,11 @@
     "proxy",
   ]
   pruneopts = "UT"
-  revision = "d0887baf81f4598189d4e12a37c6da86f0bba4d0"
+  revision = "49c15d80dfbc983ea25246ee959d970efe09ec09"
 
 [[projects]]
   branch = "master"
-  digest = "1:e236bf54fb9c476763d3d3e0f125aac6c64f98d90b65cf38fcc395e0eca5bc06"
+  digest = "1:a53de9504dfd6acd370013e963ea50056736b63df77a6efe81bad02f428d09fb"
   name = "google.golang.org/api"
   packages = [
     "gensupport",
@@ -126,7 +126,7 @@
     "youtube/v3",
   ]
   pruneopts = "UT"
-  revision = "28dc565badee2b2dc1169cda0938e2eb1d295ba2"
+  revision = "31ca0e01cd791f07750cb23fc99327721f753290"
 
 [[projects]]
   branch = "v2"
