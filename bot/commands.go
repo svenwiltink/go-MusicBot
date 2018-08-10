@@ -210,7 +210,7 @@ var whiteListCommand = &Command{
 		} else if words[2] == "remove" {
 			err := bot.whitelist.Remove(name)
 			if err == nil {
-				bot.ReplyToMessage(message, fmt.Sprintf("added %s to the whitelist", name))
+				bot.ReplyToMessage(message, fmt.Sprintf("removed %s from the whitelist", name))
 			} else {
 				bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
 			}
