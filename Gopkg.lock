@@ -18,12 +18,12 @@
   revision = "c65680788f718e847d0a9f04ca685ece8d026b85"
 
 [[projects]]
-  digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
+  digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   pruneopts = "UT"
-  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
-  version = "v1.1.0"
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
 
 [[projects]]
   branch = "master"
@@ -46,12 +46,12 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:43dd08a10854b2056e615d1b1d22ac94559d822e1f8b6fcc92c1a1057e85188e"
+  digest = "1:cee8e8ac80df6373e7daa11baf1f98c1b6f7242c49ccae7e1ec34a971dc408d9"
   name = "github.com/gorilla/websocket"
   packages = ["."]
   pruneopts = "UT"
-  revision = "ea4d1f681babbce9545c9c5f3d5194a789c89f5b"
-  version = "v1.2.0"
+  revision = "3ff3320c2a1756a3691521efc290b4701575147c"
+  version = "v1.3.0"
 
 [[projects]]
   digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
@@ -71,19 +71,19 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:89ee898518d8a5679d6ad7131a663392c77b877971db3e9c2f6b667f04fae56d"
+  digest = "1:cc3d4a179e20da951d0a5b0dc1abae469190ba63c8494ff980e1a9c315ce6ce8"
   name = "github.com/svenwiltink/ddpgo"
   packages = ["."]
   pruneopts = "UT"
-  revision = "d9238bf818c01afc51af660dc281781b18da3bc8"
+  revision = "cbfd6602d7b7b53adb4d5a26eddf16998a725719"
 
 [[projects]]
   branch = "master"
-  digest = "1:1bff419d966219433b5e35cd24de97d88cf7d84deb1125aa9f50be8515dfa570"
+  digest = "1:3d1143eab5bfa865c6b160caa85008b2400a120cab4f0be9e39559d5c124725e"
   name = "github.com/svenwiltink/rocketchatgo"
   packages = ["."]
   pruneopts = "UT"
-  revision = "507c4d5850bb17cbe646b948595a2f1338429efd"
+  revision = "519bc8c4b6174ec5ea6dcde01f9f26c65b285278"
 
 [[projects]]
   branch = "master"
@@ -112,7 +112,7 @@
     "proxy",
   ]
   pruneopts = "UT"
-  revision = "49c15d80dfbc983ea25246ee959d970efe09ec09"
+  revision = "faa378e6dbaed88bd8100f8bcf09939375c6e8fa"
 
 [[projects]]
   branch = "master"
@@ -126,7 +126,7 @@
     "youtube/v3",
   ]
   pruneopts = "UT"
-  revision = "31ca0e01cd791f07750cb23fc99327721f753290"
+  revision = "943e5aafc110feadee8cf71cde31afa0d1bab9f8"
 
 [[projects]]
   branch = "v2"
