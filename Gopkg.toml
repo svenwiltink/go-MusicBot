@@ -50,6 +50,10 @@
   name = "github.com/svenwiltink/youtube-dl"
 
 [[constraint]]
+  branch = "experimental"
+  name = "github.com/svenwiltink/rocketchatgo"
+
+[[constraint]]
   branch = "master"
   name = "github.com/ChannelMeter/iso8601duration"
 
