@@ -50,7 +50,7 @@
   name = "github.com/svenwiltink/youtube-dl"
 
 [[constraint]]
-  branch = "experimental"
+  branch = "master"
   name = "github.com/svenwiltink/rocketchatgo"
 
 [[constraint]]
