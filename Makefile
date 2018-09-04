@@ -34,6 +34,6 @@ lint:
 build:
 		  @mkdir -p out/binaries
 	gox $(BUILD_PLATFORMS) \
-		  -output="out/binaries/$(NAME)-{{.OS}}-{{.Arch}}"
+		  -output="out/binaries/$(NAME)-{{.OS}}-{{.Arch}}" ./cmd/go-musicbot
 test:
 	go test -v './...'
