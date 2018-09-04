@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 	"os/signal"
@@ -13,7 +14,11 @@ import (
 )
 
 func main() {
-	config, err := bot.LoadConfig("config.json")
+
+	configFileLocation := flag.String("config", "config.json", "The location of the config to load")
+	flag.Parse()
+
+	config, err := bot.LoadConfig(*configFileLocation)
 
 	if err != nil {
 		log.Printf("could not load config: %v", err)

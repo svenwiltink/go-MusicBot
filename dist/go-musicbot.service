@@ -1,0 +1,15 @@
+[Unit]
+Description=A Musicbot for rocketchat or IRC
+DefaultDependencies=no
+Requires=multi-user.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+User=go-musicbot
+Type=simple
+Environment="PATH=/bin:/sbin:/usr/bin:/usr/sbin"
+RuntimeDirectory=go-Musicbot
+ExecStart=/usr/local/bin/go-Musicbot -config /usr/local/etc/go-Musicbot/config.json
+Restart=always
