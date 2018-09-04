@@ -2,7 +2,7 @@ package rocketchat
 
 import (
 	"fmt"
-	"github.com/svenwiltink/go-musicbot/bot"
+	"github.com/svenwiltink/go-musicbot/pkg/bot"
 	"github.com/svenwiltink/rocketchatgo"
 	"log"
 )

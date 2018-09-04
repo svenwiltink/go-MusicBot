@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/svenwiltink/go-musicbot/music"
+	"github.com/svenwiltink/go-musicbot/pkg/music"
 )
 
 type SongPlayer struct {

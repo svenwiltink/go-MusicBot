@@ -2,10 +2,10 @@ package player
 
 import (
 	"fmt"
+	"github.com/svenwiltink/go-musicbot/pkg/music"
 	"log"
 
 	"errors"
-	"github.com/svenwiltink/go-musicbot/music"
 	"github.com/vansante/go-event-emitter"
 	"time"
 )

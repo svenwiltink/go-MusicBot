@@ -8,7 +8,7 @@ import (
 	"time"
 
 	ircclient "github.com/fluffle/goirc/client"
-	"github.com/svenwiltink/go-musicbot/bot"
+	"github.com/svenwiltink/go-musicbot/pkg/bot"
 )
 
 type MessageProvider struct {

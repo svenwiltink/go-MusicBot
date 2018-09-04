@@ -5,12 +5,12 @@ import (
 	"log"
 	"strings"
 
-	"github.com/svenwiltink/go-musicbot/music"
-	"github.com/svenwiltink/go-musicbot/music/dataprovider/nts"
-	"github.com/svenwiltink/go-musicbot/music/dataprovider/soundcloud"
-	"github.com/svenwiltink/go-musicbot/music/dataprovider/youtube"
-	"github.com/svenwiltink/go-musicbot/music/player"
-	"github.com/svenwiltink/go-musicbot/music/provider/mpv"
+	"github.com/svenwiltink/go-musicbot/pkg/music"
+	"github.com/svenwiltink/go-musicbot/pkg/music/dataprovider/nts"
+	"github.com/svenwiltink/go-musicbot/pkg/music/dataprovider/soundcloud"
+	"github.com/svenwiltink/go-musicbot/pkg/music/dataprovider/youtube"
+	"github.com/svenwiltink/go-musicbot/pkg/music/player"
+	"github.com/svenwiltink/go-musicbot/pkg/music/provider/mpv"
 )
 
 type MusicBot struct {

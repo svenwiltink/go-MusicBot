@@ -3,7 +3,7 @@ package soundcloud
 import (
 	"regexp"
 
-	"github.com/svenwiltink/go-musicbot/music"
+	"github.com/svenwiltink/go-musicbot/pkg/music"
 	"github.com/svenwiltink/youtube-dl"
 	"time"
 )

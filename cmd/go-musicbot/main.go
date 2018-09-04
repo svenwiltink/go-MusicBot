@@ -6,10 +6,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/svenwiltink/go-musicbot/bot"
-	"github.com/svenwiltink/go-musicbot/bot/messageprovider/irc"
-	"github.com/svenwiltink/go-musicbot/bot/messageprovider/rocketchat"
-	"github.com/svenwiltink/go-musicbot/bot/messageprovider/terminal"
+	"github.com/svenwiltink/go-musicbot/pkg/bot"
+	"github.com/svenwiltink/go-musicbot/pkg/bot/messageprovider/irc"
+	"github.com/svenwiltink/go-musicbot/pkg/bot/messageprovider/rocketchat"
+	"github.com/svenwiltink/go-musicbot/pkg/bot/messageprovider/terminal"
 )
 
 func main() {

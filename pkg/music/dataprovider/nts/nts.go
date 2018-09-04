@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/svenwiltink/go-musicbot/music"
+	"github.com/svenwiltink/go-musicbot/pkg/music"
 )
 
 var ntsRegex = regexp.MustCompile(`^nts[12]$`)

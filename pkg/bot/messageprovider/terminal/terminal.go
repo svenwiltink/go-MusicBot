@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/svenwiltink/go-musicbot/bot"
+	"github.com/svenwiltink/go-musicbot/pkg/bot"
 )
 
 type MessageProvider struct {
