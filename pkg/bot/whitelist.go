@@ -16,7 +16,7 @@ type WhiteList struct {
 func LoadWhiteList(path string) (*WhiteList, error) {
 	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to open file %s: %v", path, err)
 	}
 	defer file.Close()
 

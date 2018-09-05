@@ -78,7 +78,7 @@ func (bot *MusicBot) loadWhitelist() {
 	whitelist, err := LoadWhiteList(bot.config.WhiteListFile)
 
 	if err != nil {
-		log.Println()
+		log.Println(err)
 		bot.whitelist = &WhiteList{
 			names: make(map[string]struct{}, 0),
 		}
