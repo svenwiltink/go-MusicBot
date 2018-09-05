@@ -36,4 +36,12 @@ build:
 	gox $(BUILD_PLATFORMS) \
 		  -output="out/binaries/$(NAME)-{{.OS}}-{{.Arch}}" ./cmd/go-musicbot
 test:
-	go test -v './...'
+	go test -v 'github.com/svenwiltink/go-musicbot/...'
+
+deb:
+	./deb-build.sh
+	rm -rf pkg_root
+
+clean:
+	rm -rf out
+	rm -rf pkg_root
