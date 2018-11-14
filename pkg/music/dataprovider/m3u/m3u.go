@@ -1,7 +1,7 @@
 package m3u
 
 import (
-	"github.com/svenwiltink/go-musicbot/music"
+	"github.com/svenwiltink/go-musicbot/pkg/music"
 	"regexp"
 )
 
