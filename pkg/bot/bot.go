@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/svenwiltink/go-musicbot/pkg/music"
+	"github.com/svenwiltink/go-musicbot/pkg/music/dataprovider/m3u"
 	"github.com/svenwiltink/go-musicbot/pkg/music/dataprovider/nts"
 	"github.com/svenwiltink/go-musicbot/pkg/music/dataprovider/soundcloud"
 	"github.com/svenwiltink/go-musicbot/pkg/music/dataprovider/youtube"
@@ -46,6 +47,7 @@ func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
 			[]music.DataProvider{
 				nts.DataProvider{},
 				soundcloud.DataProvider{},
+				m3u.DataProvider{},
 				youtubeProvider,
 			},
 		),
@@ -104,6 +106,7 @@ func (bot *MusicBot) registerCommands() {
 	bot.registerCommand(playCommand)
 	bot.registerCommand(currentCommand)
 	bot.registerCommand(queueCommand)
+	bot.registerCommand(flushCommand)
 	bot.registerCommand(whiteListCommand)
 	bot.registerCommand(volCommand)
 	bot.registerCommand(aboutCommand)

@@ -88,6 +88,12 @@ func (queue *Queue) GetNextN(limit int) ([]Song, error) {
 	return result, nil
 }
 
+func (queue *Queue) Flush() {
+	queue.lock.Lock()
+	defer queue.lock.Unlock()
+	queue.songs = make([]*Song, 0)
+}
+
 // WaitForNext is a blocking call that returns the next song in the queue and wait for one to be added
 // if there is no song available.
 func (queue *Queue) WaitForNext() *Song {

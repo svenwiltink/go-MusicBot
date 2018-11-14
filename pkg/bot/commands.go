@@ -184,6 +184,13 @@ var queueCommand = &Command{
 	},
 }
 
+var flushCommand = &Command{
+	Name: "flush",
+	Function: func(bot *MusicBot, message Message) {
+		bot.musicPlayer.GetQueue().Flush()
+	},
+}
+
 var whiteListCommand = &Command{
 	Name:       "whitelist",
 	MasterOnly: true,
