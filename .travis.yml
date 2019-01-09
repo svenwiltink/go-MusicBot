@@ -23,10 +23,6 @@ jobs:
     - make build
     - mkdir out/archives
     - ls -1 out/binaries | xargs -L 1 -I{}  tar -cf out/archives/{}.tar --transform='flags=r;s|.*\MusicBot.*\(\..*\)|MusicBot\1|' --transform='flags=r;s|dist/||' out/binaries/{} dist/config.json.example
-  - stage: package
-    script:
-    - make deps
-    - make build
     - gem install --no-ri --no-rdoc fpm
     - make deb
     deploy:
@@ -46,3 +42,6 @@ jobs:
         dist: ubuntu/bionic
         token:
           secure: cSNkBddUy+CoJHhFDBeIt/3w0AeqPx0kJ2Z6xrnCcbRY7KjPloHCw7WxOl4EqWw4+zyCL1M2S4EYplKD2xL9SsIM7qQ8FgX2QiA50fVs0QuxzVGw7yML3bU6P/GmPjJ36hNcReGb7Ev388RWZD7141jcowD/AtwiBARynexn/JjHKhcS8G1T819n/jjISt8YLTexJuXNBxDVUAixvG6xZP0SgcmYAE6MPDXYoBJi5jklMVqP3+uhaB6RMJlu4/Fcl0X8ZJ1uhZuAFvKHjAuY5B7aaDaouyP1YU1IQ9QE4Tez0yU0u2oYVR7BR8AOM0sWdujkE/oGlTyvL/myFy93s86hdplBnY3RNEv54apaANmxttaetpYFSS0VluSOIm8FRfaYW1DLBwr5JQaOMTxoDOUG8RghuvvsTN2Dc/gmj32yZ1swSBbevlXFbHmzwcwIYcthRMlKkfZA1BpI07n7bt6NFW75USP6rYWAB+qU/SrAtR2JmuNPShUWiUYsatLwftmGZGZp3SkTupscPwLACzJlbl5aTxDBPqubySqk+TassaNf8pHDTBJnB/RBE9YprlcEBKtwfkrR5CG8VsODzRHZMcZdgwSd+iZMZ3+7JE7aqg6TVVPHHr2AOIzXq3Iif18fMDcAe9uMvdXCMVO+jhp6+4p11UWKwYgrZyKnWaE=
+        on:
+          tags: true
+        skip_cleanup: true
