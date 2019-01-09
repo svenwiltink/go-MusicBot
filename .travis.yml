@@ -20,7 +20,7 @@ jobs:
     - make deps
     - make build
     - mkdir out/archives
-    - ls -1 out/binaries | xargs -L 1 -I{}  tar --transform='flags=r;s|.*\(MusicBot\).*|\2|' --transform='flags=r;s|\(.*\)|MusicBot/\1|' -cf out/archives/{}.tar out/binaries/{}
+    - ls -1 out/binaries | xargs -L 1 -I{}  tar -cf out/archives/{}.tar --transform='flags=r;s|.*\MusicBot.*\(\..*\)|MusicBot\1|' --transform='flags=r;s|dist/||' out/binaries/{} dist/config.json.example
     deploy:
       provider: releases
       api_key:
