@@ -3,6 +3,10 @@ go:
 - 1.11.x
 env:
 - GO111MODULE=on
+
+env:
+  - GO111MODULE=on
+
 install: true
 
 jobs:
