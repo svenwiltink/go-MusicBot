@@ -23,6 +23,9 @@ jobs:
     - make build
     - mkdir out/archives
     - ls -1 out/binaries | xargs -L 1 -I{}  tar -cf out/archives/{}.tar --transform='flags=r;s|.*\MusicBot.*\(\..*\)|MusicBot\1|' --transform='flags=r;s|dist/||' out/binaries/{} dist/config.json.example
+  - stage: package
+    script:
+    - gem install --no-ri --no-rdoc fpm
     deploy:
       - provider: releases
         api_key:
