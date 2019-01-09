@@ -26,6 +26,7 @@ jobs:
   - stage: package
     script:
     - gem install --no-ri --no-rdoc fpm
+    - make deb
     deploy:
       - provider: releases
         api_key:
