@@ -1,6 +1,5 @@
-
 {
-  "irc" : {
+  "irc": {
     "server": "irc.freenode.net:6667",
     "channel": "#banaan",
     "nick": "iSlave",
@@ -8,11 +7,18 @@
     "pass": "",
     "ssl": false
   },
-  "rocketchat" : {
+  "rocketchat": {
     "server": "chat.sveniltink.nl:443",
     "channel": "#banaan",
     "username": "musicbot",
     "pass": "",
+    "ssl": true
+  },
+  "mattermost": {
+    "server": "chat.svenwiltink.nl",
+    "teamname": "svenwiltink",
+    "channel": "muziek",
+    "privateAccessToken": "<token>",
     "ssl": true
   },
   "youtube": {

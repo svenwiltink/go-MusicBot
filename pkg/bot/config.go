@@ -18,6 +18,7 @@ type Config struct {
 	Master        string           `json:"master"`
 	Irc           IRCConfig        `json:"irc"`
 	Rocketchat    RocketchatConfig `json:"rocketchat"`
+	Mattermost    MattermostConfig `json:"mattermost"`
 	Youtube       YoutubeConfig    `json:"youtube"`
 	MessagePlugin string           `json:"messageplugin"`
 	CommandPrefix string           `json:"commandprefix"`
@@ -40,6 +41,14 @@ type RocketchatConfig struct {
 	Username string `json:"username"`
 	Pass     string `json:"pass"`
 	Ssl      bool   `json:"ssl"`
+}
+
+type MattermostConfig struct {
+	Server             string `json:"server"`
+	Teamname           string `json:"teamname"`
+	PrivateAccessToken string `json:"privateAccessToken"`
+	Channel            string `json:"channel"`
+	Ssl                bool   `json:"ssl"`
 }
 
 type YoutubeConfig struct {
