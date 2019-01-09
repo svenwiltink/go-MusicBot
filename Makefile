@@ -1,7 +1,7 @@
 .PHONY: default
 default: verify build ;
 
-ME ?= MusicBot
+ME ?= github.com/svenwiltink/go-musicbot
 PACKAGE_NAME ?= $(NAME)
 NAME ?= MusicBot
 
@@ -19,14 +19,13 @@ help:
 
 deps:
 	go get -u github.com/golang/lint/golint
-	go get -u github.com/golang/dep/cmd/dep
 	go get -u github.com/mitchellh/gox
-	dep ensure
+	go mod vendor	
 
 verify: fmt lint
 
 fmt:
-			  @go fmt $(OUR_PACKAGES) | awk '{if (NF > 0) {if (NR == 1) print "Please run go fmt for:"; print "- "$$1}} END {if (NF > 0) {if (NR > 0) exit 1}}'
+			  @go fmt ./... | awk '{if (NF > 0) {if (NR == 1) print "Please run go fmt for:"; print "- "$$1}} END {if (NF > 0) {if (NR > 0) exit 1}}'
 
 lint:
 			  @golint ./... | ( ! grep -v -e "^vendor/" -e "be unexported" -e "don't use an underscore in package name" -e "ALL_CAPS" )
@@ -34,7 +33,7 @@ lint:
 build:
 		  @mkdir -p out/binaries
 	gox $(BUILD_PLATFORMS) \
-		  -output="out/binaries/$(NAME)-{{.OS}}-{{.Arch}}" ./cmd/go-musicbot
+		  -output="out/binaries/$(NAME)-{{.OS}}-{{.Arch}}" github.com/svenwiltink/go-musicbot/cmd/go-musicbot
 test:
 	go test -v 'github.com/svenwiltink/go-musicbot/...'
 

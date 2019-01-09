@@ -14,7 +14,6 @@ PKG_ROOT=pkg_root
 
 mkdir -p out/packages
 mkdir -p ${PKG_ROOT}/usr/local/bin
-mkdir -p ${PKG_ROOT}/usr/lib/systemd/user
 mkdir -p ${PKG_ROOT}/usr/local/etc/go-Musicbot
 
 cp out/binaries/MusicBot-linux-amd64 \
@@ -22,9 +21,6 @@ cp out/binaries/MusicBot-linux-amd64 \
 
 cp dist/config.json \
     ${PKG_ROOT}/usr/local/etc/go-Musicbot/config.json
-
-cp dist/go-musicbot.service \
-    ${PKG_ROOT}/usr/lib/systemd/user/go-musicbot.service
 
 fpm \
 	-n go-musicbot \
@@ -39,6 +35,5 @@ fpm \
 	--url "https://github.com/svenwiltink/go-musicbot" \
 	--description "A musicbot for rocketchat or irc" \
 	--config-files /usr/local/etc/go-Musicbot \
-	--config-files /usr/lib/systemd/user/go-musicbot.service \
-    -p "out/packages/${VERSION}.deb"
+        -p "out/packages/${VERSION}.deb"
 
