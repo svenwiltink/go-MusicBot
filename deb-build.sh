@@ -19,7 +19,7 @@ mkdir -p ${PKG_ROOT}/usr/local/etc/go-Musicbot
 cp out/binaries/MusicBot-linux-amd64 \
     ${PKG_ROOT}/usr/local/bin/go-Musicbot
 
-cp dist/config.json \
+cp dist/config.json.example \
     ${PKG_ROOT}/usr/local/etc/go-Musicbot/config.json
 
 fpm \
