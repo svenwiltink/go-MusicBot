@@ -15,6 +15,13 @@
     "pass": "",
     "ssl": true
   },
+  "mattermoist" : {
+      "server": "chat.sveniltink.nl:443",
+      "channel": "#banaan",
+      "username": "musicbot",
+      "pass": "",
+      "ssl": true
+    },
   "youtube": {
     "apikey": "api key"
   },
