@@ -15,7 +15,7 @@
     "pass": "",
     "ssl": true
   },
-  "mattermoist" : {
+  "mattermost" : {
       "server": "chat.sveniltink.nl:443",
       "channel": "#banaan",
       "username": "musicbot",
