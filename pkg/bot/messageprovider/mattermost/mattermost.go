@@ -59,7 +59,7 @@ func (provider *MessageProvider) Start() error {
 func (provider *MessageProvider) SendReplyToMessage(message bot.Message, reply string) error {
 	post := &mattermost.Post{
 		ChannelId: message.Target,
-		Message: reply,
+		Message:   reply,
 	}
 
 	_, response := provider.client.CreatePost(post)
@@ -74,7 +74,7 @@ func (provider *MessageProvider) SendReplyToMessage(message bot.Message, reply s
 func (provider *MessageProvider) BroadcastMessage(message string) error {
 	post := &mattermost.Post{
 		ChannelId: provider.channel.Id,
-		Message: message,
+		Message:   message,
 	}
 
 	_, response := provider.client.CreatePost(post)
@@ -146,7 +146,6 @@ func (provider *MessageProvider) handleMessage(post *mattermost.Post) {
 		log.Printf("unable to get channel by id %s: %+v", post.ChannelId, response)
 		return
 	}
-
 
 	// ignore all messaged not from the channel or direct
 	if channel.Name != provider.Config.Mattermost.Channel && channel.Type != mattermost.CHANNEL_DIRECT {
