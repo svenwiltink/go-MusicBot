@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/svenwiltink/go-musicbot/pkg/bot/messageprovider/mattermost"
 	"log"
 	"os"
 	"os/signal"
@@ -63,6 +64,9 @@ func chooseMessageProvider(config *bot.Config) bot.MessageProvider {
 	case "rocketchat":
 		log.Println("loading the rocketchat message provider")
 		return rocketchat.New(config)
+	case "mattermost":
+		log.Println("loading the mattermost message provider")
+		return mattermost.New(config)
 	default:
 		log.Fatalf("unsupported message plugin: %s", config.MessagePlugin)
 	}
