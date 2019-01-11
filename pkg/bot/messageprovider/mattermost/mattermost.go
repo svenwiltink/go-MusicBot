@@ -174,7 +174,7 @@ func (provider *MessageProvider) handleMessage(post *mattermost.Post) {
 func (provider *MessageProvider) pingLoop() {
 	ticker := time.NewTicker(10 * time.Second)
 	for range ticker.C {
-		err := provider.websocketClient.Conn.WriteMessage(websocket.PingMessage, []byte{})
+		err := provider.websocketClient.Conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(10*time.Second))
 		if err != nil {
 			log.Printf("unable to ping: %+v", err)
 		}
