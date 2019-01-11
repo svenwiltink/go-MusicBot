@@ -34,6 +34,22 @@ func TestQueue_Append(t *testing.T) {
 	assert.Equal(t, queue.songs[0], song)
 }
 
+func TestQueue_Flush(t *testing.T) {
+	t.Parallel()
+	queue := NewQueue()
+
+	song := &Song{
+		Duration: time.Minute,
+		Name:     "banaan",
+	}
+
+	queue.Append(song)
+	assert.NotEmpty(t, queue.songs)
+
+	queue.Flush()
+	assert.Empty(t, queue.songs)
+}
+
 func TestQueue_Append_Multiple(t *testing.T) {
 	t.Parallel()
 	queue := NewQueue()

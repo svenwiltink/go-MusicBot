@@ -104,6 +104,7 @@ func (bot *MusicBot) registerCommands() {
 	bot.registerCommand(playCommand)
 	bot.registerCommand(currentCommand)
 	bot.registerCommand(queueCommand)
+	bot.registerCommand(flushCommand)
 	bot.registerCommand(whiteListCommand)
 	bot.registerCommand(volCommand)
 	bot.registerCommand(aboutCommand)
