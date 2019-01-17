@@ -128,7 +128,7 @@ func TestQueue_GetTotalDuration(t *testing.T) {
 func TestQueue_Shuffle(t *testing.T) {
 	queue, _, _ := getTestQueue()
 
-	queue.Append(	&Song{
+	queue.Append(&Song{
 		Duration: time.Minute,
 		Name:     "song3",
 	})

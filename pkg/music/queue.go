@@ -17,8 +17,8 @@ const (
 // Queue holds an array of songs
 type Queue struct {
 	*eventemitter.Emitter
-	songs []*Song
-	lock  sync.Mutex
+	songs      []*Song
+	lock       sync.Mutex
 	randSource *rand.Rand
 }
 
@@ -127,8 +127,8 @@ func (queue *Queue) WaitForNext() *Song {
 // NewQueue creates a new instance of Queue
 func NewQueue() *Queue {
 	return &Queue{
-		songs:   make([]*Song, 0),
-		Emitter: eventemitter.NewEmitter(true),
+		songs:      make([]*Song, 0),
+		Emitter:    eventemitter.NewEmitter(true),
 		randSource: rand.New(rand.NewSource(time.Now().UTC().UnixNano())),
 	}
 }
