@@ -2,6 +2,7 @@ package music
 
 import (
 	"github.com/stretchr/testify/assert"
+	"math/rand"
 	"testing"
 	"time"
 )
@@ -122,6 +123,22 @@ func TestQueue_GetTotalDuration(t *testing.T) {
 	queue, _, _ := getTestQueue()
 
 	assert.Equal(t, 2*time.Minute, queue.GetTotalDuration())
+}
+
+func TestQueue_Shuffle(t *testing.T) {
+	queue, _, _ := getTestQueue()
+
+	queue.Append(	&Song{
+		Duration: time.Minute,
+		Name:     "song3",
+	})
+
+	queue.randSource = rand.New(rand.NewSource(1))
+	original := append([]*Song(nil), queue.songs...)
+
+	queue.Shuffle()
+
+	assert.NotEqual(t, original, queue.songs)
 }
 
 func TestQueue_WaitForNext(t *testing.T) {
