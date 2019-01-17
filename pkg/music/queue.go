@@ -2,6 +2,7 @@ package music
 
 import (
 	"log"
+	"math/rand"
 	"sync"
 
 	"errors"
@@ -86,6 +87,16 @@ func (queue *Queue) GetNextN(limit int) ([]Song, error) {
 	}
 
 	return result, nil
+}
+
+func (queue *Queue) Shuffle() {
+	queue.lock.Lock()
+	defer queue.lock.Unlock()
+
+	// Shuffle numbers, swapping corresponding entries in letters at the same time.
+	rand.Shuffle(len(queue.songs), func(i, j int) {
+		queue.songs[i], queue.songs[j] = queue.songs[j], queue.songs[i]
+	})
 }
 
 func (queue *Queue) Flush() {
