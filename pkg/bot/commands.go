@@ -197,6 +197,19 @@ var flushCommand = &Command{
 	},
 }
 
+var shuffleCommand = &Command{
+	Name: "shuffle",
+	Function: func(bot *MusicBot, message Message) {
+		bot.musicPlayer.GetQueue().Shuffle()
+
+		if message.IsPrivate {
+			bot.BroadcastMessage(fmt.Sprintf("%s shuffled the queue", message.Sender.NickName))
+		}
+
+		bot.ReplyToMessage(message, "Queue shuffled")
+	},
+}
+
 var whiteListCommand = &Command{
 	Name:       "whitelist",
 	MasterOnly: true,

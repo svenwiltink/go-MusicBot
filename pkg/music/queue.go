@@ -2,6 +2,7 @@ package music
 
 import (
 	"log"
+	"math/rand"
 	"sync"
 
 	"errors"
@@ -16,8 +17,9 @@ const (
 // Queue holds an array of songs
 type Queue struct {
 	*eventemitter.Emitter
-	songs []*Song
-	lock  sync.Mutex
+	songs      []*Song
+	lock       sync.Mutex
+	randSource *rand.Rand
 }
 
 func (queue *Queue) Append(songs ...*Song) {
@@ -88,6 +90,16 @@ func (queue *Queue) GetNextN(limit int) ([]Song, error) {
 	return result, nil
 }
 
+func (queue *Queue) Shuffle() {
+	queue.lock.Lock()
+	defer queue.lock.Unlock()
+
+	// Shuffle numbers, swapping corresponding entries in letters at the same time.
+	queue.randSource.Shuffle(len(queue.songs), func(i, j int) {
+		queue.songs[i], queue.songs[j] = queue.songs[j], queue.songs[i]
+	})
+}
+
 func (queue *Queue) Flush() {
 	queue.lock.Lock()
 	defer queue.lock.Unlock()
@@ -115,7 +127,8 @@ func (queue *Queue) WaitForNext() *Song {
 // NewQueue creates a new instance of Queue
 func NewQueue() *Queue {
 	return &Queue{
-		songs:   make([]*Song, 0),
-		Emitter: eventemitter.NewEmitter(true),
+		songs:      make([]*Song, 0),
+		Emitter:    eventemitter.NewEmitter(true),
+		randSource: rand.New(rand.NewSource(time.Now().UTC().UnixNano())),
 	}
 }
