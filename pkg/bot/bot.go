@@ -16,9 +16,10 @@ import (
 
 var (
 	errCommandNotFound = errors.New("command not found")
-	Version            = "placeholder string"
-	GoVersion          = "placeholder string"
-	BuildDate          = "placeholder string"
+
+	Version   = "placeholder string"
+	GoVersion = "placeholder string"
+	BuildDate = "placeholder string"
 )
 
 type MusicBot struct {
