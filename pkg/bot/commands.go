@@ -347,5 +347,8 @@ var aboutCommand = Command{
 	Name: "about",
 	Function: func(bot *MusicBot, message Message) {
 		bot.ReplyToMessage(message, "go-MusicBot by Sven Wiltink: https://github.com/svenwiltink/go-MusicBot")
+		bot.ReplyToMessage(message, fmt.Sprintf("Version: %s", Version))
+		bot.ReplyToMessage(message, fmt.Sprintf("Go: %s", GoVersion))
+		bot.ReplyToMessage(message, fmt.Sprintf("Build date: %s", BuildDate))
 	},
 }
