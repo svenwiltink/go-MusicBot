@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -17,7 +18,7 @@ type MusicBot struct {
 	messageProvider MessageProvider
 	musicPlayer     music.Player
 	config          *Config
-	commands        map[string]*Command
+	commands        map[string]Command
 	whitelist       *WhiteList
 }
 
@@ -49,7 +50,7 @@ func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
 				youtubeProvider,
 			},
 		),
-		commands: make(map[string]*Command),
+		commands: make(map[string]Command),
 	}
 
 	return instance
@@ -112,13 +113,17 @@ func (bot *MusicBot) registerCommands() {
 	bot.registerCommand(aboutCommand)
 }
 
-func (bot *MusicBot) registerCommand(command *Command) {
+func (bot *MusicBot) registerCommand(command Command) {
 	bot.commands[command.Name] = command
 }
 
-func (bot *MusicBot) getCommand(name string) *Command {
-	command, _ := bot.commands[name]
-	return command
+// getCommand returns the command by name or an error if it could not be found
+func (bot *MusicBot) getCommand(name string) (Command, error) {
+	command, exists := bot.commands[name]
+	if !exists {
+		return Command{}, errors.New("command not found")
+	}
+	return command, nil
 }
 
 func (bot *MusicBot) ReplyToMessage(message Message, reply string) {
@@ -143,8 +148,8 @@ func (bot *MusicBot) handleMessage(message Message) {
 		words := strings.SplitN(message.Message, " ", 3)
 		if len(words) >= 2 {
 			word := strings.TrimSpace(words[1])
-			command := bot.getCommand(word)
-			if command == nil {
+			command, err := bot.getCommand(word)
+			if err != nil {
 				bot.ReplyToMessage(message, fmt.Sprintf("Unknown command. Use %s help for help", bot.config.CommandPrefix))
 				return
 			}

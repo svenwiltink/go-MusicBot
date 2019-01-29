@@ -15,7 +15,7 @@ type Command struct {
 	Function   func(bot *MusicBot, message Message)
 }
 
-var helpCommand = &Command{
+var helpCommand = Command{
 	Name: "help",
 	Function: func(bot *MusicBot, message Message) {
 		helpString := "Available commands: "
@@ -27,7 +27,7 @@ var helpCommand = &Command{
 	},
 }
 
-var addCommand = &Command{
+var addCommand = Command{
 	Name: "add",
 	Function: func(bot *MusicBot, message Message) {
 		words := strings.SplitN(message.Message, " ", 3)
@@ -54,7 +54,7 @@ var addCommand = &Command{
 	},
 }
 
-var searchCommand = &Command{
+var searchCommand = Command{
 	Name: "search",
 	Function: func(bot *MusicBot, message Message) {
 		words := strings.SplitN(message.Message, " ", 3)
@@ -85,7 +85,7 @@ var searchCommand = &Command{
 	},
 }
 
-var searchAddCommand = &Command{
+var searchAddCommand = Command{
 	Name: "search-add",
 	Function: func(bot *MusicBot, message Message) {
 		words := strings.SplitN(message.Message, " ", 3)
@@ -121,7 +121,7 @@ var searchAddCommand = &Command{
 	},
 }
 
-var nextCommand = &Command{
+var nextCommand = Command{
 	Name: "next",
 	Function: func(bot *MusicBot, message Message) {
 		err := bot.musicPlayer.Next()
@@ -136,7 +136,7 @@ var nextCommand = &Command{
 	},
 }
 
-var pausedCommand = &Command{
+var pausedCommand = Command{
 	Name: "pause",
 	Function: func(bot *MusicBot, message Message) {
 		err := bot.musicPlayer.Pause()
@@ -154,7 +154,7 @@ var pausedCommand = &Command{
 	},
 }
 
-var playCommand = &Command{
+var playCommand = Command{
 	Name: "play",
 	Function: func(bot *MusicBot, message Message) {
 		err := bot.musicPlayer.Play()
@@ -172,7 +172,7 @@ var playCommand = &Command{
 	},
 }
 
-var currentCommand = &Command{
+var currentCommand = Command{
 	Name: "current",
 	Function: func(bot *MusicBot, message Message) {
 		song, durationLeft := bot.musicPlayer.GetCurrentSong()
@@ -193,7 +193,7 @@ var currentCommand = &Command{
 	},
 }
 
-var queueCommand = &Command{
+var queueCommand = Command{
 	Name: "queue",
 	Function: func(bot *MusicBot, message Message) {
 		queue := bot.GetMusicPlayer().GetQueue()
@@ -215,7 +215,7 @@ var queueCommand = &Command{
 	},
 }
 
-var flushCommand = &Command{
+var flushCommand = Command{
 	Name: "flush",
 	Function: func(bot *MusicBot, message Message) {
 		bot.musicPlayer.GetQueue().Flush()
@@ -228,7 +228,7 @@ var flushCommand = &Command{
 	},
 }
 
-var shuffleCommand = &Command{
+var shuffleCommand = Command{
 	Name: "shuffle",
 	Function: func(bot *MusicBot, message Message) {
 		bot.musicPlayer.GetQueue().Shuffle()
@@ -241,7 +241,7 @@ var shuffleCommand = &Command{
 	},
 }
 
-var whiteListCommand = &Command{
+var whiteListCommand = Command{
 	Name:       "whitelist",
 	MasterOnly: true,
 	Function: func(bot *MusicBot, message Message) {
@@ -278,7 +278,7 @@ var whiteListCommand = &Command{
 	},
 }
 
-var volCommand = &Command{
+var volCommand = Command{
 	Name: "vol",
 	Function: func(bot *MusicBot, message Message) {
 		words := strings.SplitN(message.Message, " ", 3)
@@ -343,7 +343,7 @@ var volCommand = &Command{
 	},
 }
 
-var aboutCommand = &Command{
+var aboutCommand = Command{
 	Name: "about",
 	Function: func(bot *MusicBot, message Message) {
 		bot.ReplyToMessage(message, "go-MusicBot by Sven Wiltink: https://github.com/svenwiltink/go-MusicBot")
