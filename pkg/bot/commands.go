@@ -54,6 +54,37 @@ var addCommand = &Command{
 	},
 }
 
+var searchCommand = &Command{
+	Name: "search",
+	Function: func(bot *MusicBot, message Message) {
+		words := strings.SplitN(message.Message, " ", 3)
+		if len(words) <= 2 {
+			bot.ReplyToMessage(message, "No song provided")
+			return
+		}
+
+		songs, err := bot.musicPlayer.Search(words[2])
+
+		if err != nil {
+			bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
+		}
+
+		if len(songs) == 0 {
+			bot.ReplyToMessage(message, "No song found")
+			return
+		}
+
+		var builder strings.Builder
+
+		for number, song := range songs {
+			builder.WriteString(fmt.Sprintf("%d  %s - %s (%s)\n", number+1, song.Artist, song.Name, song.Duration))
+		}
+
+		bot.ReplyToMessage(message, builder.String())
+
+	},
+}
+
 var searchAddCommand = &Command{
 	Name: "search-add",
 	Function: func(bot *MusicBot, message Message) {

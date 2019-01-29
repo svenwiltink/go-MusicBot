@@ -98,6 +98,7 @@ func (bot *MusicBot) messageLoop() {
 func (bot *MusicBot) registerCommands() {
 	bot.registerCommand(helpCommand)
 	bot.registerCommand(addCommand)
+	bot.registerCommand(searchCommand)
 	bot.registerCommand(searchAddCommand)
 	bot.registerCommand(nextCommand)
 	bot.registerCommand(pausedCommand)
