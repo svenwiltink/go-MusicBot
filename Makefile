@@ -33,7 +33,11 @@ lint:
 build:
 		  @mkdir -p out/binaries
 	gox $(BUILD_PLATFORMS) \
-		  -output="out/binaries/$(NAME)-{{.OS}}-{{.Arch}}" github.com/svenwiltink/go-musicbot/cmd/go-musicbot
+		-ldflags " \
+		 	-X github.com/svenwiltink/go-musicbot/pkg/bot.Version=${GIT_VERSION_TAG} \
+			-X github.com/svenwiltink/go-musicbot/pkg/bot.GoVersion=${GO_VERSION} \
+			-X github.com/svenwiltink/go-musicbot/pkg/bot.BuildDate=${BUILD_DATE}" \
+		-output="out/binaries/$(NAME)-{{.OS}}-{{.Arch}}" github.com/svenwiltink/go-musicbot/cmd/go-musicbot
 test:
 	go test -v 'github.com/svenwiltink/go-musicbot/...'
 
