@@ -14,6 +14,10 @@ import (
 	"github.com/svenwiltink/go-musicbot/pkg/music/provider/mpv"
 )
 
+var (
+	errCommandNotFound = errors.New("command not found")
+)
+
 type MusicBot struct {
 	messageProvider MessageProvider
 	musicPlayer     music.Player
@@ -121,7 +125,7 @@ func (bot *MusicBot) registerCommand(command Command) {
 func (bot *MusicBot) getCommand(name string) (Command, error) {
 	command, exists := bot.commands[name]
 	if !exists {
-		return Command{}, errors.New("command not found")
+		return Command{}, errCommandNotFound
 	}
 	return command, nil
 }
