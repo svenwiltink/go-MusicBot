@@ -63,12 +63,12 @@ func (bot *MusicBot) Start() {
 	bot.registerCommands()
 
 	bot.musicPlayer.AddListener(music.EventSongStarted, func(arguments ...interface{}) {
-		song := arguments[0].(*music.Song)
+		song := arguments[0].(music.Song)
 		bot.BroadcastMessage(fmt.Sprintf("Started playing %s: %s", song.Artist, song.Name))
 	})
 
 	bot.musicPlayer.AddListener(music.EventSongStartError, func(arguments ...interface{}) {
-		song := arguments[0].(*music.Song)
+		song := arguments[0].(music.Song)
 		bot.BroadcastMessage(fmt.Sprintf("Error starting %v %v, skipping", song.Artist, song.Name))
 	})
 

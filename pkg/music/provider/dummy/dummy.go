@@ -12,7 +12,7 @@ type SongPlayer struct {
 	lock sync.Mutex
 }
 
-func (player *SongPlayer) CanPlay(song *music.Song) bool {
+func (player *SongPlayer) CanPlay(song music.Song) bool {
 	return true
 }
 
@@ -23,7 +23,7 @@ func (player *SongPlayer) Wait() {
 	time.Sleep(time.Second * 10)
 }
 
-func (player *SongPlayer) PlaySong(song *music.Song) error {
+func (player *SongPlayer) PlaySong(song music.Song) error {
 	player.lock.Lock()
 	defer player.lock.Unlock()
 

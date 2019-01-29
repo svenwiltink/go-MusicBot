@@ -120,8 +120,8 @@ func (player *MusicPlayer) addMusicProvider(provider music.Provider) {
 	player.musicProviders = append(player.musicProviders, provider)
 }
 
-func (player *MusicPlayer) Search(searchString string) ([]*music.Song, error) {
-	songs := make([]*music.Song, 0)
+func (player *MusicPlayer) Search(searchString string) ([]music.Song, error) {
+	songs := make([]music.Song, 0)
 
 	for _, provider := range player.dataProviders {
 		results, err := provider.Search(searchString)
@@ -138,7 +138,7 @@ func (player *MusicPlayer) Search(searchString string) ([]*music.Song, error) {
 }
 
 // AddSong tries to add the song to the Queue
-func (player *MusicPlayer) AddSong(song *music.Song) error {
+func (player *MusicPlayer) AddSong(song music.Song) error {
 	// assume it is a song unless the dataprovider changes it to a stream
 	song.SongType = music.SongTypeSong
 
@@ -148,7 +148,7 @@ func (player *MusicPlayer) AddSong(song *music.Song) error {
 		return fmt.Errorf("no dataprovider found for %+v", song)
 	}
 
-	err := dataProvider.ProvideData(song)
+	err := dataProvider.ProvideData(&song)
 
 	log.Printf("provided song data: %+v", song)
 
@@ -166,7 +166,7 @@ func (player *MusicPlayer) AddSong(song *music.Song) error {
 	return nil
 }
 
-func (player *MusicPlayer) getSuitableDataProvider(song *music.Song) music.DataProvider {
+func (player *MusicPlayer) getSuitableDataProvider(song music.Song) music.DataProvider {
 	for _, provider := range player.dataProviders {
 		if provider.CanProvideData(song) {
 			return provider
@@ -176,7 +176,7 @@ func (player *MusicPlayer) getSuitableDataProvider(song *music.Song) music.DataP
 	return nil
 }
 
-func (player *MusicPlayer) getSuitablePlayer(song *music.Song) music.Provider {
+func (player *MusicPlayer) getSuitablePlayer(song music.Song) music.Provider {
 	for _, provider := range player.musicProviders {
 		if provider.CanPlay(song) {
 			return provider
@@ -197,7 +197,7 @@ func (player *MusicPlayer) playLoop() {
 		player.Status = music.PlayerStatusWaiting
 		log.Println("Waiting for song")
 		song := player.Queue.WaitForNext()
-		player.currentSong = song
+		player.currentSong = &song
 
 		provider := player.getSuitablePlayer(song)
 		player.activeProvider = provider

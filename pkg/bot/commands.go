@@ -36,7 +36,7 @@ var addCommand = Command{
 			return
 		}
 
-		song := &music.Song{
+		song := music.Song{
 			Path: strings.TrimSpace(words[2]),
 		}
 

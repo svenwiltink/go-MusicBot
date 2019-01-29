@@ -57,7 +57,7 @@ func (provider *DataProvider) initAPIClient() error {
 	return nil
 }
 
-func (provider *DataProvider) CanProvideData(song *music.Song) bool {
+func (provider *DataProvider) CanProvideData(song music.Song) bool {
 	return youtubeURLRegex.MatchString(song.Path)
 }
 
@@ -121,7 +121,7 @@ func (provider *DataProvider) getIdentifierForSong(song *music.Song) (string, er
 	return identifier, nil
 }
 
-func (provider *DataProvider) Search(searchString string) ([]*music.Song, error) {
+func (provider *DataProvider) Search(searchString string) ([]music.Song, error) {
 	searchTypeStr := "video"
 
 	call := provider.service.Search.List("id,snippet").
@@ -134,7 +134,7 @@ func (provider *DataProvider) Search(searchString string) ([]*music.Song, error)
 		return nil, fmt.Errorf("YoutubeApi: error searching %s: %v", searchString, err)
 	}
 
-	songs := make([]*music.Song, 0)
+	songs := make([]music.Song, 0)
 
 	for _, item := range response.Items {
 		switch item.Id.Kind {
@@ -145,7 +145,7 @@ func (provider *DataProvider) Search(searchString string) ([]*music.Song, error)
 				return nil, fmt.Errorf("error finding data: %v", err)
 			}
 
-			songs = append(songs, song)
+			songs = append(songs, *song)
 		}
 	}
 	return songs, nil
