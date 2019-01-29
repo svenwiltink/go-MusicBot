@@ -150,6 +150,7 @@ func (provider *MessageProvider) handleMessage(post *mattermost.Post) {
 	// ignore all messaged not from the channel or direct
 	if channel.Name != provider.Config.Mattermost.Channel && channel.Type != mattermost.CHANNEL_DIRECT {
 		log.Printf("ignoring message from channel %s", channel.Name)
+		return
 	}
 
 	author, response := provider.client.GetUser(post.UserId, "")
