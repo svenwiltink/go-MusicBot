@@ -38,10 +38,6 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1w=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
-github.com/svenwiltink/ddpgo v0.0.0-20180824111114-cbfd6602d7b7 h1:2f5roDAVFMbJiQArGhO2A8mdOn56pGElJhqFRbeMFEE=
-github.com/svenwiltink/ddpgo v0.0.0-20180824111114-cbfd6602d7b7/go.mod h1:RhUR1JeHqlcpoA3oMdrAerfbcbyASAjtb8FNnuY0RKk=
-github.com/svenwiltink/rocketchatgo v0.0.0-20180824111422-519bc8c4b617 h1:Z6iMgF1bHF26pCB0n3B9TtsOWNNj0uTrMrx6rmTVoN0=
-github.com/svenwiltink/rocketchatgo v0.0.0-20180824111422-519bc8c4b617/go.mod h1:TWabVytsDkJgFls5GAhxNp1amL7UHepodQZG6oehgR8=
 github.com/svenwiltink/youtube-dl v0.0.0-20180530195755-08954d006d6a h1:LF3iaylk0i4do6w44bjV/SlsoIGI1CyJ7RBR5/n564Y=
 github.com/svenwiltink/youtube-dl v0.0.0-20180530195755-08954d006d6a/go.mod h1:DC+SfNAhNsFGkgpLCJvawoJOptQEofclz1adZWf1uT8=
 github.com/vansante/go-event-emitter v0.0.0-20180601122726-d1e9ab59df60 h1:8EkIFZId9Zsvz9w66j0Bp4tawfj4Fp2XZP1/PLBrmyE=

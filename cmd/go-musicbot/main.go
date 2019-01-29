@@ -10,7 +10,6 @@ import (
 
 	"github.com/svenwiltink/go-musicbot/pkg/bot"
 	"github.com/svenwiltink/go-musicbot/pkg/bot/messageprovider/irc"
-	"github.com/svenwiltink/go-musicbot/pkg/bot/messageprovider/rocketchat"
 	"github.com/svenwiltink/go-musicbot/pkg/bot/messageprovider/terminal"
 )
 
@@ -61,9 +60,6 @@ func chooseMessageProvider(config *bot.Config) bot.MessageProvider {
 	case "terminal":
 		log.Println("loading the terminal message provider")
 		return terminal.New()
-	case "rocketchat":
-		log.Println("loading the rocketchat message provider")
-		return rocketchat.New(config)
 	case "mattermost":
 		log.Println("loading the mattermost message provider")
 		return mattermost.New(config)
