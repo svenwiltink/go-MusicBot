@@ -193,11 +193,11 @@ func (player *Player) startProcess() error {
 	return nil
 }
 
-func (player *Player) CanPlay(song *music.Song) bool {
+func (player *Player) CanPlay(song music.Song) bool {
 	return true
 }
 
-func (player *Player) PlaySong(song *music.Song) error {
+func (player *Player) PlaySong(song music.Song) error {
 	player.mutex.Lock()
 	defer player.mutex.Unlock()
 

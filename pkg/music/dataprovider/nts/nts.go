@@ -15,7 +15,7 @@ const (
 
 type DataProvider struct{}
 
-func (DataProvider) CanProvideData(song *music.Song) bool {
+func (DataProvider) CanProvideData(song music.Song) bool {
 	return ntsRegex.MatchString(song.Path)
 }
 
@@ -34,6 +34,6 @@ func (DataProvider) ProvideData(song *music.Song) error {
 	return nil
 }
 
-func (DataProvider) Search(name string) ([]*music.Song, error) {
+func (DataProvider) Search(name string) ([]music.Song, error) {
 	return nil, nil
 }

@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -13,11 +14,15 @@ import (
 	"github.com/svenwiltink/go-musicbot/pkg/music/provider/mpv"
 )
 
+var (
+	errCommandNotFound = errors.New("command not found")
+)
+
 type MusicBot struct {
 	messageProvider MessageProvider
 	musicPlayer     music.Player
 	config          *Config
-	commands        map[string]*Command
+	commands        map[string]Command
 	whitelist       *WhiteList
 }
 
@@ -49,7 +54,7 @@ func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
 				youtubeProvider,
 			},
 		),
-		commands: make(map[string]*Command),
+		commands: make(map[string]Command),
 	}
 
 	return instance
@@ -62,12 +67,12 @@ func (bot *MusicBot) Start() {
 	bot.registerCommands()
 
 	bot.musicPlayer.AddListener(music.EventSongStarted, func(arguments ...interface{}) {
-		song := arguments[0].(*music.Song)
+		song := arguments[0].(music.Song)
 		bot.BroadcastMessage(fmt.Sprintf("Started playing %s: %s", song.Artist, song.Name))
 	})
 
 	bot.musicPlayer.AddListener(music.EventSongStartError, func(arguments ...interface{}) {
-		song := arguments[0].(*music.Song)
+		song := arguments[0].(music.Song)
 		bot.BroadcastMessage(fmt.Sprintf("Error starting %v %v, skipping", song.Artist, song.Name))
 	})
 
@@ -112,13 +117,17 @@ func (bot *MusicBot) registerCommands() {
 	bot.registerCommand(aboutCommand)
 }
 
-func (bot *MusicBot) registerCommand(command *Command) {
+func (bot *MusicBot) registerCommand(command Command) {
 	bot.commands[command.Name] = command
 }
 
-func (bot *MusicBot) getCommand(name string) *Command {
-	command, _ := bot.commands[name]
-	return command
+// getCommand returns the command by name or an error if it could not be found
+func (bot *MusicBot) getCommand(name string) (Command, error) {
+	command, exists := bot.commands[name]
+	if !exists {
+		return Command{}, errCommandNotFound
+	}
+	return command, nil
 }
 
 func (bot *MusicBot) ReplyToMessage(message Message, reply string) {
@@ -143,8 +152,8 @@ func (bot *MusicBot) handleMessage(message Message) {
 		words := strings.SplitN(message.Message, " ", 3)
 		if len(words) >= 2 {
 			word := strings.TrimSpace(words[1])
-			command := bot.getCommand(word)
-			if command == nil {
+			command, err := bot.getCommand(word)
+			if err != nil {
 				bot.ReplyToMessage(message, fmt.Sprintf("Unknown command. Use %s help for help", bot.config.CommandPrefix))
 				return
 			}

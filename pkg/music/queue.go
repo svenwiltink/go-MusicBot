@@ -14,15 +14,19 @@ const (
 	songAdded eventemitter.EventType = "song-added"
 )
 
+var (
+	ErrNoSongAvailable = errors.New("no song available")
+)
+
 // Queue holds an array of songs
 type Queue struct {
 	*eventemitter.Emitter
-	songs      []*Song
+	songs      []Song
 	lock       sync.Mutex
 	randSource *rand.Rand
 }
 
-func (queue *Queue) Append(songs ...*Song) {
+func (queue *Queue) Append(songs ...Song) {
 	queue.lock.Lock()
 	defer queue.lock.Unlock()
 
@@ -32,22 +36,22 @@ func (queue *Queue) Append(songs ...*Song) {
 }
 
 // GetNext returns the next item in the queue if it exists
-func (queue *Queue) GetNext() *Song {
+func (queue *Queue) GetNext() (Song, error) {
 	queue.lock.Lock()
 	defer queue.lock.Unlock()
 
 	return queue.getNext()
 }
 
-func (queue *Queue) getNext() *Song {
+func (queue *Queue) getNext() (Song, error) {
 	if len(queue.songs) == 0 {
-		return nil
+		return Song{}, ErrNoSongAvailable
 	}
 	song, remaining := queue.songs[0], queue.songs[1:]
 
 	queue.songs = remaining
 
-	return song
+	return song, nil
 }
 
 func (queue *Queue) GetLength() int {
@@ -84,7 +88,7 @@ func (queue *Queue) GetNextN(limit int) ([]Song, error) {
 
 	result := make([]Song, limit)
 	for i := 0; i < limit; i++ {
-		result[i] = *queue.songs[i]
+		result[i] = queue.songs[i]
 	}
 
 	return result, nil
@@ -103,31 +107,41 @@ func (queue *Queue) Shuffle() {
 func (queue *Queue) Flush() {
 	queue.lock.Lock()
 	defer queue.lock.Unlock()
-	queue.songs = make([]*Song, 0)
+	queue.songs = make([]Song, 0)
 }
 
 // WaitForNext is a blocking call that returns the next song in the queue and wait for one to be added
 // if there is no song available.
-func (queue *Queue) WaitForNext() *Song {
-	next := queue.GetNext()
+func (queue *Queue) WaitForNext() Song {
+	next, err := queue.GetNext()
 
-	if next != nil {
+	if err == nil {
 		return next
 	}
 
-	done := make(chan struct{})
-	queue.ListenOnce(songAdded, func(args ...interface{}) {
-		done <- struct{}{}
-	})
+	// keep waiting until we have a song. This makes sure we keep waiting if there was a race between 2 calls
+	// to WaitForNext
+	for {
+		done := make(chan struct{})
+		queue.ListenOnce(songAdded, func(args ...interface{}) {
+			done <- struct{}{}
+		})
 
-	<-done
-	return queue.GetNext()
+		<-done
+
+		song, err := queue.getNext()
+
+		// we actually have a song now :D
+		if err == nil {
+			return song
+		}
+	}
 }
 
 // NewQueue creates a new instance of Queue
 func NewQueue() *Queue {
 	return &Queue{
-		songs:      make([]*Song, 0),
+		songs:      make([]Song, 0),
 		Emitter:    eventemitter.NewEmitter(true),
 		randSource: rand.New(rand.NewSource(time.Now().UTC().UnixNano())),
 	}
