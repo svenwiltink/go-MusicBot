@@ -20,8 +20,6 @@ require (
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/testify v1.2.2
-	github.com/svenwiltink/ddpgo v0.0.0-20180824111114-cbfd6602d7b7 // indirect
-	github.com/svenwiltink/rocketchatgo v0.0.0-20180824111422-519bc8c4b617
 	github.com/svenwiltink/youtube-dl v0.0.0-20180530195755-08954d006d6a
 	github.com/vansante/go-event-emitter v0.0.0-20180601122726-d1e9ab59df60
 	go.uber.org/atomic v1.3.2 // indirect
