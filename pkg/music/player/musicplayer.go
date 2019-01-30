@@ -138,14 +138,14 @@ func (player *MusicPlayer) Search(searchString string) ([]music.Song, error) {
 }
 
 // AddSong tries to add the song to the Queue
-func (player *MusicPlayer) AddSong(song music.Song) error {
+func (player *MusicPlayer) AddSong(song music.Song) (music.Song, error) {
 	// assume it is a song unless the dataprovider changes it to a stream
 	song.SongType = music.SongTypeSong
 
 	dataProvider := player.getSuitableDataProvider(song)
 
 	if dataProvider == nil {
-		return fmt.Errorf("no dataprovider found for %+v", song)
+		return song, fmt.Errorf("no dataprovider found for %+v", song)
 	}
 
 	err := dataProvider.ProvideData(&song)
@@ -153,17 +153,17 @@ func (player *MusicPlayer) AddSong(song music.Song) error {
 	log.Printf("provided song data: %+v", song)
 
 	if err != nil {
-		return fmt.Errorf("could not get data for song: %v", err)
+		return song, fmt.Errorf("could not get data for song: %v", err)
 	}
 
 	suitablePlayer := player.getSuitablePlayer(song)
 
 	if suitablePlayer == nil {
-		return fmt.Errorf("no suitable player found for %+v", song)
+		return song, fmt.Errorf("no suitable player found for %+v", song)
 	}
 
 	player.Queue.Append(song)
-	return nil
+	return song, nil
 }
 
 func (player *MusicPlayer) getSuitableDataProvider(song music.Song) music.DataProvider {
