@@ -20,7 +20,8 @@ type Player interface {
 	IncreaseVolume(percentage int) (newVolume int, err error)
 	DecreaseVolume(percentage int) (newVolume int, err error)
 	GetVolume() (int, error)
-	AddSong(song Song) error
+	// add a song to the player and provide it with more data where needed
+	AddSong(song Song) (Song, error)
 	Next() error
 	Pause() error
 	Play() error
