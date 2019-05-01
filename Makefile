@@ -18,7 +18,7 @@ all: deps verify build test
 help:
 
 deps:
-	go get -u github.com/golang/lint/golint
+	go get -u golang.org/x/lint/golint
 	go get -u github.com/mitchellh/gox
 	go mod vendor	
 
