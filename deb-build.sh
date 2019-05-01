@@ -29,7 +29,6 @@ fpm \
 	-t deb \
 	-v "${VERSION}" \
 	--force \
-	--deb-compression bzip2 \
 	--license MIT \
 	-m "Sven Wiltink" \
 	--url "https://github.com/svenwiltink/go-musicbot" \
