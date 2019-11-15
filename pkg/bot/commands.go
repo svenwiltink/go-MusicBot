@@ -47,7 +47,7 @@ var addCommand = Command{
 		}
 
 		if message.IsPrivate {
-			bot.BroadcastMessage(fmt.Sprintf("%s: %s added by %s", song.Artist, song.Name, message.Sender.NickName))
+			bot.BroadcastMessage(fmt.Sprintf("%s: %s added by %s", song.Artist, song.Name, message.Sender.Name))
 		}
 		bot.ReplyToMessage(message, fmt.Sprintf("%s: %s added", song.Artist, song.Name))
 
@@ -114,7 +114,7 @@ var searchAddCommand = Command{
 		}
 
 		if message.IsPrivate {
-			bot.BroadcastMessage(fmt.Sprintf("%s: %s added by %s", song.Artist, song.Name, message.Sender.NickName))
+			bot.BroadcastMessage(fmt.Sprintf("%s: %s added by %s", song.Artist, song.Name, message.Sender.Name))
 		}
 
 		bot.ReplyToMessage(message, fmt.Sprintf("%s: %s added", song.Artist, song.Name))
@@ -129,7 +129,7 @@ var nextCommand = Command{
 			bot.ReplyToMessage(message, fmt.Sprintf("Could not skip song: %v", err))
 		} else {
 			if message.IsPrivate {
-				bot.BroadcastMessage(fmt.Sprintf("%s skipped the song", message.Sender.NickName))
+				bot.BroadcastMessage(fmt.Sprintf("%s skipped the song", message.Sender.Name))
 			}
 			bot.ReplyToMessage(message, "Skipping song")
 		}
@@ -146,7 +146,7 @@ var pausedCommand = Command{
 		}
 
 		if message.IsPrivate {
-			bot.BroadcastMessage(fmt.Sprintf("%s stopped the music", message.Sender.NickName))
+			bot.BroadcastMessage(fmt.Sprintf("%s stopped the music", message.Sender.Name))
 		}
 
 		bot.ReplyToMessage(message, "Music paused")
@@ -164,7 +164,7 @@ var playCommand = Command{
 		}
 
 		if message.IsPrivate {
-			bot.BroadcastMessage(fmt.Sprintf("%s resumed the music", message.Sender.NickName))
+			bot.BroadcastMessage(fmt.Sprintf("%s resumed the music", message.Sender.Name))
 		}
 
 		bot.ReplyToMessage(message, "Music resumed")
@@ -221,7 +221,7 @@ var flushCommand = Command{
 		bot.musicPlayer.GetQueue().Flush()
 
 		if message.IsPrivate {
-			bot.BroadcastMessage(fmt.Sprintf("%s flushed the queue", message.Sender.NickName))
+			bot.BroadcastMessage(fmt.Sprintf("%s flushed the queue", message.Sender.Name))
 		}
 
 		bot.ReplyToMessage(message, "Queue flushed")
@@ -234,7 +234,7 @@ var shuffleCommand = Command{
 		bot.musicPlayer.GetQueue().Shuffle()
 
 		if message.IsPrivate {
-			bot.BroadcastMessage(fmt.Sprintf("%s shuffled the queue", message.Sender.NickName))
+			bot.BroadcastMessage(fmt.Sprintf("%s shuffled the queue", message.Sender.Name))
 		}
 
 		bot.ReplyToMessage(message, "Queue shuffled")
@@ -336,7 +336,7 @@ var volCommand = Command{
 		}
 
 		if message.IsPrivate {
-			bot.BroadcastMessage(fmt.Sprintf("Volume set to %d by %s", volume, message.Sender.NickName))
+			bot.BroadcastMessage(fmt.Sprintf("Volume set to %d by %s", volume, message.Sender.Name))
 		}
 
 		bot.ReplyToMessage(message, fmt.Sprintf("Volume set to %d", volume))
