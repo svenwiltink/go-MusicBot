@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	isoduration "github.com/ChannelMeter/iso8601duration"
+	isoduration "github.com/channelmeter/iso8601duration"
 	"github.com/svenwiltink/go-musicbot/pkg/music"
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"

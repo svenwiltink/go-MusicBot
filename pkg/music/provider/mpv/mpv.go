@@ -17,7 +17,7 @@ import (
 
 const (
 	mpvRetryAttempts  = 5
-	mpvMaxLoadTimeout = time.Duration(time.Second * 10)
+	mpvMaxLoadTimeout = time.Duration(time.Second * 30)
 )
 
 // MPV events
