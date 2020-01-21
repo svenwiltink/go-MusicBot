@@ -3,7 +3,7 @@ package mattermost
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
-	mattermost "github.com/mattermost/mattermost-server/model"
+	mattermost "github.com/mattermost/mattermost-server/v5/model"
 	"github.com/svenwiltink/go-musicbot/pkg/bot"
 	"log"
 	"strings"
@@ -136,6 +136,13 @@ func (provider *MessageProvider) startReadLoop() {
 			}
 		}
 		log.Println("mattermost eventchannel closed. Probably disconnected D:")
+
+		log.Println("Trying to reconnect")
+		err := provider.connect()
+		if err != nil {
+			log.Println("Error trying to connect. Trying again in 10s")
+			time.Sleep(10 * time.Second)
+		}
 	}
 
 }
@@ -174,6 +181,17 @@ func (provider *MessageProvider) handleMessage(post *mattermost.Post) {
 
 func (provider *MessageProvider) pingLoop() {
 	ticker := time.NewTicker(10 * time.Second)
+
+	provider.websocketClient.Conn.SetWriteDeadline(time.Now().Add(15 * time.Second))
+	provider.websocketClient.Conn.SetReadDeadline(time.Now().Add(15 * time.Second))
+
+	// push back the timeout by 30 seconds every time we get a pong
+	provider.websocketClient.Conn.SetPongHandler(func(appData string) error {
+		provider.websocketClient.Conn.SetWriteDeadline(time.Now().Add(15 * time.Second))
+		provider.websocketClient.Conn.SetReadDeadline(time.Now().Add(15 * time.Second))
+		return nil
+	})
+
 	for range ticker.C {
 		err := provider.websocketClient.Conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(10*time.Second))
 		if err != nil {
