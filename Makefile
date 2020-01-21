@@ -18,8 +18,8 @@ all: deps verify build test
 help:
 
 deps:
-	go get -u golang.org/x/lint/golint
-	go get -u github.com/mitchellh/gox
+	GO111MODULE=off go get -u golang.org/x/lint/golint
+	GO111MODULE=off go get -u github.com/mitchellh/gox
 	go mod vendor	
 
 verify: fmt lint

@@ -111,7 +111,12 @@ func (provider *MessageProvider) connect() error {
 
 func (provider *MessageProvider) startReadLoop() {
 	log.Println("starting mattermost read loop")
+	timeout := provider.Config.Mattermost.ConnectionTimeout
+
 	for {
+		provider.websocketClient.Conn.SetWriteDeadline(time.Now().Add(timeout * time.Second))
+		provider.websocketClient.Conn.SetReadDeadline(time.Now().Add(timeout * time.Second))
+
 		for event := range provider.websocketClient.EventChannel {
 			if event.Event == mattermost.WEBSOCKET_EVENT_POSTED {
 
@@ -138,11 +143,15 @@ func (provider *MessageProvider) startReadLoop() {
 		log.Println("mattermost eventchannel closed. Probably disconnected D:")
 
 		log.Println("Trying to reconnect")
+
 		err := provider.connect()
 		if err != nil {
 			log.Println("Error trying to connect. Trying again in 10s")
 			time.Sleep(10 * time.Second)
+			continue
 		}
+
+		log.Println("Connected")
 	}
 
 }
@@ -182,13 +191,15 @@ func (provider *MessageProvider) handleMessage(post *mattermost.Post) {
 func (provider *MessageProvider) pingLoop() {
 	ticker := time.NewTicker(10 * time.Second)
 
-	provider.websocketClient.Conn.SetWriteDeadline(time.Now().Add(15 * time.Second))
-	provider.websocketClient.Conn.SetReadDeadline(time.Now().Add(15 * time.Second))
+	timeout := provider.Config.Mattermost.ConnectionTimeout
+	log.Printf("Starting ping loop with timeout of %d seconds", timeout)
+	provider.websocketClient.Conn.SetWriteDeadline(time.Now().Add(timeout * time.Second))
+	provider.websocketClient.Conn.SetReadDeadline(time.Now().Add(timeout * time.Second))
 
 	// push back the timeout by 30 seconds every time we get a pong
 	provider.websocketClient.Conn.SetPongHandler(func(appData string) error {
-		provider.websocketClient.Conn.SetWriteDeadline(time.Now().Add(15 * time.Second))
-		provider.websocketClient.Conn.SetReadDeadline(time.Now().Add(15 * time.Second))
+		provider.websocketClient.Conn.SetWriteDeadline(time.Now().Add(timeout * time.Second))
+		provider.websocketClient.Conn.SetReadDeadline(time.Now().Add(timeout * time.Second))
 		return nil
 	})
 

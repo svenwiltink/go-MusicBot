@@ -7,6 +7,7 @@ require (
 	github.com/golang/mock v1.3.1 // indirect
 	github.com/gorilla/websocket v1.4.1
 	github.com/mattermost/mattermost-server/v5 v5.19.0
+	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.4.0
 	github.com/svenwiltink/youtube-dl v2.0.0+incompatible
 	github.com/vansante/go-event-emitter v1.0.2
