@@ -3,7 +3,9 @@ package bot
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	"os"
+	"time"
 )
 
 const (
@@ -44,11 +46,12 @@ type RocketchatConfig struct {
 }
 
 type MattermostConfig struct {
-	Server             string `json:"server"`
-	Teamname           string `json:"teamname"`
-	PrivateAccessToken string `json:"privateAccessToken"`
-	Channel            string `json:"channel"`
-	Ssl                bool   `json:"ssl"`
+	Server             string        `json:"server"`
+	Teamname           string        `json:"teamname"`
+	PrivateAccessToken string        `json:"privateAccessToken"`
+	Channel            string        `json:"channel"`
+	Ssl                bool          `json:"ssl"`
+	ConnectionTimeout  time.Duration `json:"connectionTimeout"`
 }
 
 type YoutubeConfig struct {
@@ -59,6 +62,15 @@ func (config *Config) applyDefaults() {
 	config.WhiteListFile = DefaultWhiteListFile
 	config.Master = DefauultMaster
 	config.CommandPrefix = DefaultCommandPrefix
+	config.Mattermost.ConnectionTimeout = 30
+}
+
+func (config *Config) CheckForErrors() error {
+	if config.Mattermost.ConnectionTimeout <= 10 {
+		return errors.Errorf("Mattermost ConnectionTimeout too low %d. Must be >= 10 seconds", config.Mattermost.ConnectionTimeout)
+	}
+
+	return nil
 }
 
 func LoadConfig(fileLocation string) (*Config, error) {
@@ -78,5 +90,6 @@ func LoadConfig(fileLocation string) (*Config, error) {
 		return nil, fmt.Errorf("unable to decode config file: %v", err)
 	}
 
-	return config, nil
+	err = config.CheckForErrors()
+	return config, err
 }
