@@ -3,12 +3,12 @@ package youtube
 import (
 	"errors"
 	"fmt"
+	isoduration "github.com/channelmeter/iso8601duration"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
 
-	isoduration "github.com/channelmeter/iso8601duration"
 	"github.com/svenwiltink/go-musicbot/pkg/music"
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
@@ -71,7 +71,7 @@ func (provider *DataProvider) ProvideData(song *music.Song) error {
 }
 
 func (provider *DataProvider) provideDataForIdentifier(identifier string, song *music.Song) error {
-	call := provider.service.Videos.List("snippet,contentDetails").Id(identifier)
+	call := provider.service.Videos.List([]string{"snippet", "contentDetails"}).Id(identifier)
 	response, err := call.Do()
 	if err != nil {
 		return fmt.Errorf("could not get data for url: %v", err)
@@ -124,7 +124,7 @@ func (provider *DataProvider) getIdentifierForSong(song *music.Song) (string, er
 func (provider *DataProvider) Search(searchString string) ([]music.Song, error) {
 	searchTypeStr := "video"
 
-	call := provider.service.Search.List("id,snippet").
+	call := provider.service.Search.List([]string{"id", "snippet"}).
 		Q(searchString).
 		Type(searchTypeStr).
 		MaxResults(int64(5))

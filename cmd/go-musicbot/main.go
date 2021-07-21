@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"github.com/svenwiltink/go-musicbot/pkg/bot/messageprovider/mattermost"
 	"log"
 	"os"
 	"os/signal"
@@ -10,6 +9,8 @@ import (
 
 	"github.com/svenwiltink/go-musicbot/pkg/bot"
 	"github.com/svenwiltink/go-musicbot/pkg/bot/messageprovider/irc"
+	"github.com/svenwiltink/go-musicbot/pkg/bot/messageprovider/mattermost"
+	"github.com/svenwiltink/go-musicbot/pkg/bot/messageprovider/slack"
 	"github.com/svenwiltink/go-musicbot/pkg/bot/messageprovider/terminal"
 )
 
@@ -63,6 +64,9 @@ func chooseMessageProvider(config *bot.Config) bot.MessageProvider {
 	case "mattermost":
 		log.Println("loading the mattermost message provider")
 		return mattermost.New(config)
+	case "slack":
+		log.Println("loading the slack message provider")
+		return slack.New(config)
 	default:
 		log.Fatalf("unsupported message plugin: %s", config.MessagePlugin)
 	}

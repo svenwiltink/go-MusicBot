@@ -27,6 +27,13 @@ var helpCommand = Command{
 	},
 }
 
+func sanitizeSong(song string) string {
+	song = strings.TrimSpace(song)
+	song = strings.TrimLeft(song, "<")
+	song = strings.TrimRight(song, ">")
+	return song
+}
+
 var addCommand = Command{
 	Name: "add",
 	Function: func(bot *MusicBot, message Message) {
@@ -37,7 +44,7 @@ var addCommand = Command{
 		}
 
 		song := music.Song{
-			Path: strings.TrimSpace(words[2]),
+			Path: sanitizeSong(words[2]),
 		}
 
 		song, err := bot.musicPlayer.AddSong(song)

@@ -15,12 +15,19 @@ const (
 	DefaultCommandPrefix      = "!music"
 )
 
+type SlackConfig struct {
+	Token            string `json:"Token"`
+	ApplicationToken string `json:"applicationtoken"`
+	Channel          string `json:"channel"`
+}
+
 type Config struct {
 	WhiteListFile string           `json:"whitelistFile"`
 	Master        string           `json:"master"`
 	Irc           IRCConfig        `json:"irc"`
 	Rocketchat    RocketchatConfig `json:"rocketchat"`
 	Mattermost    MattermostConfig `json:"mattermost"`
+	Slack         SlackConfig      `json:"slack"`
 	Youtube       YoutubeConfig    `json:"youtube"`
 	MessagePlugin string           `json:"messageplugin"`
 	CommandPrefix string           `json:"commandprefix"`
