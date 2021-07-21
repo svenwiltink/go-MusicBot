@@ -77,9 +77,7 @@ func (provider *MessageProvider) handleMessages() {
 						IsPrivate: ev.Channel != provider.Config.Slack.Channel,
 					}
 
-					go func() {
-						provider.MessageChannel <- message
-					}()
+					provider.MessageChannel <- message
 				}
 			}
 		}
