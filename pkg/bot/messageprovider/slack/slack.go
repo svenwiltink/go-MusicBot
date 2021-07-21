@@ -20,7 +20,6 @@ type MessageProvider struct {
 
 func (provider *MessageProvider) Start() error {
 	provider.api = slack.New(provider.Config.Slack.Token, slack.OptionAppLevelToken(provider.Config.Slack.ApplicationToken), slack.OptionDebug(true), slack.OptionLog(log.New(os.Stderr, "slack-bot", log.Lshortfile|log.LstdFlags)))
-	log.Println(provider.Config.Slack.Token)
 
 	provider.rtm = socketmode.New(provider.api)
 	go func() {
@@ -56,13 +55,9 @@ func (provider *MessageProvider) GetMessageChannel() chan bot.Message {
 
 func (provider *MessageProvider) handleMessages() {
 	for msg := range provider.rtm.Events {
-		log.Printf("Event Received: %#v", msg)
-
 		switch msg.Type {
 		case socketmode.EventTypeEventsAPI:
-
 			provider.rtm.Ack(*msg.Request)
-
 			event := msg.Data.(slackevents.EventsAPIEvent)
 
 			switch event.Type {
@@ -70,11 +65,6 @@ func (provider *MessageProvider) handleMessages() {
 				innerEvent := event.InnerEvent
 				switch ev := innerEvent.Data.(type) {
 				case *slackevents.MessageEvent:
-					log.Println("user: ", ev.User)
-					log.Println("username: ", ev.Username)
-					log.Println("message: ", ev.Text)
-					log.Println("channel: ", ev.Channel)
-
 					usermention := fmt.Sprintf("<@%s>", ev.User)
 
 					message := bot.Message{
@@ -91,12 +81,7 @@ func (provider *MessageProvider) handleMessages() {
 						provider.MessageChannel <- message
 					}()
 				}
-
-			default:
-				log.Printf("unsupported Events API event received %T", event.InnerEvent.Data)
 			}
-		default:
-			log.Printf("ignoreing event type %s", msg.Type)
 		}
 	}
 }
