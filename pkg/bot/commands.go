@@ -70,7 +70,7 @@ var searchCommand = Command{
 			return
 		}
 
-		songs, err := bot.musicPlayer.Search(words[2])
+		songs, err := bot.musicPlayer.Search(strings.TrimSpace(words[2]))
 
 		if err != nil {
 			bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
@@ -101,7 +101,7 @@ var searchAddCommand = Command{
 			return
 		}
 
-		songs, err := bot.musicPlayer.Search(words[2])
+		songs, err := bot.musicPlayer.Search(strings.TrimSpace(words[2]))
 
 		if err != nil {
 			bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
