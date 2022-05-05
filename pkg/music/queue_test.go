@@ -13,7 +13,7 @@ func TestQueue_GetLength(t *testing.T) {
 
 	assert.Equal(t, 0, queue.GetLength())
 
-	queue.Append(&Song{
+	queue.Append(Song{
 		Duration: time.Minute,
 		Name:     "banaan",
 	})
@@ -25,7 +25,7 @@ func TestQueue_Append(t *testing.T) {
 	t.Parallel()
 	queue := NewQueue()
 
-	song := &Song{
+	song := Song{
 		Duration: time.Minute,
 		Name:     "banaan",
 	}
@@ -39,7 +39,7 @@ func TestQueue_Flush(t *testing.T) {
 	t.Parallel()
 	queue := NewQueue()
 
-	song := &Song{
+	song := Song{
 		Duration: time.Minute,
 		Name:     "banaan",
 	}
@@ -64,20 +64,22 @@ func TestQueue_Append_Multiple(t *testing.T) {
 func TestQueue_GetNext(t *testing.T) {
 	t.Parallel()
 	queue := NewQueue()
-	song := &Song{
+	song := Song{
 		Duration: time.Minute,
 		Name:     "banaan",
 	}
 
 	queue.Append(song)
-	assert.Equal(t, song, queue.getNext())
+	queuedSong, _ := queue.getNext()
+	assert.Equal(t, song, queuedSong)
 }
 
 func TestQueue_GetNext_Empty(t *testing.T) {
 	t.Parallel()
 	queue := NewQueue()
 
-	assert.Nil(t, queue.GetNext())
+	queuedSong, _ := queue.GetNext()
+	assert.Nil(t, queuedSong)
 }
 
 func TestQueue_GetNextN_Negative(t *testing.T) {
@@ -116,7 +118,7 @@ func TestQueue_GetNextN(t *testing.T) {
 	nextN, err := queue.GetNextN(2)
 
 	assert.NoError(t, err)
-	assert.Equal(t, []Song{*song1, *song2}, nextN)
+	assert.Equal(t, []Song{song1, song2}, nextN)
 }
 
 func TestQueue_GetTotalDuration(t *testing.T) {
@@ -128,13 +130,13 @@ func TestQueue_GetTotalDuration(t *testing.T) {
 func TestQueue_Shuffle(t *testing.T) {
 	queue, _, _ := getTestQueue()
 
-	queue.Append(&Song{
+	queue.Append(Song{
 		Duration: time.Minute,
 		Name:     "song3",
 	})
 
 	queue.randSource = rand.New(rand.NewSource(1))
-	original := append([]*Song(nil), queue.songs...)
+	original := append([]Song(nil), queue.songs...)
 
 	queue.Shuffle()
 
@@ -146,7 +148,7 @@ func TestQueue_WaitForNext(t *testing.T) {
 
 	queue := NewQueue()
 
-	song := &Song{
+	song := Song{
 		Duration: time.Minute,
 		Name:     "song1",
 	}
@@ -158,13 +160,13 @@ func TestQueue_WaitForNext(t *testing.T) {
 	assert.Equal(t, song, queue.WaitForNext())
 }
 
-func getTestQueue() (*Queue, *Song, *Song) {
+func getTestQueue() (*Queue, Song, Song) {
 	queue := NewQueue()
-	song1 := &Song{
+	song1 := Song{
 		Duration: time.Minute,
 		Name:     "song1",
 	}
-	song2 := &Song{
+	song2 := Song{
 		Duration: time.Minute,
 		Name:     "song2",
 	}
