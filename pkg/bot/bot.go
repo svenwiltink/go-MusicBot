@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	errCommandNotFound = errors.New("command not found")
+	errCommandNotFound  = errors.New("command not found")
+	errVariableNotFound = errors.New("command variable not found")
 
 	Version   = "placeholder string"
 	GoVersion = "placeholder string"
@@ -27,6 +28,7 @@ type MusicBot struct {
 	musicPlayer     music.Player
 	config          *Config
 	commands        map[string]Command
+	commandAliases  map[string]Command
 	whitelist       *WhiteList
 }
 
@@ -58,7 +60,8 @@ func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
 				youtubeProvider,
 			},
 		),
-		commands: make(map[string]Command),
+		commands:       make(map[string]Command),
+		commandAliases: make(map[string]Command),
 	}
 
 	return instance
@@ -123,15 +126,22 @@ func (bot *MusicBot) registerCommands() {
 
 func (bot *MusicBot) registerCommand(command Command) {
 	bot.commands[command.Name] = command
+	for _, alias := range command.Aliases {
+		bot.commandAliases[alias] = command
+	}
 }
 
 // getCommand returns the command by name or an error if it could not be found
 func (bot *MusicBot) getCommand(name string) (Command, error) {
 	command, exists := bot.commands[name]
-	if !exists {
-		return Command{}, errCommandNotFound
+	if exists {
+		return command, nil
 	}
-	return command, nil
+	command, exists = bot.commandAliases[name]
+	if exists {
+		return command, nil
+	}
+	return Command{}, errCommandNotFound
 }
 
 func (bot *MusicBot) ReplyToMessage(message Message, reply string) {
@@ -147,30 +157,44 @@ func (bot *MusicBot) Stop() {
 }
 
 func (bot *MusicBot) handleMessage(message Message) {
-	if strings.HasPrefix(message.Message, bot.config.CommandPrefix) {
-		if !(bot.config.Master == message.Sender.Name || bot.whitelist.Contains(message.Sender.Name)) {
-			bot.ReplyToMessage(message, fmt.Sprintf("You're not on the whitelist %s", message.Sender.Name))
+	if strings.HasPrefix(message.Message, bot.config.CommandPrefix+" ") {
+		message.Message = strings.TrimPrefix(message.Message, bot.config.CommandPrefix+" ")
+		bot.handleCommand(message)
+	}
+	if strings.HasPrefix(message.Message, bot.config.ShortCommandPrefix) {
+		// either with or without space after the ShortPrefix is fine
+		if strings.HasPrefix(message.Message, bot.config.ShortCommandPrefix+" ") {
+			message.Message = strings.TrimPrefix(message.Message, bot.config.ShortCommandPrefix+" ")
+		} else {
+			message.Message = strings.TrimPrefix(message.Message, bot.config.ShortCommandPrefix)
+		}
+		bot.handleCommand(message)
+	}
+}
+
+func (bot *MusicBot) handleCommand(message Message) {
+	if !(bot.config.Master == message.Sender.Name || bot.whitelist.Contains(message.Sender.Name)) {
+		bot.ReplyToMessage(message, fmt.Sprintf("You're not on the whitelist %s", message.Sender.Name))
+		return
+	}
+
+	words := strings.SplitN(message.Message, " ", 2)
+	if len(words) >= 1 {
+		commandWord := Message.getCommandWord(message)
+		command, err := bot.getCommand(commandWord)
+		if err != nil {
+			bot.ReplyToMessage(message, fmt.Sprintf("Unknown command. Use %s help for help", bot.config.CommandPrefix))
 			return
 		}
 
-		words := strings.SplitN(message.Message, " ", 3)
-		if len(words) >= 2 {
-			word := strings.TrimSpace(words[1])
-			command, err := bot.getCommand(word)
-			if err != nil {
-				bot.ReplyToMessage(message, fmt.Sprintf("Unknown command. Use %s help for help", bot.config.CommandPrefix))
-				return
-			}
-
-			if command.MasterOnly && bot.config.Master != message.Sender.Name {
-				bot.ReplyToMessage(message, "this command is for masters only")
-				return
-			}
-
-			command.Function(bot, message)
-		} else {
-			bot.ReplyToMessage(message, fmt.Sprintf("Use %s help to list all the commands", bot.config.CommandPrefix))
+		if command.MasterOnly && bot.config.Master != message.Sender.Name {
+			bot.ReplyToMessage(message, "this command is for masters only")
+			return
 		}
+
+		command.Function(bot, message)
+	} else {
+		bot.ReplyToMessage(message, fmt.Sprintf("Use %s help to list all the commands", bot.config.CommandPrefix))
 	}
 }
 
