@@ -160,6 +160,7 @@ func (bot *MusicBot) handleMessage(message Message) {
 	if strings.HasPrefix(message.Message, bot.config.CommandPrefix+" ") {
 		message.Message = strings.TrimPrefix(message.Message, bot.config.CommandPrefix+" ")
 		bot.handleCommand(message)
+		return
 	}
 	if strings.HasPrefix(message.Message, bot.config.ShortCommandPrefix) {
 		// either with or without space after the ShortPrefix is fine
