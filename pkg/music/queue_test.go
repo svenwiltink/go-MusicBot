@@ -154,7 +154,7 @@ func TestQueue_GetNext_Empty(t *testing.T) {
 
 	_, err := queue.GetNext()
 	if assert.Error(t, err) {
-		assert.Equal(t, "no song available", err.Error())
+		assert.Equal(t, ErrNoSongAvailable, err)
 	}
 }
 
