@@ -132,8 +132,10 @@ func TestQueue_GetNext_Empty(t *testing.T) {
 	t.Parallel()
 	queue := NewQueue()
 
-	queuedSong, _ := queue.GetNext()
-	assert.Nil(t, queuedSong)
+	_, err := queue.GetNext()
+	if assert.Error(t, err) {
+		assert.Equal(t, "no song available", err.Error())
+	}
 }
 
 func TestQueue_GetNextN_Negative(t *testing.T) {
