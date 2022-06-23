@@ -1,6 +1,7 @@
 package music
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"sync"
@@ -11,7 +12,8 @@ import (
 )
 
 const (
-	songAdded eventemitter.EventType = "song-added"
+	songAdded   eventemitter.EventType = "song-added"
+	songDeleted eventemitter.EventType = "song-deleted"
 )
 
 var (
@@ -33,6 +35,25 @@ func (queue *Queue) Append(songs ...Song) {
 	queue.songs = append(queue.songs, songs...)
 	log.Println("Song added to the queue")
 	queue.EmitEvent(songAdded)
+}
+
+func (queue *Queue) Delete(item int) error {
+	queue.lock.Lock()
+	defer queue.lock.Unlock()
+
+	if item < 1 {
+		return fmt.Errorf("can not remove negative queue item %d", item)
+	}
+
+	if len(queue.songs)+1 < item {
+		return fmt.Errorf("queue-item %d is not in queue", item)
+	}
+
+	queue.songs = append(queue.songs[:item-1], queue.songs[item:]...)
+	log.Println("Song deleted from the queue")
+	queue.EmitEvent(songDeleted)
+
+	return nil
 }
 
 // GetNext returns the next item in the queue if it exists

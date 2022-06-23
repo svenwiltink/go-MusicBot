@@ -222,6 +222,32 @@ var queueCommand = Command{
 	},
 }
 
+var queueDeleteCommand = Command{
+	Name: "queue-delete",
+	Function: func(bot *MusicBot, message Message) {
+		words := strings.Fields(message.Message)
+		// !music queue-delete #
+		if len(words) <= 2 {
+			bot.ReplyToMessage(message, "No queue item provided")
+			return
+		}
+
+		queueItem, err := strconv.Atoi(words[2])
+		if err != nil {
+			bot.ReplyToMessage(message, "Invalid queue-item provided")
+			return
+		}
+
+		queue := bot.GetMusicPlayer().GetQueue()
+		if err = queue.Delete(queueItem); err != nil {
+			bot.ReplyToMessage(message, fmt.Sprintf("Could not delete queue-item: %s", err))
+			return
+		}
+
+		bot.ReplyToMessage(message, fmt.Sprintf("queue-item %d deleted", queueItem))
+	},
+}
+
 var flushCommand = Command{
 	Name: "flush",
 	Function: func(bot *MusicBot, message Message) {
