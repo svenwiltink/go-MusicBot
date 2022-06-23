@@ -17,7 +17,8 @@ const (
 )
 
 var (
-	ErrNoSongAvailable = errors.New("no song available")
+	ErrNoSongAvailable       = errors.New("no song available")
+	ErrQueueItemNotAvailable = errors.New("queue-item not available")
 )
 
 // Queue holds an array of songs
@@ -41,15 +42,15 @@ func (queue *Queue) Delete(item int) error {
 	queue.lock.Lock()
 	defer queue.lock.Unlock()
 
-	if item < 1 {
+	if item < 0 {
 		return fmt.Errorf("can not remove negative queue item %d", item)
 	}
 
-	if len(queue.songs)+1 < item {
-		return fmt.Errorf("queue-item %d is not in queue", item)
+	if len(queue.songs) <= item {
+		return ErrQueueItemNotAvailable
 	}
 
-	queue.songs = append(queue.songs[:item-1], queue.songs[item:]...)
+	queue.songs = append(queue.songs[:item], queue.songs[item+1:]...)
 	log.Println("Song deleted from the queue")
 	queue.EmitEvent(songDeleted)
 

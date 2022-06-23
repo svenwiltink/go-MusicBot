@@ -239,7 +239,7 @@ var queueDeleteCommand = Command{
 		}
 
 		queue := bot.GetMusicPlayer().GetQueue()
-		if err = queue.Delete(queueItem); err != nil {
+		if err = queue.Delete(queueItem - 1); err != nil {
 			bot.ReplyToMessage(message, fmt.Sprintf("Could not delete queue-item: %s", err))
 			return
 		}
