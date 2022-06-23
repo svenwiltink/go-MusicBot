@@ -35,6 +35,60 @@ func TestQueue_Append(t *testing.T) {
 	assert.Equal(t, queue.songs[0], song)
 }
 
+func TestQueue_Delete(t *testing.T) {
+	t.Run("delete valid item", func(t *testing.T) {
+		t.Parallel()
+
+		// fill new queue
+		queue := NewQueue()
+
+		song1 := Song{Name: "banaan1"}
+		song2 := Song{Name: "banaan2"}
+		song3 := Song{Name: "banaan3"}
+
+		queue.Append(song1)
+		queue.Append(song2)
+		queue.Append(song3)
+
+		// remove middle queue song
+		err := queue.Delete(2)
+		if !assert.NoError(t, err) {
+			return
+		}
+
+		assert.Equal(t, 2, len(queue.songs))
+		assert.Equal(t, song1.Name, queue.songs[0].Name)
+		assert.Equal(t, song3.Name, queue.songs[1].Name)
+	})
+
+	t.Run("delete negative item", func(t *testing.T) {
+		t.Parallel()
+
+		queue := NewQueue()
+		err := queue.Delete(-1)
+
+		if assert.Error(t, err) {
+			assert.Equal(t, "can not remove negative queue item -1", err.Error())
+		}
+	})
+
+	t.Run("delete nonexisting item", func(t *testing.T) {
+		t.Parallel()
+
+		// fill new queue
+		queue := NewQueue()
+		queue.Append(Song{Name: "banaan1"})
+		queue.Append(Song{Name: "banaan2"})
+		queue.Append(Song{Name: "banaan3"})
+
+		err := queue.Delete(6)
+
+		if assert.Error(t, err) {
+			assert.Equal(t, "queue-item 6 is not in queue", err.Error())
+		}
+	})
+}
+
 func TestQueue_Flush(t *testing.T) {
 	t.Parallel()
 	queue := NewQueue()
