@@ -164,11 +164,7 @@ func (bot *MusicBot) handleMessage(message Message) {
 	}
 	if strings.HasPrefix(message.Message, bot.config.ShortCommandPrefix) {
 		// either with or without space after the ShortPrefix is fine
-		if strings.HasPrefix(message.Message, bot.config.ShortCommandPrefix+" ") {
-			message.Message = strings.TrimPrefix(message.Message, bot.config.ShortCommandPrefix+" ")
-		} else {
-			message.Message = strings.TrimPrefix(message.Message, bot.config.ShortCommandPrefix)
-		}
+		message.Message = strings.TrimSpace(strings.TrimPrefix(message.Message, bot.config.ShortCommandPrefix))
 		bot.handleCommand(message)
 	}
 }
@@ -189,7 +185,7 @@ func (bot *MusicBot) handleCommand(message Message) {
 		}
 
 		if command.MasterOnly && bot.config.Master != message.Sender.Name {
-			bot.ReplyToMessage(message, "this command is for masters only")
+			bot.ReplyToMessage(message, "This command is for masters only")
 			return
 		}
 
