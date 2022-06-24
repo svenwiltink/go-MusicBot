@@ -423,16 +423,25 @@ var volCommand = Command{
 var aboutCommand = Command{
 	Name: "about",
 	Function: func(bot *MusicBot, message Message) {
-		var Version, Date, GoVersion string
+		var GoVersion, Version, BuildDate string
 
 		info, ok := debug.ReadBuildInfo()
 		if ok {
-			fmt.Printf("%#v\n", info)
+			GoVersion = info.GoVersion
+
+			for _, setting := range info.Settings {
+				switch setting.Key {
+				case "vcs.revision":
+					Version = setting.Value
+				case "vcs.time":
+					BuildDate = setting.Value
+				}
+			}
 		}
 
 		bot.ReplyToMessage(message, "go-MusicBot by Sven Wiltink: https://github.com/svenwiltink/go-MusicBot")
-		bot.ReplyToMessage(message, fmt.Sprintf("Version: %s", Version))
 		bot.ReplyToMessage(message, fmt.Sprintf("Go: %s", GoVersion))
-		bot.ReplyToMessage(message, fmt.Sprintf("Build date: %s", Date))
+		bot.ReplyToMessage(message, fmt.Sprintf("Version: %s", Version))
+		bot.ReplyToMessage(message, fmt.Sprintf("Build date: %s", BuildDate))
 	},
 }
