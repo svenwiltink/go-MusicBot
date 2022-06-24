@@ -2,25 +2,30 @@ package bot
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/svenwiltink/go-musicbot/pkg/music"
 	"strconv"
+	"strings"
 	"time"
 )
 
 type Command struct {
 	Name       string
+	Aliases    []string
 	MasterOnly bool
 	Function   func(bot *MusicBot, message Message)
 }
 
 var helpCommand = Command{
-	Name: "help",
+	Name:    "help",
+	Aliases: []string{"h"},
 	Function: func(bot *MusicBot, message Message) {
 		helpString := "Available commands: "
 		for _, command := range bot.commands {
-			helpString += command.Name + " "
+			helpString += command.Name
+			if len(command.Aliases) > 0 {
+				helpString += "[" + strings.Join(command.Aliases, ", ") + "]"
+			}
+			helpString += " "
 		}
 
 		bot.ReplyToMessage(message, helpString)
@@ -35,16 +40,17 @@ func sanitizeSong(song string) string {
 }
 
 var addCommand = Command{
-	Name: "add",
+	Name:    "add",
+	Aliases: []string{"a"},
 	Function: func(bot *MusicBot, message Message) {
-		words := strings.SplitN(message.Message, " ", 3)
-		if len(words) <= 2 {
+		parameter, cmdParamError := message.getCommandParameter()
+		if cmdParamError != nil {
 			bot.ReplyToMessage(message, "No song provided")
 			return
 		}
 
 		song := music.Song{
-			Path: sanitizeSong(words[2]),
+			Path: sanitizeSong(parameter),
 		}
 
 		song, err := bot.musicPlayer.AddSong(song)
@@ -62,15 +68,16 @@ var addCommand = Command{
 }
 
 var searchCommand = Command{
-	Name: "search",
+	Name:    "search",
+	Aliases: []string{"s"},
 	Function: func(bot *MusicBot, message Message) {
-		words := strings.SplitN(message.Message, " ", 3)
-		if len(words) <= 2 {
+		parameter, cmdParamError := message.getCommandParameter()
+		if cmdParamError != nil {
 			bot.ReplyToMessage(message, "No song provided")
 			return
 		}
 
-		songs, err := bot.musicPlayer.Search(strings.TrimSpace(words[2]))
+		songs, err := bot.musicPlayer.Search(parameter)
 
 		if err != nil {
 			bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
@@ -93,15 +100,16 @@ var searchCommand = Command{
 }
 
 var searchAddCommand = Command{
-	Name: "search-add",
+	Name:    "search-add",
+	Aliases: []string{"sa"},
 	Function: func(bot *MusicBot, message Message) {
-		words := strings.SplitN(message.Message, " ", 3)
-		if len(words) <= 2 {
+		parameter, cmdParamError := message.getCommandParameter()
+		if cmdParamError != nil {
 			bot.ReplyToMessage(message, "No song provided")
 			return
 		}
 
-		songs, err := bot.musicPlayer.Search(strings.TrimSpace(words[2]))
+		songs, err := bot.musicPlayer.Search(parameter)
 
 		if err != nil {
 			bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
@@ -129,7 +137,8 @@ var searchAddCommand = Command{
 }
 
 var nextCommand = Command{
-	Name: "next",
+	Name:    "next",
+	Aliases: []string{"n"},
 	Function: func(bot *MusicBot, message Message) {
 		err := bot.musicPlayer.Next()
 		if err != nil {
@@ -144,7 +153,8 @@ var nextCommand = Command{
 }
 
 var pausedCommand = Command{
-	Name: "pause",
+	Name:    "pause",
+	Aliases: []string{},
 	Function: func(bot *MusicBot, message Message) {
 		err := bot.musicPlayer.Pause()
 		if err != nil {
@@ -162,7 +172,8 @@ var pausedCommand = Command{
 }
 
 var playCommand = Command{
-	Name: "play",
+	Name:    "play",
+	Aliases: []string{},
 	Function: func(bot *MusicBot, message Message) {
 		err := bot.musicPlayer.Play()
 		if err != nil {
@@ -180,7 +191,8 @@ var playCommand = Command{
 }
 
 var currentCommand = Command{
-	Name: "current",
+	Name:    "current",
+	Aliases: []string{"c"},
 	Function: func(bot *MusicBot, message Message) {
 		song, durationLeft := bot.musicPlayer.GetCurrentSong()
 		if song == nil {
@@ -201,7 +213,8 @@ var currentCommand = Command{
 }
 
 var queueCommand = Command{
-	Name: "queue",
+	Name:    "queue",
+	Aliases: []string{"q"},
 	Function: func(bot *MusicBot, message Message) {
 		queue := bot.GetMusicPlayer().GetQueue()
 
@@ -249,7 +262,8 @@ var queueDeleteCommand = Command{
 }
 
 var flushCommand = Command{
-	Name: "flush",
+	Name:    "flush",
+	Aliases: []string{"f"},
 	Function: func(bot *MusicBot, message Message) {
 		bot.musicPlayer.GetQueue().Flush()
 
@@ -262,7 +276,8 @@ var flushCommand = Command{
 }
 
 var shuffleCommand = Command{
-	Name: "shuffle",
+	Name:    "shuffle",
+	Aliases: []string{},
 	Function: func(bot *MusicBot, message Message) {
 		bot.musicPlayer.GetQueue().Shuffle()
 
@@ -276,28 +291,23 @@ var shuffleCommand = Command{
 
 var whiteListCommand = Command{
 	Name:       "whitelist",
+	Aliases:    []string{},
 	MasterOnly: true,
 	Function: func(bot *MusicBot, message Message) {
-		words := strings.SplitN(message.Message, " ", 4)
-		if len(words) <= 3 {
+		addOrRemove, name, secCmdVarErr := message.getDualCommandParameters()
+		if secCmdVarErr != nil {
 			bot.ReplyToMessage(message, "whitelist <add|remove> <name>")
 			return
 		}
 
-		name := strings.TrimSpace(words[3])
-		if len(name) == 0 {
-			bot.ReplyToMessage(message, "whitelist <add|remove> <name>")
-			return
-		}
-
-		if words[2] == "add" {
+		if addOrRemove == "add" {
 			err := bot.whitelist.Add(name)
 			if err == nil {
 				bot.ReplyToMessage(message, fmt.Sprintf("added %s to the whitelist", name))
 			} else {
 				bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
 			}
-		} else if words[2] == "remove" {
+		} else if addOrRemove == "remove" {
 			err := bot.whitelist.Remove(name)
 			if err == nil {
 				bot.ReplyToMessage(message, fmt.Sprintf("removed %s from the whitelist", name))
@@ -312,11 +322,12 @@ var whiteListCommand = Command{
 }
 
 var volCommand = Command{
-	Name: "vol",
+	Name:    "vol",
+	Aliases: []string{"v"},
 	Function: func(bot *MusicBot, message Message) {
-		words := strings.SplitN(message.Message, " ", 3)
+		volumeString, commandVariableErr := message.getCommandParameter()
 
-		if len(words) == 2 {
+		if commandVariableErr != nil {
 			volume, err := bot.musicPlayer.GetVolume()
 
 			if err != nil {
@@ -329,11 +340,18 @@ var volCommand = Command{
 		}
 
 		// init vars here so we can use them after the switch statement
-		volumeString := strings.TrimSpace(words[2])
 		var volume int
 		var err error
 
 		switch volumeString {
+		case "+":
+			{
+				volume, err = bot.musicPlayer.IncreaseVolume(5)
+				if err != nil {
+					bot.ReplyToMessage(message, fmt.Sprintf("unable to increase volume: %s", err))
+					return
+				}
+			}
 		case "++":
 			{
 				volume, err = bot.musicPlayer.IncreaseVolume(10)
@@ -342,9 +360,33 @@ var volCommand = Command{
 					return
 				}
 			}
+		case "+++":
+			{
+				volume, err = bot.musicPlayer.IncreaseVolume(20)
+				if err != nil {
+					bot.ReplyToMessage(message, fmt.Sprintf("unable to increase volume: %s", err))
+					return
+				}
+			}
+		case "-":
+			{
+				volume, err = bot.musicPlayer.DecreaseVolume(5)
+				if err != nil {
+					bot.ReplyToMessage(message, fmt.Sprintf("unable to decrease volume: %s", err))
+					return
+				}
+			}
 		case "--":
 			{
 				volume, err = bot.musicPlayer.DecreaseVolume(10)
+				if err != nil {
+					bot.ReplyToMessage(message, fmt.Sprintf("unable to decrease volume: %s", err))
+					return
+				}
+			}
+		case "---":
+			{
+				volume, err = bot.musicPlayer.DecreaseVolume(20)
 				if err != nil {
 					bot.ReplyToMessage(message, fmt.Sprintf("unable to decrease volume: %s", err))
 					return

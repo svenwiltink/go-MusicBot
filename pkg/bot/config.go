@@ -11,8 +11,9 @@ import (
 const (
 	DefaultConfigFileLocation = "config.json"
 	DefaultWhiteListFile      = "whitelist.txt"
-	DefauultMaster            = "swiltink"
+	DefaultMaster             = "swiltink"
 	DefaultCommandPrefix      = "!music"
+	DefaultShortCommandPrefix = "!m"
 )
 
 type SlackConfig struct {
@@ -22,17 +23,18 @@ type SlackConfig struct {
 }
 
 type Config struct {
-	WhiteListFile string           `json:"whitelistFile"`
-	Master        string           `json:"master"`
-	Irc           IRCConfig        `json:"irc"`
-	Rocketchat    RocketchatConfig `json:"rocketchat"`
-	Mattermost    MattermostConfig `json:"mattermost"`
-	Slack         SlackConfig      `json:"slack"`
-	Youtube       YoutubeConfig    `json:"youtube"`
-	MessagePlugin string           `json:"messageplugin"`
-	CommandPrefix string           `json:"commandprefix"`
-	MpvPath       string           `json:"mpvpath"`
-	MpvSocket     string           `json:"mpvsocket"`
+	WhiteListFile      string           `json:"whitelistFile"`
+	Master             string           `json:"master"`
+	Irc                IRCConfig        `json:"irc"`
+	Rocketchat         RocketchatConfig `json:"rocketchat"`
+	Mattermost         MattermostConfig `json:"mattermost"`
+	Slack              SlackConfig      `json:"slack"`
+	Youtube            YoutubeConfig    `json:"youtube"`
+	MessagePlugin      string           `json:"messageplugin"`
+	CommandPrefix      string           `json:"commandprefix"`
+	ShortCommandPrefix string           `json:"shortcommandprefix"`
+	MpvPath            string           `json:"mpvpath"`
+	MpvSocket          string           `json:"mpvsocket"`
 }
 
 type IRCConfig struct {
@@ -67,8 +69,9 @@ type YoutubeConfig struct {
 
 func (config *Config) applyDefaults() {
 	config.WhiteListFile = DefaultWhiteListFile
-	config.Master = DefauultMaster
+	config.Master = DefaultMaster
 	config.CommandPrefix = DefaultCommandPrefix
+	config.ShortCommandPrefix = DefaultShortCommandPrefix
 	config.Mattermost.ConnectionTimeout = 30
 }
 
