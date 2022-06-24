@@ -4,3 +4,4 @@ config.json
 whitelist.txt
 out
 pkg_root
+go-musicbot

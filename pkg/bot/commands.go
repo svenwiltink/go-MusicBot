@@ -2,10 +2,12 @@ package bot
 
 import (
 	"fmt"
-	"github.com/svenwiltink/go-musicbot/pkg/music"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/svenwiltink/go-musicbot/pkg/music"
 )
 
 type Command struct {
@@ -421,9 +423,16 @@ var volCommand = Command{
 var aboutCommand = Command{
 	Name: "about",
 	Function: func(bot *MusicBot, message Message) {
+		var Version, Date, GoVersion string
+
+		info, ok := debug.ReadBuildInfo()
+		if ok {
+			fmt.Printf("%#v\n", info)
+		}
+
 		bot.ReplyToMessage(message, "go-MusicBot by Sven Wiltink: https://github.com/svenwiltink/go-MusicBot")
 		bot.ReplyToMessage(message, fmt.Sprintf("Version: %s", Version))
 		bot.ReplyToMessage(message, fmt.Sprintf("Go: %s", GoVersion))
-		bot.ReplyToMessage(message, fmt.Sprintf("Build date: %s", BuildDate))
+		bot.ReplyToMessage(message, fmt.Sprintf("Build date: %s", Date))
 	},
 }
