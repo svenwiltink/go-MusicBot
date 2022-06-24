@@ -1,10 +1,11 @@
 package music
 
 import (
-	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestQueue_GetLength(t *testing.T) {
@@ -127,7 +128,6 @@ func TestQueue_Flush(t *testing.T) {
 
 func TestQueue_Append_Multiple(t *testing.T) {
 	t.Parallel()
-	queue := NewQueue()
 
 	queue, song1, song2 := getTestQueue()
 

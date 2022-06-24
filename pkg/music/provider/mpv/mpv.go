@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"context"
+
 	"github.com/DexterLB/mpvipc"
 	"github.com/svenwiltink/go-musicbot/pkg/music"
 	eventemitter "github.com/vansante/go-event-emitter"
@@ -264,7 +265,7 @@ func (player *Player) Pause() error {
 
 func (player *Player) Stop() {
 	if player.isRunning {
-		player.process.Process.Kill()
+		_ = player.process.Process.Kill()
 	}
 
 	os.Remove(player.socketPath)

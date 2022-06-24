@@ -2,12 +2,13 @@ package mattermost
 
 import (
 	"fmt"
-	"github.com/gorilla/websocket"
-	mattermost "github.com/mattermost/mattermost-server/v5/model"
-	"github.com/svenwiltink/go-musicbot/pkg/bot"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/gorilla/websocket"
+	mattermost "github.com/mattermost/mattermost-server/v5/model"
+	"github.com/svenwiltink/go-musicbot/pkg/bot"
 )
 
 type MessageProvider struct {
@@ -114,8 +115,8 @@ func (provider *MessageProvider) startReadLoop() {
 	timeout := provider.Config.Mattermost.ConnectionTimeout
 
 	for {
-		provider.websocketClient.Conn.SetWriteDeadline(time.Now().Add(timeout * time.Second))
-		provider.websocketClient.Conn.SetReadDeadline(time.Now().Add(timeout * time.Second))
+		_ = provider.websocketClient.Conn.SetWriteDeadline(time.Now().Add(timeout * time.Second))
+		_ = provider.websocketClient.Conn.SetReadDeadline(time.Now().Add(timeout * time.Second))
 
 		for event := range provider.websocketClient.EventChannel {
 			if event.Event == mattermost.WEBSOCKET_EVENT_POSTED {
@@ -193,13 +194,13 @@ func (provider *MessageProvider) pingLoop() {
 
 	timeout := provider.Config.Mattermost.ConnectionTimeout
 	log.Printf("Starting ping loop with timeout of %d seconds", timeout)
-	provider.websocketClient.Conn.SetWriteDeadline(time.Now().Add(timeout * time.Second))
-	provider.websocketClient.Conn.SetReadDeadline(time.Now().Add(timeout * time.Second))
+	_ = provider.websocketClient.Conn.SetWriteDeadline(time.Now().Add(timeout * time.Second))
+	_ = provider.websocketClient.Conn.SetReadDeadline(time.Now().Add(timeout * time.Second))
 
 	// push back the timeout by 30 seconds every time we get a pong
 	provider.websocketClient.Conn.SetPongHandler(func(appData string) error {
-		provider.websocketClient.Conn.SetWriteDeadline(time.Now().Add(timeout * time.Second))
-		provider.websocketClient.Conn.SetReadDeadline(time.Now().Add(timeout * time.Second))
+		_ = provider.websocketClient.Conn.SetWriteDeadline(time.Now().Add(timeout * time.Second))
+		_ = provider.websocketClient.Conn.SetReadDeadline(time.Now().Add(timeout * time.Second))
 		return nil
 	})
 

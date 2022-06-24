@@ -2,12 +2,14 @@ package player
 
 import (
 	"fmt"
-	"github.com/svenwiltink/go-musicbot/pkg/music"
 	"log"
 
+	"github.com/svenwiltink/go-musicbot/pkg/music"
+
 	"errors"
-	"github.com/vansante/go-event-emitter"
 	"time"
+
+	eventemitter "github.com/vansante/go-event-emitter"
 )
 
 // MusicPlayer is responsible for playing music
@@ -62,7 +64,7 @@ func (player *MusicPlayer) GetStatus() music.PlayerStatus {
 
 func (player *MusicPlayer) GetCurrentSong() (*music.Song, time.Duration) {
 	if player.currentSong != nil {
-		return player.currentSong, player.currentSongEnds.Sub(time.Now()).Round(time.Second)
+		return player.currentSong, time.Until(player.currentSongEnds).Round(time.Second)
 	}
 
 	return nil, time.Duration(0)
@@ -114,10 +116,6 @@ func (player *MusicPlayer) GetVolume() (int, error) {
 	}
 
 	return 0, errors.New("nothing is playing")
-}
-
-func (player *MusicPlayer) addMusicProvider(provider music.Provider) {
-	player.musicProviders = append(player.musicProviders, provider)
 }
 
 func (player *MusicPlayer) Search(searchString string) ([]music.Song, error) {

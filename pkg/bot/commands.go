@@ -404,7 +404,7 @@ var volCommand = Command{
 				}
 
 				if volume >= 0 && volume <= 100 {
-					bot.musicPlayer.SetVolume(volume)
+					_ = bot.musicPlayer.SetVolume(volume)
 				} else {
 					bot.ReplyToMessage(message, fmt.Sprintf("%s is not a valid volume", volumeString))
 					return

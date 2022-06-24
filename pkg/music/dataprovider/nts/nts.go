@@ -2,6 +2,7 @@ package nts
 
 import (
 	"fmt"
+
 	"github.com/svenwiltink/go-musicbot/pkg/music"
 )
 
@@ -42,7 +43,7 @@ func (DataProvider) Search(name string) ([]music.Song, error) {
 		fmt.Println("trying to search NTS ", name)
 		songs := make([]music.Song, 0, len(streams))
 
-		for stream, _ := range streams {
+		for stream := range streams {
 			songs = append(songs, music.Song{
 				Name:     stream,
 				Artist:   "nts",

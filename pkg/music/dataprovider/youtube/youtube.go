@@ -1,23 +1,22 @@
 package youtube
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	isoduration "github.com/channelmeter/iso8601duration"
-	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
 
+	isoduration "github.com/channelmeter/iso8601duration"
+
 	"github.com/svenwiltink/go-musicbot/pkg/music"
-	"google.golang.org/api/googleapi/transport"
+	"google.golang.org/api/option"
 	"google.golang.org/api/youtube/v3"
 )
 
 const (
-	youTubeVideoURL    = "https://www.youtube.com/watch?v=%s"
-	youTubePlaylistURL = "https://www.youtube.com/watch?v=%s&list=%s"
-
+	youTubeVideoURL = "https://www.youtube.com/watch?v=%s"
 	MaxYoutubeItems = 500
 )
 
@@ -43,11 +42,7 @@ func NewDataProvider(apiKey string) (*DataProvider, error) {
 }
 
 func (provider *DataProvider) initAPIClient() error {
-	client := &http.Client{
-		Transport: &transport.APIKey{Key: provider.apiKey},
-	}
-
-	service, err := youtube.New(client)
+	service, err := youtube.NewService(context.Background(), option.WithAPIKey(provider.apiKey))
 	if err != nil {
 		return fmt.Errorf("YoutubeAPI.init: Error creating client: %v", err)
 	}
