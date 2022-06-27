@@ -206,6 +206,16 @@ func (player *Player) PlaySong(song music.Song) error {
 		waitForLoad <- true
 	})
 
+	waitForEOF := make(chan string)
+	player.eventEmitter.ListenOnce(EventFileEnded, func(arguments ...any) {
+		mpvEvent := arguments[0].(*mpvipc.Event)
+		errStr, exists := mpvEvent.ExtraData["file_error"].(string)
+		if !exists {
+			errStr = "reasons"
+		}
+		waitForEOF <- errStr
+	})
+
 	// Start an event listener to wait for the file to load.
 	_, err := player.connection.Call("loadfile", song.Path, "replace")
 	if err != nil {
@@ -219,6 +229,8 @@ func (player *Player) PlaySong(song music.Song) error {
 	select {
 	case <-waitForLoad:
 		return nil
+	case errStr := <-waitForEOF:
+		return fmt.Errorf(errStr)
 	case <-timeoutCtx.Done():
 		log.Printf("MpvControl.LoadFile: Load file timeout, did not receive file-loaded event in %d", mpvMaxLoadTimeout)
 		_, err = player.connection.Call("stop")
