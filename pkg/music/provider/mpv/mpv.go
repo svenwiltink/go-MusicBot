@@ -167,7 +167,7 @@ func (player *Player) Skip() error {
 }
 
 func (player *Player) startProcess() error {
-	command := exec.Command(player.mpvPath, "--no-video", "--idle", "--input-ipc-server="+player.socketPath)
+	command := exec.Command(player.mpvPath, "--no-video", "--volume=50", "--idle", "--input-ipc-server="+player.socketPath)
 	player.process = command
 
 	err := command.Start()
@@ -205,6 +205,7 @@ func (player *Player) PlaySong(song music.Song) error {
 	waitForLoadListener := player.eventEmitter.ListenOnce(EventFileLoaded, func(arguments ...interface{}) {
 		waitForLoad <- true
 	})
+	defer player.eventEmitter.RemoveListener(EventFileLoaded, waitForLoadListener)
 
 	waitForEOF := make(chan string)
 	waitForEOFListener := player.eventEmitter.ListenOnce(EventFileEnded, func(arguments ...any) {
@@ -215,6 +216,7 @@ func (player *Player) PlaySong(song music.Song) error {
 		}
 		waitForEOF <- errStr
 	})
+	defer player.eventEmitter.RemoveListener(EventFileEnded, waitForEOFListener)
 
 	// Start an event listener to wait for the file to load.
 	_, err := player.connection.Call("loadfile", song.Path, "replace")
@@ -228,15 +230,11 @@ func (player *Player) PlaySong(song music.Song) error {
 
 	select {
 	case <-waitForLoad:
-		player.eventEmitter.RemoveListener(EventFileEnded, waitForEOFListener)
 		return nil
 	case errStr := <-waitForEOF:
-		player.eventEmitter.RemoveListener(EventFileLoaded, waitForLoadListener)
 		return fmt.Errorf(errStr)
 	case <-timeoutCtx.Done():
 		log.Printf("MpvControl.LoadFile: Load file timeout, did not receive file-loaded event in %d", mpvMaxLoadTimeout)
-		player.eventEmitter.RemoveListener(EventFileEnded, waitForEOFListener)
-		player.eventEmitter.RemoveListener(EventFileLoaded, waitForLoadListener)
 		_, err = player.connection.Call("stop")
 		if err != nil {
 			log.Printf("MpvControl.LoadFile: Error calling stop after timeout: %v", err)
