@@ -202,9 +202,21 @@ func (player *Player) PlaySong(song music.Song) error {
 	defer player.mutex.Unlock()
 
 	waitForLoad := make(chan bool)
-	player.eventEmitter.ListenOnce(EventFileLoaded, func(arguments ...interface{}) {
+	waitForLoadListener := player.eventEmitter.ListenOnce(EventFileLoaded, func(arguments ...interface{}) {
 		waitForLoad <- true
 	})
+	defer player.eventEmitter.RemoveListener(EventFileLoaded, waitForLoadListener)
+
+	waitForEOF := make(chan string)
+	waitForEOFListener := player.eventEmitter.ListenOnce(EventFileEnded, func(arguments ...any) {
+		mpvEvent := arguments[0].(*mpvipc.Event)
+		errStr, exists := mpvEvent.ExtraData["file_error"].(string)
+		if !exists {
+			errStr = "reasons"
+		}
+		waitForEOF <- errStr
+	})
+	defer player.eventEmitter.RemoveListener(EventFileEnded, waitForEOFListener)
 
 	// Start an event listener to wait for the file to load.
 	_, err := player.connection.Call("loadfile", song.Path, "replace")
@@ -219,6 +231,8 @@ func (player *Player) PlaySong(song music.Song) error {
 	select {
 	case <-waitForLoad:
 		return nil
+	case errStr := <-waitForEOF:
+		return fmt.Errorf(errStr)
 	case <-timeoutCtx.Done():
 		log.Printf("MpvControl.LoadFile: Load file timeout, did not receive file-loaded event in %d", mpvMaxLoadTimeout)
 		_, err = player.connection.Call("stop")
@@ -226,10 +240,8 @@ func (player *Player) PlaySong(song music.Song) error {
 			log.Printf("MpvControl.LoadFile: Error calling stop after timeout: %v", err)
 			return err
 		}
-		return fmt.Errorf("error loading file, mpv did not respond in time")
+		return fmt.Errorf("MPV timeout")
 	}
-
-	return nil
 }
 
 func (player *Player) Play() error {

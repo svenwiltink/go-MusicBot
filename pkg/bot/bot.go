@@ -80,7 +80,8 @@ func (bot *MusicBot) Start() {
 
 	bot.musicPlayer.AddListener(music.EventSongStartError, func(arguments ...interface{}) {
 		song := arguments[0].(music.Song)
-		bot.BroadcastMessage(fmt.Sprintf("Error starting %v %v, skipping", song.Artist, song.Name))
+		err := arguments[1].(error)
+		bot.BroadcastMessage(fmt.Sprintf("Error starting %v %v, skipping (%v)", song.Artist, song.Name, err))
 	})
 
 	go bot.messageLoop()

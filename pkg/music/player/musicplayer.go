@@ -207,7 +207,7 @@ func (player *MusicPlayer) playLoop() {
 
 		if err != nil {
 			log.Println(err)
-			player.EmitEvent(music.EventSongStartError, song)
+			player.EmitEvent(music.EventSongStartError, song, err)
 			continue
 		}
 
