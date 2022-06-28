@@ -167,7 +167,7 @@ func (player *Player) Skip() error {
 }
 
 func (player *Player) startProcess() error {
-	command := exec.Command(player.mpvPath, "--no-video", "--idle", "--input-ipc-server="+player.socketPath)
+	command := exec.Command(player.mpvPath, "--no-video", "--volume=50", "--idle", "--input-ipc-server="+player.socketPath)
 	player.process = command
 
 	err := command.Start()
