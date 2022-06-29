@@ -31,16 +31,16 @@ jobs:
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
-      # if: github.event_name == 'release' && github.event.action == 'created'
       with:
         name: package
         path: ./out/packages/*
         retention-days: 5
 
     - name: Setup package cloud
+      if: github.event_name == 'release' && github.event.action == 'created'
       run: sudo gem install package_cloud
-
     - name: Push to package_cloud
+      if: github.event_name == 'release' && github.event.action == 'created'
       env:
         PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
       run: package_cloud push svenwiltink/go-musicbot/ubuntu/bionic ./out/packages/*
