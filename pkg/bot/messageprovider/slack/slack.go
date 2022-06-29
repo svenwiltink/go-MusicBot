@@ -2,12 +2,13 @@ package slack
 
 import (
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"
 	"github.com/svenwiltink/go-musicbot/pkg/bot"
-	"log"
-	"os"
 )
 
 type MessageProvider struct {
@@ -24,7 +25,6 @@ func (provider *MessageProvider) Start() error {
 	provider.rtm = socketmode.New(provider.api)
 	go func() {
 		err := provider.rtm.Run()
-		provider.rtm.Run()
 		if err != nil {
 			panic(err)
 		}

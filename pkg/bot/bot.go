@@ -17,10 +17,6 @@ import (
 var (
 	errCommandNotFound  = errors.New("command not found")
 	errVariableNotFound = errors.New("command variable not found")
-
-	Version   = "placeholder string"
-	GoVersion = "placeholder string"
-	BuildDate = "placeholder string"
 )
 
 type MusicBot struct {
@@ -147,11 +143,15 @@ func (bot *MusicBot) getCommand(name string) (Command, error) {
 }
 
 func (bot *MusicBot) ReplyToMessage(message Message, reply string) {
-	bot.messageProvider.SendReplyToMessage(message, reply)
+	if err := bot.messageProvider.SendReplyToMessage(message, reply); err != nil {
+		log.Printf("Error replying to message: %s", err)
+	}
 }
 
 func (bot *MusicBot) BroadcastMessage(message string) {
-	bot.messageProvider.BroadcastMessage(message)
+	if err := bot.messageProvider.BroadcastMessage(message); err != nil {
+		log.Printf("Error broadcasting message: %s", err)
+	}
 }
 
 func (bot *MusicBot) Stop() {

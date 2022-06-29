@@ -3,9 +3,10 @@ package bot
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"os"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 const (

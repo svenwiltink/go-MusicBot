@@ -2,10 +2,12 @@ package bot
 
 import (
 	"fmt"
-	"github.com/svenwiltink/go-musicbot/pkg/music"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/svenwiltink/go-musicbot/pkg/music"
 )
 
 type Command struct {
@@ -402,7 +404,7 @@ var volCommand = Command{
 				}
 
 				if volume >= 0 && volume <= 100 {
-					bot.musicPlayer.SetVolume(volume)
+					_ = bot.musicPlayer.SetVolume(volume)
 				} else {
 					bot.ReplyToMessage(message, fmt.Sprintf("%s is not a valid volume", volumeString))
 					return
@@ -421,9 +423,25 @@ var volCommand = Command{
 var aboutCommand = Command{
 	Name: "about",
 	Function: func(bot *MusicBot, message Message) {
+		var GoVersion, Version, BuildDate string
+
+		info, ok := debug.ReadBuildInfo()
+		if ok {
+			GoVersion = info.GoVersion
+
+			for _, setting := range info.Settings {
+				switch setting.Key {
+				case "vcs.revision":
+					Version = setting.Value
+				case "vcs.time":
+					BuildDate = setting.Value
+				}
+			}
+		}
+
 		bot.ReplyToMessage(message, "go-MusicBot by Sven Wiltink: https://github.com/svenwiltink/go-MusicBot")
-		bot.ReplyToMessage(message, fmt.Sprintf("Version: %s", Version))
 		bot.ReplyToMessage(message, fmt.Sprintf("Go: %s", GoVersion))
+		bot.ReplyToMessage(message, fmt.Sprintf("Version: %s", Version))
 		bot.ReplyToMessage(message, fmt.Sprintf("Build date: %s", BuildDate))
 	},
 }

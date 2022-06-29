@@ -19,7 +19,7 @@
     "teamname": "svenwiltink",
     "channel": "muziek",
     "privateAccessToken": "<token>",
-    "ssl": true
+    "ssl": true,
     "connectionTimeout": 30
   },
   "youtube": {

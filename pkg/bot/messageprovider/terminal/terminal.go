@@ -17,12 +17,12 @@ func (messageProvider *MessageProvider) GetMessageChannel() chan bot.Message {
 }
 
 func (messageProvider *MessageProvider) SendReplyToMessage(message bot.Message, reply string) error {
-	log.Printf(reply)
+	log.Printf("%s", reply)
 	return nil
 }
 
 func (messageProvider *MessageProvider) BroadcastMessage(message string) error {
-	log.Printf(message)
+	log.Printf("%s", message)
 	return nil
 }
 
