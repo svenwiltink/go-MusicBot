@@ -16,7 +16,7 @@ mkdir -p out/packages
 mkdir -p ${PKG_ROOT}/usr/local/bin
 mkdir -p ${PKG_ROOT}/usr/local/etc/go-Musicbot
 
-cp out/binaries/MusicBot-linux-amd64 \
+cp go-musicbot \
     ${PKG_ROOT}/usr/local/bin/go-Musicbot
 
 cp dist/config.json.example \
@@ -32,7 +32,7 @@ fpm \
 	--license MIT \
 	-m "Sven Wiltink" \
 	--url "https://github.com/svenwiltink/go-musicbot" \
-	--description "A musicbot for rocketchat or irc" \
+	--description "A musicbot for IRC, mattermost and slack" \
 	--config-files /usr/local/etc/go-Musicbot \
         -p "out/packages/${VERSION}.deb"
 

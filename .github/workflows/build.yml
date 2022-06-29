@@ -2,11 +2,11 @@
 on: [push, pull_request]
 name: Test
 jobs:
-  test:
-    name: test
+  build:
+    name: build
     strategy:
       matrix:
-        go-version: [1.18.x]
+        go-version: [1.18.3]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
@@ -14,7 +14,36 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    
     - run: go test ./...
+    - run: go build ./cmd/go-musicbot
+    
+    - name: setup fpm
+      run: sudo gem install fpm
+    
+    - name: git status
+      run: git status
+    
+    - name: make package
+      run: ./deb-build.sh
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      # if: github.event_name == 'release' && github.event.action == 'created'
+      with:
+        name: package
+        path: ./out/packages/*
+        retention-days: 5
+
+    - name: Setup package cloud
+      run: sudo gem install package_cloud
+
+    - name: Push to package_cloud
+      env:
+        PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
+      run: package_cloud push svenwiltink/go-musicbot/ubuntu/bionic ./out/packages/*
   golangci:
     name: lint
     strategy:
