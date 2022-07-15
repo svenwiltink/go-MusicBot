@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 
 	isoduration "github.com/channelmeter/iso8601duration"
@@ -16,7 +17,7 @@ import (
 )
 
 const (
-	youTubeVideoURL = "https://www.youtube.com/watch?v=%s"
+	youTubeVideoURL = "https://www.youtube.com/watch?v=%s&t=%d"
 	MaxYoutubeItems = 500
 )
 
@@ -57,15 +58,15 @@ func (provider *DataProvider) CanProvideData(song music.Song) bool {
 }
 
 func (provider *DataProvider) ProvideData(song *music.Song) error {
-	identifier, err := provider.getIdentifierForSong(song)
+	identifier, startTime, err := provider.getIdentifierAndStartTimeForSong(song)
 	if err != nil {
 		return err
 	}
 
-	return provider.provideDataForIdentifier(identifier, song)
+	return provider.provideDataForIdentifierAndStartTime(identifier, startTime, song)
 }
 
-func (provider *DataProvider) provideDataForIdentifier(identifier string, song *music.Song) error {
+func (provider *DataProvider) provideDataForIdentifierAndStartTime(identifier string, startTime int, song *music.Song) error {
 	call := provider.service.Videos.List([]string{"snippet", "contentDetails"}).Id(identifier)
 	response, err := call.Do()
 	if err != nil {
@@ -89,7 +90,7 @@ func (provider *DataProvider) provideDataForIdentifier(identifier string, song *
 
 			song.Duration = duration.ToDuration()
 
-			song.Path = fmt.Sprintf(youTubeVideoURL, identifier)
+			song.Path = fmt.Sprintf(youTubeVideoURL, identifier, startTime)
 			return nil
 		}
 	}
@@ -97,23 +98,29 @@ func (provider *DataProvider) provideDataForIdentifier(identifier string, song *
 	return fmt.Errorf("playable not found for: %s", identifier)
 }
 
-func (provider *DataProvider) getIdentifierForSong(song *music.Song) (string, error) {
+func (provider *DataProvider) getIdentifierAndStartTimeForSong(song *music.Song) (string, int, error) {
 	ytURL, err := url.Parse(song.Path)
 	if err != nil {
-		return "", fmt.Errorf("YoutubeAPI.GetPlayableForURL: Unable to parse URL [%s] %v", song.Path, err)
+		return "", 0, fmt.Errorf("YoutubeAPI.GetPlayableForURL: Unable to parse URL [%s] %v", song.Path, err)
 	}
 
 	identifier := ytURL.Query().Get("v")
 	if identifier == "" {
 		// Assume format like: https://youtu.be/n1dpZy5Jx4o, in which the path is the identifier
-		identifier = ytURL.Path
+		identifier = strings.TrimLeft(ytURL.Path, "/")
 
 		if strings.ToLower(identifier) == "watch" || identifier == "" {
-			return "", fmt.Errorf("empty identifier for: %s", song.Path)
+			return "", 0, fmt.Errorf("empty identifier for: %s", song.Path)
 		}
 	}
+	startTimeString := ytURL.Query().Get("t")
+	startTimeString = strings.TrimRight(startTimeString, "s")
+	startTime, startTimeErr := strconv.Atoi(startTimeString)
+	if startTimeErr != nil {
+		startTime = 0
+	}
 
-	return identifier, nil
+	return identifier, startTime, nil
 }
 
 func (provider *DataProvider) Search(searchString string) ([]music.Song, error) {
@@ -135,7 +142,7 @@ func (provider *DataProvider) Search(searchString string) ([]music.Song, error) 
 		switch item.Id.Kind {
 		case "youtube#video":
 			song := &music.Song{}
-			err = provider.provideDataForIdentifier(item.Id.VideoId, song)
+			err = provider.provideDataForIdentifierAndStartTime(item.Id.VideoId, 0, song)
 			if err != nil {
 				return nil, fmt.Errorf("error finding data: %v", err)
 			}
