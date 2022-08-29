@@ -240,14 +240,14 @@ var queueCommand = Command{
 var queueDeleteCommand = Command{
 	Name: "queue-delete",
 	Function: func(bot *MusicBot, message Message) {
-		words := strings.Fields(message.Message)
 		// !music queue-delete #
-		if len(words) <= 2 {
+		parameter, cmdParamError := message.getCommandParameter()
+		if cmdParamError != nil {
 			bot.ReplyToMessage(message, "No queue item provided")
 			return
 		}
 
-		queueItem, err := strconv.Atoi(words[2])
+		queueItem, err := strconv.Atoi(parameter)
 		if err != nil {
 			bot.ReplyToMessage(message, "Invalid queue-item provided")
 			return
