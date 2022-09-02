@@ -2,7 +2,7 @@
   "irc": {
     "server": "irc.freenode.net:6667",
     "channel": "#banaan",
-    "nick": "iSlave",
+    "nick": "musicbot",
     "realname": "swiltink",
     "pass": "",
     "ssl": false
@@ -28,5 +28,5 @@
   "mpvpath": "C:\\Program Files (x86)\\mpv\\mpv.exe",
   "mpvsocket": "\\\\.\\pipe\\mpvsocket",
   "messageplugin": "irc",
-  "master": "terminal"
+  "admin": "terminal"
 }

@@ -2,7 +2,7 @@
 .vscode
 vendor
 config.json
-whitelist.txt
+allowlist.txt
 out
 pkg_root
 go-musicbot

@@ -25,7 +25,7 @@ type MusicBot struct {
 	config          *Config
 	commands        map[string]Command
 	commandAliases  map[string]Command
-	whitelist       *WhiteList
+	allowlist       *AllowList
 }
 
 func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
@@ -65,7 +65,7 @@ func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
 
 func (bot *MusicBot) Start() {
 
-	bot.loadWhitelist()
+	bot.loadAllowlist()
 	bot.musicPlayer.Start()
 	bot.registerCommands()
 
@@ -83,19 +83,19 @@ func (bot *MusicBot) Start() {
 	go bot.messageLoop()
 }
 
-func (bot *MusicBot) loadWhitelist() {
-	whitelist, err := LoadWhiteList(bot.config.WhiteListFile)
+func (bot *MusicBot) loadAllowlist() {
+	allowlist, err := LoadAllowList(bot.config.AllowListFile)
 
 	if err != nil {
 		log.Println(err)
-		bot.whitelist = &WhiteList{
+		bot.allowlist = &AllowList{
 			names: make(map[string]struct{}, 0),
 		}
 
 		return
 	}
 
-	bot.whitelist = whitelist
+	bot.allowlist = allowlist
 }
 
 func (bot *MusicBot) messageLoop() {
@@ -117,7 +117,7 @@ func (bot *MusicBot) registerCommands() {
 	bot.registerCommand(queueDeleteCommand)
 	bot.registerCommand(flushCommand)
 	bot.registerCommand(shuffleCommand)
-	bot.registerCommand(whiteListCommand)
+	bot.registerCommand(allowListCommand)
 	bot.registerCommand(volCommand)
 	bot.registerCommand(aboutCommand)
 }
@@ -172,8 +172,8 @@ func (bot *MusicBot) handleMessage(message Message) {
 }
 
 func (bot *MusicBot) handleCommand(message Message) {
-	if !(bot.config.Master == message.Sender.Name || bot.whitelist.Contains(message.Sender.Name)) {
-		bot.ReplyToMessage(message, fmt.Sprintf("You're not on the whitelist %s", message.Sender.Name))
+	if !(bot.config.Admin == message.Sender.Name || bot.allowlist.Contains(message.Sender.Name)) {
+		bot.ReplyToMessage(message, fmt.Sprintf("You're not on the allowlist %s", message.Sender.Name))
 		return
 	}
 
@@ -186,8 +186,8 @@ func (bot *MusicBot) handleCommand(message Message) {
 			return
 		}
 
-		if command.MasterOnly && bot.config.Master != message.Sender.Name {
-			bot.ReplyToMessage(message, "This command is for masters only")
+		if command.AdminOnly && bot.config.Admin != message.Sender.Name {
+			bot.ReplyToMessage(message, "This command is for admins only")
 			return
 		}
 

@@ -11,10 +11,10 @@ import (
 )
 
 type Command struct {
-	Name       string
-	Aliases    []string
-	MasterOnly bool
-	Function   func(bot *MusicBot, message Message)
+	Name      string
+	Aliases   []string
+	AdminOnly bool
+	Function  func(bot *MusicBot, message Message)
 }
 
 var helpCommand = Command{
@@ -291,33 +291,33 @@ var shuffleCommand = Command{
 	},
 }
 
-var whiteListCommand = Command{
-	Name:       "whitelist",
-	Aliases:    []string{},
-	MasterOnly: true,
+var allowListCommand = Command{
+	Name:      "allowlist",
+	Aliases:   []string{},
+	AdminOnly: true,
 	Function: func(bot *MusicBot, message Message) {
 		addOrRemove, name, secCmdVarErr := message.getDualCommandParameters()
 		if secCmdVarErr != nil {
-			bot.ReplyToMessage(message, "whitelist <add|remove> <name>")
+			bot.ReplyToMessage(message, "allowlist <add|remove> <name>")
 			return
 		}
 
 		if addOrRemove == "add" {
-			err := bot.whitelist.Add(name)
+			err := bot.allowlist.Add(name)
 			if err == nil {
-				bot.ReplyToMessage(message, fmt.Sprintf("added %s to the whitelist", name))
+				bot.ReplyToMessage(message, fmt.Sprintf("added %s to the allowlist", name))
 			} else {
 				bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
 			}
 		} else if addOrRemove == "remove" {
-			err := bot.whitelist.Remove(name)
+			err := bot.allowlist.Remove(name)
 			if err == nil {
-				bot.ReplyToMessage(message, fmt.Sprintf("removed %s from the whitelist", name))
+				bot.ReplyToMessage(message, fmt.Sprintf("removed %s from the allowlist", name))
 			} else {
 				bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
 			}
 		} else {
-			bot.ReplyToMessage(message, "whitelist <add|remove> <name>")
+			bot.ReplyToMessage(message, "allowlist <add|remove> <name>")
 			return
 		}
 	},
