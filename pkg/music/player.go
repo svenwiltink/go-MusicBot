@@ -30,7 +30,7 @@ type Player interface {
 	GetStatus() PlayerStatus
 	GetCurrentSong() (*Song, time.Duration)
 	GetQueue() *Queue
-	AddPlaylist(string) error
+	AddPlaylist(string) (*Playlist, error)
 }
 
 type PlayerStatus string

@@ -431,10 +431,12 @@ var addPlaylistCommand = Command{
 			return
 		}
 
-		err := bot.musicPlayer.AddPlaylist(parameter)
+		playlist, err := bot.musicPlayer.AddPlaylist(parameter)
 		if err != nil {
 			bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
 		}
+
+		bot.ReplyToMessage(message, fmt.Sprintf("Started playing Playlist '%s' with %d songs", playlist.Title, playlist.Length()))
 
 	},
 }
