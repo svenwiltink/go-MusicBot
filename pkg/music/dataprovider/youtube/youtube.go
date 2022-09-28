@@ -21,7 +21,8 @@ const (
 	MaxYoutubeItems = 500
 )
 
-var youtubeURLRegex = regexp.MustCompile(`^(https?://)?(www\.)?(youtube\.com|youtu\.?be)/.+$`)
+var youtubeURLRegex = regexp.MustCompile(`^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$`)
+var youtubePlaylistUrlRegex = regexp.MustCompile(`^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/watch\?v=.+&list=.+$`)
 
 type DataProvider struct {
 	apiKey  string
@@ -150,5 +151,47 @@ func (provider *DataProvider) Search(searchString string) ([]music.Song, error) 
 			songs = append(songs, *song)
 		}
 	}
+	return songs, nil
+}
+
+func (provider *DataProvider) AddPlaylist(ytUrl string) ([]music.Song, error) {
+	if !youtubePlaylistUrlRegex.MatchString(ytUrl) {
+		return nil, nil
+	}
+
+	playlistUrl, err := url.Parse(ytUrl)
+	if err != nil {
+		return nil, fmt.Errorf("YoutubeAPI.GetPlayableForURL: Unable to parse URL [%s] %v", ytUrl, err)
+	}
+
+	identifier := playlistUrl.Query().Get("list")
+
+	call := provider.service.PlaylistItems.List([]string{"contentDetails"}).
+		PlaylistId(identifier).
+		MaxResults(200)
+
+	response, err := call.Do()
+	if err != nil {
+		return nil, fmt.Errorf("YoutubeApi: error finding playlist with id '%s': %v", identifier, err)
+	}
+
+	songs := make([]music.Song, 0)
+	for _, item := range response.Items {
+		if item.Kind != "youtube#playlistItem" {
+			continue
+		}
+		song := &music.Song{}
+		err := provider.provideDataForIdentifierAndStartTime(item.ContentDetails.VideoId, 0, song)
+		if err != nil {
+			continue
+		}
+
+		songs = append(songs, *song)
+	}
+
+	if len(songs) == 0 {
+		return nil, fmt.Errorf("YoutubeApi: error finding any video's in this playlist")
+	}
+
 	return songs, nil
 }

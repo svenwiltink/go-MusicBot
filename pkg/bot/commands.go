@@ -420,6 +420,25 @@ var volCommand = Command{
 	},
 }
 
+var addPlaylistCommand = Command{
+	Name:    "playlist-add",
+	Aliases: []string{"pa"},
+	Function: func(bot *MusicBot, message Message) {
+		parameter, commandVariableErr := message.getCommandParameter()
+
+		if commandVariableErr != nil {
+			bot.ReplyToMessage(message, "No URL provided")
+			return
+		}
+
+		err := bot.musicPlayer.AddPlaylist(parameter)
+		if err != nil {
+			bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
+		}
+
+	},
+}
+
 var aboutCommand = Command{
 	Name: "about",
 	Function: func(bot *MusicBot, message Message) {

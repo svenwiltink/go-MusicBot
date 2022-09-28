@@ -120,6 +120,7 @@ func (bot *MusicBot) registerCommands() {
 	bot.registerCommand(allowListCommand)
 	bot.registerCommand(volCommand)
 	bot.registerCommand(aboutCommand)
+	bot.registerCommand(addPlaylistCommand)
 }
 
 func (bot *MusicBot) registerCommand(command Command) {

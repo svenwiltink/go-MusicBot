@@ -56,3 +56,8 @@ func (DataProvider) Search(name string) ([]music.Song, error) {
 
 	return nil, nil
 }
+
+func (DataProvider) AddPlaylist(url string) ([]music.Song, error) {
+	// Not implemented
+	return nil, nil
+}
