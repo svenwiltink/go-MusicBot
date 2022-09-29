@@ -166,7 +166,7 @@ func (provider *DataProvider) AddPlaylist(ytUrl string) (*music.Playlist, error)
 
 	identifier := playlistUrl.Query().Get("list")
 
-	playlist := music.Playlist{}
+	var playlist music.Playlist
 	callPlaylist := provider.service.Playlists.List([]string{"snippet"}).
 		Id(identifier).
 		MaxResults(1)
@@ -203,13 +203,13 @@ func (provider *DataProvider) AddPlaylist(ytUrl string) (*music.Playlist, error)
 			if item.Kind != "youtube#playlistItem" {
 				continue
 			}
-			song := &music.Song{}
-			err := provider.provideDataForIdentifierAndStartTime(item.ContentDetails.VideoId, 0, song)
+			var song music.Song
+			err := provider.provideDataForIdentifierAndStartTime(item.ContentDetails.VideoId, 0, &song)
 			if err != nil {
 				continue
 			}
 
-			playlist.AddSong(*song)
+			playlist.AddSong(song)
 		}
 		nextPageToken = response.NextPageToken
 
