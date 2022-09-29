@@ -21,7 +21,8 @@ const (
 	MaxYoutubeItems = 500
 )
 
-var youtubeURLRegex = regexp.MustCompile(`^(https?://)?(www\.)?(youtube\.com|youtu\.?be)/.+$`)
+var youtubeURLRegex = regexp.MustCompile(`^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$`)
+var youtubePlaylistUrlRegex = regexp.MustCompile(`^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/watch\?v=.+&list=.+$`)
 
 type DataProvider struct {
 	apiKey  string
@@ -151,4 +152,75 @@ func (provider *DataProvider) Search(searchString string) ([]music.Song, error) 
 		}
 	}
 	return songs, nil
+}
+
+func (provider *DataProvider) AddPlaylist(ytUrl string) (*music.Playlist, error) {
+	if !youtubePlaylistUrlRegex.MatchString(ytUrl) {
+		return nil, nil
+	}
+
+	playlistUrl, err := url.Parse(ytUrl)
+	if err != nil {
+		return nil, fmt.Errorf("YoutubeAPI.GetPlayableForURL: Unable to parse URL [%s] %v", ytUrl, err)
+	}
+
+	identifier := playlistUrl.Query().Get("list")
+
+	var playlist music.Playlist
+	callPlaylist := provider.service.Playlists.List([]string{"snippet"}).
+		Id(identifier).
+		MaxResults(1)
+
+	responsePlaylist, err := callPlaylist.Do()
+	if err != nil {
+		return nil, fmt.Errorf("YoutubeApi: error finding playlist with id '%s': %v", identifier, err)
+	}
+
+	for _, item := range responsePlaylist.Items {
+		if item.Kind != "youtube#playlist" {
+			continue
+		}
+		playlist.Title = item.Snippet.Title
+	}
+
+	nextPageToken := ""
+	for {
+		if playlist.Length() >= 350 {
+			break
+		}
+
+		call := provider.service.PlaylistItems.List([]string{"contentDetails", "snippet"}).
+			PlaylistId(identifier).
+			MaxResults(50).
+			PageToken(nextPageToken)
+
+		response, err := call.Do()
+		if err != nil {
+			return nil, fmt.Errorf("YoutubeApi: error finding playlist with id '%s': %v", identifier, err)
+		}
+
+		for _, item := range response.Items {
+			if item.Kind != "youtube#playlistItem" {
+				continue
+			}
+			var song music.Song
+			err := provider.provideDataForIdentifierAndStartTime(item.ContentDetails.VideoId, 0, &song)
+			if err != nil {
+				continue
+			}
+
+			playlist.AddSong(song)
+		}
+		nextPageToken = response.NextPageToken
+
+		if nextPageToken == "" {
+			break
+		}
+	}
+
+	if playlist.Length() == 0 {
+		return nil, fmt.Errorf("YoutubeApi: error finding any video's in this playlist")
+	}
+
+	return &playlist, nil
 }

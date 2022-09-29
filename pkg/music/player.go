@@ -1,8 +1,9 @@
 package music
 
 import (
-	"github.com/vansante/go-event-emitter"
 	"time"
+
+	eventemitter "github.com/vansante/go-event-emitter"
 )
 
 const (
@@ -29,6 +30,7 @@ type Player interface {
 	GetStatus() PlayerStatus
 	GetCurrentSong() (*Song, time.Duration)
 	GetQueue() *Queue
+	AddPlaylist(string) (*Playlist, error)
 }
 
 type PlayerStatus string

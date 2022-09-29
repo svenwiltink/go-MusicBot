@@ -3,9 +3,10 @@ package soundcloud
 import (
 	"regexp"
 
-	"github.com/svenwiltink/go-musicbot/pkg/music"
-	"github.com/svenwiltink/youtube-dl"
 	"time"
+
+	"github.com/svenwiltink/go-musicbot/pkg/music"
+	youtubedl "github.com/svenwiltink/youtube-dl"
 )
 
 var soundCloudRegex = regexp.MustCompile(`^https://soundcloud.com/([a-zA-Z0-9\-_]+)/([a-zA-Z0-9\-_]+)`)
@@ -30,5 +31,10 @@ func (DataProvider) ProvideData(song *music.Song) error {
 }
 
 func (DataProvider) Search(name string) ([]music.Song, error) {
+	return nil, nil
+}
+
+func (DataProvider) AddPlaylist(url string) (*music.Playlist, error) {
+	// Not implemented
 	return nil, nil
 }

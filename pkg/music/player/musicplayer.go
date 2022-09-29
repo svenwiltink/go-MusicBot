@@ -245,6 +245,32 @@ func (player *MusicPlayer) Stop() {
 	}
 }
 
+func (player *MusicPlayer) AddPlaylist(playlistUrl string) (*music.Playlist, error) {
+	playlist := music.Playlist{}
+
+	for _, provider := range player.dataProviders {
+		result, err := provider.AddPlaylist(playlistUrl)
+		if err != nil {
+			return nil, err
+		}
+
+		if result != nil {
+			playlist.Title = result.Title
+			playlist.Songs = result.Songs
+		}
+	}
+
+	for _, song := range playlist.Songs {
+		_, err := player.AddSong(song)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &playlist, nil
+}
+
 // NewMusicPlayer creates a new MusicPlayer instance
 func NewMusicPlayer(providers []music.Provider, dataProviders []music.DataProvider) *MusicPlayer {
 	instance := &MusicPlayer{
