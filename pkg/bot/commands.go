@@ -434,6 +434,7 @@ var addPlaylistCommand = Command{
 		playlist, err := bot.musicPlayer.AddPlaylist(parameter)
 		if err != nil {
 			bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
+			return
 		}
 
 		bot.ReplyToMessage(message, fmt.Sprintf("Started playing Playlist '%s' with %d songs", playlist.Title, playlist.Length()))
