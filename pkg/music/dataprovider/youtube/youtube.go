@@ -203,13 +203,13 @@ func (provider *DataProvider) AddPlaylist(ytUrl string) (*music.Playlist, error)
 			if item.Kind != "youtube#playlistItem" {
 				continue
 			}
-			var song = new(music.Song)
-			err := provider.provideDataForIdentifierAndStartTime(item.ContentDetails.VideoId, 0, song)
+			var song music.Song
+			err := provider.provideDataForIdentifierAndStartTime(item.ContentDetails.VideoId, 0, &song)
 			if err != nil {
 				continue
 			}
 
-			playlist.AddSong(*song)
+			playlist.AddSong(song)
 		}
 		nextPageToken = response.NextPageToken
 

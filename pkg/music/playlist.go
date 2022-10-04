@@ -10,8 +10,5 @@ func (playlist *Playlist) AddSong(song Song) {
 }
 
 func (playlist *Playlist) Length() int {
-	if playlist.Songs == nil {
-		return 0
-	}
 	return len(playlist.Songs)
 }
