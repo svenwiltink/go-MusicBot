@@ -22,7 +22,7 @@ const (
 )
 
 var youtubeURLRegex = regexp.MustCompile(`^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$`)
-var youtubePlaylistUrlRegex = regexp.MustCompile(`^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/watch\?v=.+&list=.+$`)
+var youtubePlaylistUrlRegex = regexp.MustCompile(`^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/(watch|playlist)\?(v=.+&)?list=.+$`)
 
 type DataProvider struct {
 	apiKey  string
@@ -180,7 +180,7 @@ func (provider *DataProvider) AddPlaylist(ytUrl string) (*music.Playlist, error)
 		if item.Kind != "youtube#playlist" {
 			continue
 		}
-		playlist.Title = item.Snippet.Title
+		playlist = music.Playlist{Title: item.Snippet.Title}
 	}
 
 	nextPageToken := ""
