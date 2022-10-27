@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"html"
 	"runtime/debug"
 	"strconv"
 	"strings"
@@ -34,10 +35,11 @@ var helpCommand = Command{
 	},
 }
 
-func sanitizeSong(song string) string {
+func sanitizeSongURL(song string) string {
 	song = strings.TrimSpace(song)
 	song = strings.TrimLeft(song, "<")
 	song = strings.TrimRight(song, ">")
+	song = html.UnescapeString(song)
 	return song
 }
 
@@ -52,7 +54,7 @@ var addCommand = Command{
 		}
 
 		song := music.Song{
-			Path: sanitizeSong(parameter),
+			Path: sanitizeSongURL(parameter),
 		}
 
 		song, err := bot.musicPlayer.AddSong(song)
@@ -431,7 +433,7 @@ var addPlaylistCommand = Command{
 			return
 		}
 
-		playlist, err := bot.musicPlayer.AddPlaylist(parameter)
+		playlist, err := bot.musicPlayer.AddPlaylist(sanitizeSongURL(parameter))
 		if err != nil {
 			bot.ReplyToMessage(message, fmt.Sprintf("error: %v", err))
 			return

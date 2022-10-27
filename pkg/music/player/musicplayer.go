@@ -257,6 +257,7 @@ func (player *MusicPlayer) AddPlaylist(playlistUrl string) (*music.Playlist, err
 		if result != nil {
 			playlist.Title = result.Title
 			playlist.Songs = result.Songs
+			break
 		}
 	}
 
