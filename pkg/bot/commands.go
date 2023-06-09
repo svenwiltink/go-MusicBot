@@ -53,11 +53,29 @@ var addCommand = Command{
 			return
 		}
 
-		song := music.Song{
-			Path: sanitizeSongURL(parameter),
+		parameter = sanitizeSongURL(parameter)
+
+		songNr, err := strconv.ParseInt(parameter, 10, 64)
+		if err == nil {
+			if len(bot.searchCache) == 0 {
+				bot.ReplyToMessage(message, "no search results yet")
+				return
+			}
+
+			// we are trying to add from the search cache
+			if songNr < 1 || int(songNr) > len(bot.searchCache) {
+				bot.ReplyToMessage(message, fmt.Sprintf("invalid search index. Must be between 1 and %d", len(bot.searchCache)))
+				return
+			}
+
+			parameter = bot.searchCache[songNr-1].Path
 		}
 
-		song, err := bot.musicPlayer.AddSong(song)
+		song := music.Song{
+			Path: parameter,
+		}
+
+		song, err = bot.musicPlayer.AddSong(song)
 		if err != nil {
 			bot.ReplyToMessage(message, err.Error())
 			return
@@ -97,6 +115,9 @@ var searchCommand = Command{
 		for number, song := range songs {
 			builder.WriteString(fmt.Sprintf("%d  %s - %s (%s)\n", number+1, song.Artist, song.Name, song.Duration))
 		}
+
+		// populate the search cache
+		bot.searchCache = songs
 
 		bot.ReplyToMessage(message, builder.String())
 

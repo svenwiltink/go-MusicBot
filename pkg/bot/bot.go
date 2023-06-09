@@ -25,7 +25,9 @@ type MusicBot struct {
 	config          *Config
 	commands        map[string]Command
 	commandAliases  map[string]Command
-	allowlist       *AllowList
+	searchCache     []music.Song
+
+	allowlist *AllowList
 }
 
 func NewMusicBot(config *Config, messageProvider MessageProvider) *MusicBot {
